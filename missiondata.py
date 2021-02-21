@@ -41,9 +41,11 @@ class MissionData():
                 <AgentStart/>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>
+                    <SimpleCraftCommands/>
                     <MissionQuitCommands/>
                     <ObservationFromRay/>
                     <ObservationFromFullStats/>
+                    <ObservationFromFullInventory/>
                     <ObservationFromNearbyEntities>
                         <Range name="entities" xrange="{self.entity_ranges[0]}" yrange="{self.entity_ranges[1]}" zrange="{self.entity_ranges[2]}"/>
                     </ObservationFromNearbyEntities>
