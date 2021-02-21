@@ -1,13 +1,14 @@
-
-
+FOREST_SEED = "-5603130799377933031"
+DESERT_SEED= "400009"
 
 class MissionData():
 
     def __init__(self):
         self.start_time = 6000
         self.allow_passage_of_time = False
-        self.seed = "-5603130799377933031"
+        self.seed = DESERT_SEED
         self.entity_ranges = (8, 2, 6)
+        self.name = "SteveBot"
         
         grid_obs_range_x = (-30, 30)
         grid_obs_range_y = (-5, 5)
@@ -36,7 +37,7 @@ class MissionData():
             </ServerSection>
 
             <AgentSection mode="Survival">
-                <Name>SteveBot</Name>
+                <Name>{self.name}</Name>
                 <AgentStart/>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>
