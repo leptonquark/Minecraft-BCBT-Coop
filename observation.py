@@ -14,6 +14,7 @@ MAX_PITCH = 0.2
 
 
 
+not_stuck = ["air", "double_plant", "tallgrass", "yellow_flower"]
 
 
 class Observation():
