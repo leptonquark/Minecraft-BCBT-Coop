@@ -1,3 +1,5 @@
+HOTBAR_SIZE = 9
+
 class Inventory():
 
 
@@ -37,6 +39,12 @@ class Inventory():
             if inventorySlot.item == item:
                 found += inventorySlot.amount
         return found >= amount
+
+    def findItem(self, item):
+        for i, inventorySlot in enumerate(self.inventory):
+            if inventorySlot.item == item:
+                return i
+        return -1
 
 
 class InventorySlot():

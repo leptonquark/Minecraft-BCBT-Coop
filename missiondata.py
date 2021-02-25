@@ -41,6 +41,7 @@ class MissionData():
                 <AgentStart/>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>
+                    <InventoryCommands />
                     <SimpleCraftCommands/>
                     <MissionQuitCommands/>
                     <ObservationFromRay/>

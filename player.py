@@ -4,6 +4,7 @@ import json
 from enum import Enum
 import numpy as np
 from observation import Observation, not_stuck
+from inventory import HOTBAR_SIZE
 from utils import Direction, directionAngle, directionVector, up_vector, down_vector
 
 
@@ -15,6 +16,8 @@ CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_TRESHOLD = 5
+
+PICKAXE_HOTBAR_POSITION = 5
 
 
 up_vector = np.array([0, 1, 0])
@@ -46,54 +49,47 @@ class Player():
             #SEE 
             world_state = agent_host.getWorldState()
             observation = Observation(world_state.observations, self.grid_size)
+            observation.print()
+
+            currentDirection = observation.getCurrentDirection()                        
+            print("Current Direction", currentDirection)
+            
 
             #DO
             #If has material to craft, craft. Otherwise look for log
-            if(observation.inventory.hasItem("log")):
+            if observation.inventory.hasItem("log"):
                 agent_host.sendCommand("craft planks")
-            if(not observation.inventory.hasItem("crafting_table", 1)):
+            if not observation.inventory.hasItem("crafting_table", 1):
                 if observation.inventory.hasItem("planks", 4):
                     agent_host.sendCommand("craft crafting_table")
             else:
-                if(not observation.inventory.hasItem("stick", 2) and observation.inventory.hasItem("planks", 2)):
+                if not observation.inventory.hasItem("stick", 2) and observation.inventory.hasItem("planks", 2):
                     agent_host.sendCommand("craft stick")
-                if(not observation.inventory.hasItem("wooden_pickaxe", 2) and observation.inventory.hasItem("stick", 2) and observation.inventory.hasItem("planks", 2)):
+                if not observation.inventory.hasItem("wooden_pickaxe") and observation.inventory.hasItem("stick", 2) and observation.inventory.hasItem("planks", 2):
                     agent_host.sendCommand("craft wooden_pickaxe")
-            
-            if observation.grid is not None:
-                logpos = np.argwhere((observation.grid == "log") | (observation.grid == "log2"))
-                if len(logpos) > 0:
+                if not observation.inventory.hasItem("stone_pickaxe") and observation.inventory.hasItem("stick", 2) and observation.inventory.hasItem("planks", 2):
+                    agent_host.sendCommand("craft stone_pickaxe")
 
-                    logdistances = logpos - observation.pos
-                    logdistances = np.sum(np.abs(logdistances),axis=1)
-                    min_dist_arg = np.argmin(logdistances)
-                    move = logpos[min_dist_arg] - observation.pos
-                    print(move)
+            if observation.inventory.hasItem("stone_pickaxe"):
+                self.find_and_equip_item(observation, "stone_pickaxe")
+                move = self.find_material(observation, ["iron"])
+            elif observation.inventory.hasItem("wooden_pickaxe") and observation.inventory.hasItem("stick", 2):
+                self.find_and_equip_item(observation, "wooden_pickaxe")
+                move = self.find_material(observation, ["stone"])
+            else:
+                move = self.find_material(observation, ["log", "log2"])
 
-                    log_horizontal_distance = self.getHorizontalDistance(move)
-                    log_vertical_distance = move[1]
-                    print("Log vertical distance", log_vertical_distance)
+            mat_horizontal_distance = self.getHorizontalDistance(move)
+            mat_vertical_distance = move[1]
+            print("Log vertical distance", mat_vertical_distance)
 
-                    wantedDirection = Direction.North
-                    if(np.abs(move[2]) >= np.abs(move[0])):
-                        if(move[2] > 0):
-                            wantedDirection = Direction.North
-                        else:
-                            wantedDirection = Direction.South
-                    else:
-                        if(move[0] > 0):
-                            wantedDirection = Direction.West
-                        else:
-                            wantedDirection = Direction.East
+            wantedDirection = self.getWantedDirection(move)
+            print("Wanted Direction", wantedDirection)
 
-                    currentDirection = observation.getCurrentDirection()                        
-                    print("Current Direction", currentDirection)
-                    print("Wanted Direction", wantedDirection)
-                    print(move)
+            wantedPitch = self.getWantedPitch(mat_horizontal_distance, -1+mat_vertical_distance)
+            print("Current Pitch", observation.pitch)
+            print("Wanted Pitch", wantedPitch)
 
-                    wantedPitch = self.getWantedPitch(log_horizontal_distance, -1+log_vertical_distance)
-                    print("Current Pitch", observation.pitch)
-                    print("Wanted Pitch", wantedPitch)
 
 
             if observation.isStuck():
@@ -105,7 +101,7 @@ class Player():
                 agent_host.sendCommand( "turn " + str(turn_direction))
 
                 if turn_direction == 0:
-                    if log_horizontal_distance > 1:
+                    if mat_horizontal_distance > 1:
                         if(not observation.upper_surroundings[currentDirection] in not_stuck):
                             wantedPitch = self.getWantedPitch(1, 0)
                             agent_host.sendCommand( "move 0")
@@ -125,7 +121,7 @@ class Player():
                             else:
                                 agent_host.sendCommand( "attack 0")                          
                         else:                            
-                            move_speed = self.getMoveSpeed(log_horizontal_distance)
+                            move_speed = self.getMoveSpeed(mat_horizontal_distance)
                             pitch_req = self.getPitchChange(observation.pitch, 0)
                             agent_host.sendCommand("pitch " + str(pitch_req))
                             agent_host.sendCommand( "move " + str(move_speed))
@@ -145,6 +141,53 @@ class Player():
             self.checkTimeout(self.world, world_state)
 
         print("Mission has stopped.")
+
+    def find_material(self, observation, materials):
+        print("find material", materials)
+        if observation.grid is not None:
+            hits = (observation.grid == materials[0])
+            if len(materials) > 1:
+                for i in range(1, len(materials)):
+                    hits = (hits | (observation.grid == materials[i]))
+            matpos = np.argwhere(hits)
+            if len(matpos) > 0:
+                logdistances = matpos - observation.pos
+                logdistances = np.sum(np.abs(logdistances),axis=1)
+                min_dist_arg = np.argmin(logdistances)
+                move = matpos[min_dist_arg] - observation.pos
+
+                return move
+
+        return None
+
+    def find_and_equip_item(self, observation, item):
+        position = observation.inventory.findItem(item)
+        if position > HOTBAR_SIZE:
+            self.agent_host.sendCommand("swapInventoryItems " + str(position) + " " + str(PICKAXE_HOTBAR_POSITION))
+            position = PICKAXE_HOTBAR_POSITION
+
+            
+        self.agent_host.sendCommand("hotbar." + str(position+1) + " 1")  # press
+        self.agent_host.sendCommand("hotbar." + str(position+1) + " 0")  # release
+        time.sleep(0.1)
+
+
+
+    def getWantedDirection(self, move):
+        wantedDirection = Direction.North
+        if(np.abs(move[2]) >= np.abs(move[0])):
+            if(move[2] > 0):
+                wantedDirection = Direction.North
+            else:
+                wantedDirection = Direction.South
+        else:
+            if(move[0] > 0):
+                wantedDirection = Direction.West
+            else:
+                wantedDirection = Direction.East
+        return wantedDirection
+
+
 
 
     def checkTimeout(self, world, world_state):

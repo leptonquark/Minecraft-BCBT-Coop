@@ -34,6 +34,7 @@ class Observation():
 
 
         info = json.loads(infoJSON)
+        self.info = info
 
         self.inventory = Inventory(info)
         print(self.inventory)
@@ -100,6 +101,6 @@ class Observation():
         return self.lower_surroundings[Direction.Zero] not in not_stuck
 
     def print(self):
-        for key in info:
+        for key in self.info:
             if key != "me":
-                print(key, info[key])
+                print(key, self.info[key])
