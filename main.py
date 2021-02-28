@@ -1,13 +1,14 @@
 from __future__ import print_function
 
 from builtins import range
-import os
-import sys
-from world import World
-from player import Player
-
 import MalmoPython
 import malmoutils
+import os
+import sys
+from agent import MinerAgent
+from player import Player
+from world import World
+
 
 
 def run(argv=['']):
@@ -16,13 +17,17 @@ def run(argv=['']):
         return
     malmoutils.fix_print()
 
-    agent_host = MalmoPython.AgentHost()
-    
+    agent_host = MinerAgent()
     world = World(agent_host)
     world.startWorld()
 
+    #player = Player(world, agent_host)
     player = Player(world, agent_host)
+    
     player.run_mission()
+
+
+
 
 
 if __name__ == "__main__":

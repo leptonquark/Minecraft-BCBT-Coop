@@ -97,6 +97,24 @@ class Observation():
                 return key
         return Direction.North
 
+    def getClosest(self, materials):
+        if self.grid is not None:
+            hits = (self.grid == materials[0])
+            if len(materials) > 1:
+                for i in range(1, len(materials)):
+                    hits = (hits | (self.grid == materials[i]))
+            matpos = np.argwhere(hits)
+            if len(matpos) > 0:
+                logdistances = matpos - self.pos
+                logdistances = np.sum(np.abs(logdistances),axis=1)
+                min_dist_arg = np.argmin(logdistances)
+                move = matpos[min_dist_arg] - self.pos
+
+                return move
+
+        return None
+
+
     def isStuck(self):
         return self.lower_surroundings[Direction.Zero] not in not_stuck
 
