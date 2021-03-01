@@ -3,10 +3,11 @@ import time
 import json
 import numpy as np
 from enum import Enum
-from behaviours import GatherMaterial, Craft, Equip
+from behaviours import Craft, Equip, GatherMaterial, JumpIfStuck 
 from observation import Observation, not_stuck
-from py_trees.composites import Sequence
-#from sequence import Sequence
+from py_trees.composites import Selector
+from sequence import Sequence
+from tree import BehaviourTree
 
 MAX_DELAY = 60
 
@@ -19,17 +20,16 @@ class Player():
         self.grid_size = world.mission_data.get_grid_size()
         self.name = world.mission_data.name
 
-        self.sequence = Sequence(
-            "Create Stone Pickaxe", 
-            children=[Craft(agent_host), Equip(agent_host), GatherMaterial(agent_host)]
-        )
+        self.tree = BehaviourTree(agent_host)
 
-        self.action = GatherMaterial(self.agent_host)
 
     def run_mission(self):
         world_state = self.agent_host.getWorldState()
 
         self.last_delta = time.time()
+
+        time.sleep(1)
+
 
         # main loop:
         while world_state.is_mission_running:
@@ -46,7 +46,7 @@ class Player():
             currentDirection = observation.getCurrentDirection()                        
             print("Current Direction", currentDirection)
 
-            self.sequence.tick_once()
+            self.tree.root.tick_once()
 
 
             #DO

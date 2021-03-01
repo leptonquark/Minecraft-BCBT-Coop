@@ -45,6 +45,10 @@ class Observation():
         abs_pos = None
         if "XPos" in info and "YPos" in info and "ZPos" in info:
             abs_pos = np.array([info["XPos"], info["YPos"], info["ZPos"]])
+        print("Absolute Position", abs_pos)
+        self.inner_abs_pos = abs_pos%1
+        print("Inner Absolute Position", self.inner_abs_pos)
+
 
         self.los_pos = None
         if "LineOfSight" in info:

@@ -13,7 +13,8 @@ from utils import Direction, directionAngle, directionVector
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
-PITCH_TOLERANCE = 5
+PITCH_TOLERANCE = 10
+MAX_PITCH = 0.5
 CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
@@ -88,7 +89,7 @@ class Equip(Behaviour):
 class JumpIfStuck(Behaviour):
     def __init__(self, agent_host):
         super(JumpIfStuck, self).__init__("Craft")
-        self.agent_host = self.agent_host
+        self.agent_host = agent_host
 
     def update(self):
         if self.agent_host.observation.isStuck():
@@ -98,6 +99,8 @@ class JumpIfStuck(Behaviour):
         return Status.SUCCESS
 
 
+
+
 class GatherMaterial(Behaviour):
     def __init__(self, agent_host):
         super(GatherMaterial, self).__init__("GatherMaterial")
@@ -105,6 +108,7 @@ class GatherMaterial(Behaviour):
 
     def update(self):
         # Use fallback for this
+        
         if self.agent_host.observation.inventory.hasItem("stone_pickaxe"):
             move = self.agent_host.observation.getClosest(["iron_ore"])
         elif self.agent_host.observation.inventory.hasItem("wooden_pickaxe") and self.agent_host.observation.inventory.hasItem("stick", 2):
@@ -116,58 +120,68 @@ class GatherMaterial(Behaviour):
             return Status.FAILURE
 
 
-        currentDirection = self.agent_host.observation.getCurrentDirection()                        
-        print("Current Direction", currentDirection)
-
         wantedDirection = self.getWantedDirection(move)
-        print("Wanted Direction", wantedDirection)
+        currentDirection = self.agent_host.observation.getCurrentDirection()
 
-
-
-
-        if wantedDirection is not None:
-            turn_direction = self.getTurnDirection(self.agent_host.observation.yaw, wantedDirection)
+        #Turn correct direction
+        turn_direction = self.getTurnDirection(self.agent_host.observation.yaw, wantedDirection)
+        self.agent_host.sendCommand( "move 0")
         self.agent_host.sendCommand( "turn " + str(turn_direction))
 
-        if turn_direction == 0:
-            mat_horizontal_distance = self.getHorizontalDistance(move)
-            if mat_horizontal_distance > 1:
-                if(not self.agent_host.observation.upper_surroundings[currentDirection] in not_stuck):
-                    wantedPitch = self.getWantedPitch(1, 0)
-                    self.agent_host.sendCommand( "move 0")
-                    pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
-                    self.agent_host.sendCommand("pitch " + str(pitch_req))
-                    if(pitch_req == 0):
-                        self.agent_host.sendCommand( "attack 1")
-                    else:
-                        self.agent_host.sendCommand( "attack 0")
-                elif(not self.agent_host.observation.lower_surroundings[currentDirection] in not_stuck):
-                    wantedPitch = self.getWantedPitch(1, -1)
-                    self.agent_host.sendCommand( "move 0")
-                    pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
-                    self.agent_host.sendCommand("pitch " + str(pitch_req))
-                    if(pitch_req == 0):
-                        self.agent_host.sendCommand( "attack 1")
-                    else:
-                        self.agent_host.sendCommand( "attack 0")                          
-                else:                            
-                    move_speed = self.getMoveSpeed(mat_horizontal_distance)
-                    pitch_req = self.getPitchChange(self.agent_host.observation.pitch, 0)
-                    self.agent_host.sendCommand("pitch " + str(pitch_req))
-                    self.agent_host.sendCommand( "move " + str(move_speed))
-                    self.agent_host.sendCommand( "attack 0")
-            else:
+        if turn_direction != 0:
+            return Status.RUNNING
+
+
+        #Move towards
+        mat_horizontal_distance = self.getHorizontalDistance(move)
+        if mat_horizontal_distance > 1:
+            if(not self.agent_host.observation.upper_surroundings[currentDirection] in not_stuck):
+                wantedPitch = self.getWantedPitch(1, 0)
                 self.agent_host.sendCommand( "move 0")
-                wantedPitch = self.getWantedPitch(mat_horizontal_distance, -1+move[1])
                 pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
                 self.agent_host.sendCommand("pitch " + str(pitch_req))
                 if(pitch_req == 0):
                     self.agent_host.sendCommand( "attack 1")
                 else:
                     self.agent_host.sendCommand( "attack 0")
-        else:
-            self.agent_host.sendCommand( "attack 0")
-            self.agent_host.sendCommand( "move 0")  
+                print("PITCH CHANGE TOP", pitch_req)
+            elif(not self.agent_host.observation.lower_surroundings[currentDirection] in not_stuck):
+                wantedPitch = self.getWantedPitch(1, -1)
+                self.agent_host.sendCommand( "move 0")
+                pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
+                self.agent_host.sendCommand("pitch " + str(pitch_req))
+                if(pitch_req == 0):
+                    self.agent_host.sendCommand( "attack 1")
+                else:
+                    self.agent_host.sendCommand( "attack 0")    
+                print("PITCH CHANGE BOTTOM", pitch_req)
+            else:                            
+                move_speed = self.getMoveSpeed(mat_horizontal_distance)
+                pitch_req = self.getPitchChange(self.agent_host.observation.pitch, 0)
+                self.agent_host.sendCommand("pitch " + str(pitch_req))
+                self.agent_host.sendCommand( "move " + str(move_speed))
+                self.agent_host.sendCommand( "attack 0")
+
+        if mat_horizontal_distance > 1:
+            return Status.RUNNING
+
+
+        #Look at
+        self.agent_host.sendCommand( "move 0")
+        wantedPitch = self.getWantedPitch(mat_horizontal_distance, -1+move[1])
+        pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+        print("PITCH CHANGE", pitch_req)
+
+        if(pitch_req != 0):
+            return Status.RUNNING
+        print("mine")
+
+        #Mine
+        self.agent_host.sendCommand( "attack 1")
+        if self.agent_host.observation.grid[tuple(self.agent_host.observation.pos + move)] != 'air':
+            return Status.RUNNING
+
 
         return Status.SUCCESS          
 
@@ -185,8 +199,6 @@ class GatherMaterial(Behaviour):
             else:
                 wantedDirection = Direction.East
         return wantedDirection
-
-
 
 
 
@@ -221,7 +233,7 @@ class GatherMaterial(Behaviour):
         if np.abs(diff) <= PITCH_TOLERANCE:
             return 0
         else:
-            return -diff/quarter_circle
+            return -MAX_PITCH * diff/quarter_circle
 
     def getHorizontalDistance(self, distance):
         return np.abs(distance[0]) + np.abs(distance[2])
@@ -233,4 +245,5 @@ class GatherMaterial(Behaviour):
             return 0
         else:
             return (horizontal_distance-1)/(MOVE_TRESHOLD-1)
-            
+
+
