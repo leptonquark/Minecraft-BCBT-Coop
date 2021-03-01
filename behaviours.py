@@ -24,39 +24,31 @@ PICKAXE_HOTBAR_POSITION = 5
 
 
 class Craft(Behaviour):
-    def __init__(self, agent_host):
+    def __init__(self, agent_host, item, singleton = False):
         super(Craft, self).__init__("Craft")
         self.agent_host = agent_host
+        self.item = item
+        self.singleton = singleton
 
     def update(self):
-        if self.agent_host.inventory.hasItem("log"):
-            self.agent_host.sendCommand("craft planks")
-        if not self.agent_host.inventory.hasItem("crafting_table", 1):
-            if self.agent_host.inventory.hasItem("planks", 4):
-                self.agent_host.sendCommand("craft crafting_table")
-        else:
-            if not self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 2):
-                self.agent_host.sendCommand("craft stick")
-            if not self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 3):
-                self.agent_host.sendCommand("craft wooden_pickaxe")
-            if not self.agent_host.inventory.hasItem("stone_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("cobblestone", 3):
-                self.agent_host.sendCommand("craft stone_pickaxe")
+        if self.singleton and self.agent_host.inventory.hasItem(self.item):
+            return Status.SUCCESS
 
-
-        if self.agent_host.inventory.hasItem("log"):
-            self.agent_host.sendCommand("craft planks")
-        if not self.agent_host.inventory.hasItem("crafting_table", 1):
-            if self.agent_host.inventory.hasItem("planks", 4):
-                self.agent_host.sendCommand("craft crafting_table")
-        else:
-            if not self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 2):
-                self.agent_host.sendCommand("craft stick")
-            if not self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 3):
-                self.agent_host.sendCommand("craft wooden_pickaxe")
-            if not self.agent_host.inventory.hasItem("stone_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("cobblestone", 3):
-                self.agent_host.sendCommand("craft stone_pickaxe")
-        
+        if self.hasIngredients():
+            self.agent_host.sendCommand("craft " + self.item)
+    
         return Status.SUCCESS
+
+        
+    def hasIngredients(self):
+        ingredients = self.agent_host.recipes.getIngredients(self.item)
+
+        for ingredient in ingredients:
+            if not self.agent_host.inventory.hasItem(ingredient.item, ingredient.amount):
+                return False
+        return True
+
+
 
 
 class Equip(Behaviour):
@@ -67,7 +59,7 @@ class Equip(Behaviour):
     def update(self):
         if self.agent_host.inventory.hasItem("stone_pickaxe"):
             self.find_and_equip_item(self.agent_host.observation, "stone_pickaxe")
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2):
+        elif self.agent_host.inventory.hasItem("wooden_pickaxe"):
             self.find_and_equip_item(self.agent_host.observation, "wooden_pickaxe")
 
         return Status.SUCCESS

@@ -14,6 +14,7 @@ class Inventory():
             return 
         
         self.inventory = self.fillInventory(info, size)
+
         
     def getSize(self, info):
         size = 0
@@ -57,3 +58,4 @@ class InventorySlot():
 
     def __repr__(self):
         return str(self)
+
