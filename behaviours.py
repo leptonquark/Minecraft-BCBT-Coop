@@ -25,7 +25,7 @@ PICKAXE_HOTBAR_POSITION = 5
 
 class Craft(Behaviour):
     def __init__(self, agent_host, item, singleton = False):
-        super(Craft, self).__init__("Craft")
+        super(Craft, self).__init__("Craft " + item)
         self.agent_host = agent_host
         self.item = item
         self.singleton = singleton
