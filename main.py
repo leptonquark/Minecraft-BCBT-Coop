@@ -22,7 +22,10 @@ def run(argv=['']):
     world.startWorld()
 
     #player = Player(world, agent_host)
-    player = Player(world, agent_host)
+    
+    goals = ["stone_pickaxe"]
+
+    player = Player(world, agent_host, goals)
     
     player.run_mission()
 

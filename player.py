@@ -4,20 +4,22 @@ import json
 import numpy as np
 from enum import Enum
 from observation import Observation, not_stuck
+from py_trees.display import ascii_tree
 from tree import BehaviourTree
+
 
 MAX_DELAY = 60
 
 class Player():
 
-    def __init__(self, world, agent_host):
+    def __init__(self, world, agent_host, goals = []):
         self.world = world
         self.agent_host = agent_host
 
         self.grid_size = world.mission_data.get_grid_size()
         self.name = world.mission_data.name
 
-        self.tree = BehaviourTree(agent_host)
+        self.tree = BehaviourTree(agent_host, goals)
 
 
     def run_mission(self):
@@ -44,6 +46,8 @@ class Player():
             print("Current Direction", currentDirection)
 
             self.tree.root.tick_once()
+
+            print(ascii_tree(self.tree.root))
 
 
             #DO

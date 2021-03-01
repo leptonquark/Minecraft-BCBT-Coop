@@ -37,7 +37,6 @@ class Observation():
         self.info = info
 
         self.inventory = Inventory(info)
-        print(self.inventory)
 
         los_abs_pos = None
 
@@ -113,6 +112,8 @@ class Observation():
                 logdistances = np.sum(np.abs(logdistances),axis=1)
                 min_dist_arg = np.argmin(logdistances)
                 move = matpos[min_dist_arg] - self.pos
+
+                print("move", move)
 
                 return move
 

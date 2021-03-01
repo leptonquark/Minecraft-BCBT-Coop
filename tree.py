@@ -1,57 +1,77 @@
-from py_trees.composites import Selector
+import time
+from py_trees.composites import Selector, Parallel
+from py_trees.display import ascii_tree
 from sequence import Sequence
 from behaviours import Craft, Equip, JumpIfStuck, GoToMaterial, MineMaterial 
 
 
 class BehaviourTree():
 
-    def __init__(self, agent_host):
-        self.root = self.getBasicTree(agent_host)
+    def __init__(self, agent_host, goals = []):
+        self.root = self.getBaseTree(agent_host, goals)
 
 
-    def getBasicTree(self, agent_host):
-        craftingTree = self.getCraftingTree(agent_host)
-        equipTree = self.getEquipTree(agent_host)
-        gatherMaterialTree = self.getGatherMaterialTree(agent_host)
-
-
-        tree = Sequence(
-            "Create Stone Pickaxe", 
-            children=[JumpIfStuck(agent_host), craftingTree, equipTree, gatherMaterialTree]
+    def getBaseTree(self, agent_host, goals):
+        baseGoalTree = self.getBaseGoalTree(agent_host, goals)
+        tree = Parallel(
+            "BaseTree", 
+            children=[JumpIfStuck(agent_host), baseGoalTree]
         )
         tree.setup_with_descendants()
         return tree
 
-    def getGatherMaterialTree(self, agent_host):
+
+    def getBaseGoalTree(self, agent_host, goals):
+        goals = ["stone_pickaxe"] #REMOVE 
+        children = [self.getGoalTree(agent_host, goal) for goal in goals]
         tree = Sequence(
-            "Gather Wood", 
-            children=[GoToMaterial(agent_host), MineMaterial(agent_host)]
+            "BaseGoalTree",
+            children=children
         )
         tree.setup_with_descendants()
         return tree
-        
-    # This will be removed and will be integrated better. For testing only
-    def getCraftingTree(self, agent_host):
-        tree = Sequence(
-            "Craft", 
+
+
+    def getGoalTree(self, agent_host, goal):
+        tree = Selector(
+            "Obtain " + goal,
             children=[
-                Craft(agent_host, "planks"),
-                Craft(agent_host, "crafting_table", True),
-                Craft(agent_host, "wooden_pickaxe", True),
-                Craft(agent_host, "stone_pickaxe", True),
-                Craft(agent_host, "stick"),
-
+                self.getGatherTree(agent_host, ["iron_ore"], "stone_pickaxe"),
+                Craft(agent_host, "stone_pickaxe"),
+                self.getGatherTree(agent_host, ["stone"], "wooden_pickaxe"),
+                self.getWoodenCraftTree(agent_host),
+                self.getGatherTree(agent_host, ["log", "log2"])               
+            ]
+        )
+        tree.setup_with_descendants()
+        return tree
+    
+    def getWoodenCraftTree(self, agent_host):
+        tree = Parallel(
+            "Craft wood",
+            children=[ 
+                Craft(agent_host, "planks", 7),
+                Craft(agent_host, "stick", 4),
+                Craft(agent_host, "crafting_table", 1),
+                Craft(agent_host, "wooden_pickaxe")
             ]
         )
         tree.setup_with_descendants()
         return tree
 
 
-   # This will be removed and will be integrated better. For testing only
-    def getEquipTree(self, agent_host):
+        
+
+    def getGatherTree(self, agent_host, material, tool = None):
+        children= []
+        if tool is not None:
+            children.append(Equip(agent_host, tool))
+        children += [GoToMaterial(agent_host, material, tool), MineMaterial(agent_host, material, tool)]
+
         tree = Sequence(
-            "Equip", 
-            children=[Equip(agent_host)]
-        )        
+            "Gather " + str(material), 
+            children=children
+        )
         tree.setup_with_descendants()
         return tree
+        

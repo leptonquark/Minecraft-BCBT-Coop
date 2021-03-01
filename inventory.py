@@ -2,7 +2,6 @@ HOTBAR_SIZE = 9
 
 class Inventory():
 
-
     def __init__(self, info):
         if "inventoriesAvailable" not in info:
             print("Can't create inventory. No inventory available.")
@@ -14,6 +13,7 @@ class Inventory():
             return 
         
         self.inventory = self.fillInventory(info, size)
+        self.currentItem = info["currentItemIndex"]
 
         
     def getSize(self, info):

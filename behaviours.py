@@ -24,20 +24,21 @@ PICKAXE_HOTBAR_POSITION = 5
 
 
 class Craft(Behaviour):
-    def __init__(self, agent_host, item, singleton = False):
+    def __init__(self, agent_host, item, amount = 1):
         super(Craft, self).__init__("Craft " + item)
         self.agent_host = agent_host
         self.item = item
-        self.singleton = singleton
+        self.amount = amount
 
     def update(self):
-        if self.singleton and self.agent_host.inventory.hasItem(self.item):
+        if self.agent_host.inventory.hasItem(self.item, self.amount):
             return Status.SUCCESS
 
         if self.hasIngredients():
             self.agent_host.sendCommand("craft " + self.item)
-    
-        return Status.SUCCESS
+            return Status.SUCCESS
+        
+        return Status.FAILURE
 
         
     def hasIngredients(self):
@@ -52,17 +53,17 @@ class Craft(Behaviour):
 
 
 class Equip(Behaviour):
-    def __init__(self, agent_host):
-        super(Equip, self).__init__("Equip")
+    def __init__(self, agent_host, item):
+        super(Equip, self).__init__("Equip " + item)
         self.agent_host = agent_host
+        self.item = item
 
     def update(self):
-        if self.agent_host.inventory.hasItem("stone_pickaxe"):
-            self.find_and_equip_item(self.agent_host.observation, "stone_pickaxe")
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe"):
-            self.find_and_equip_item(self.agent_host.observation, "wooden_pickaxe")
+        if self.agent_host.inventory.hasItem(self.item):
+            self.find_and_equip_item(self.agent_host.observation, self.item)
+            return Status.SUCCESS
 
-        return Status.SUCCESS
+        return Status.FAILURE
 
 
     def find_and_equip_item(self, observation, item):
@@ -80,7 +81,7 @@ class Equip(Behaviour):
 
 class JumpIfStuck(Behaviour):
     def __init__(self, agent_host):
-        super(JumpIfStuck, self).__init__("Craft")
+        super(JumpIfStuck, self).__init__("JumpIfStuck")
         self.agent_host = agent_host
 
     def update(self):
@@ -92,21 +93,21 @@ class JumpIfStuck(Behaviour):
 
 
 class GoToMaterial(Behaviour):
-    def __init__(self, agent_host):
-        super(GoToMaterial, self).__init__("GoToMaterial")
+    def __init__(self, agent_host, material, tool = None):
+        super(GoToMaterial, self).__init__("Go to " + str(material))
         self.agent_host = agent_host
+        self.material = material
+        self.tool = tool
 
     def update(self):
         # Use fallback for this
         
-        if self.agent_host.inventory.hasItem("stone_pickaxe"):
-            move = self.agent_host.observation.getClosest(["iron_ore"])
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2):
-            move = self.agent_host.observation.getClosest(["stone"])
-        else:
-            move = self.agent_host.observation.getClosest(["log", "log2"])
+        move = self.agent_host.observation.getClosest(self.material)
 
         if move is None:
+            return Status.FAILURE
+
+        if self.tool is not None and not self.agent_host.inventory.hasItem(self.tool):
             return Status.FAILURE
 
 
@@ -124,7 +125,7 @@ class GoToMaterial(Behaviour):
 
         #Move towards
         mat_horizontal_distance = self.getHorizontalDistance(move)
-        if mat_horizontal_distance > 1:
+        if np.abs(move[1]) >= 4 or mat_horizontal_distance > 1:
             if(not self.agent_host.observation.upper_surroundings[currentDirection] in not_stuck):
                 wantedPitch = self.getWantedPitch(1, 0)
                 self.agent_host.sendCommand( "move 0")
@@ -221,24 +222,28 @@ class GoToMaterial(Behaviour):
 
 
 class MineMaterial(Behaviour):
-    def __init__(self, agent_host):
-        super(MineMaterial, self).__init__("MineMaterial")
+    def __init__(self, agent_host, material, tool = None):
+        super(MineMaterial, self).__init__("Mine " + str(material))
         self.agent_host = agent_host
+        self.material = material
+        self.tool = tool
+
 
     def update(self):
         # Use fallback for this
         
-        if self.agent_host.inventory.hasItem("stone_pickaxe"):
-            move = self.agent_host.observation.getClosest(["iron_ore"])
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2):
-            move = self.agent_host.observation.getClosest(["stone"])
-        else:
-            move = self.agent_host.observation.getClosest(["log", "log2"])
+        move = self.agent_host.observation.getClosest(self.material)
 
         if move is None:
             return Status.FAILURE
 
+        if self.tool is not None and not self.agent_host.inventory.hasItem(self.tool):
+            return Status.FAILURE            
+
         mat_horizontal_distance = self.getHorizontalDistance(move)
+
+        if mat_horizontal_distance > 1:
+            return Status.FAILURE
 
         #Look at
         self.agent_host.sendCommand( "move 0")
@@ -249,7 +254,6 @@ class MineMaterial(Behaviour):
 
         if(pitch_req != 0):
             return Status.RUNNING
-        print("mine")
 
         #Mine
         self.agent_host.sendCommand( "attack 1")
@@ -277,4 +281,3 @@ class MineMaterial(Behaviour):
 
     def getHorizontalDistance(self, distance):
         return np.abs(distance[0]) + np.abs(distance[2])
-
