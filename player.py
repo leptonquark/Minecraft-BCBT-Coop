@@ -3,10 +3,7 @@ import time
 import json
 import numpy as np
 from enum import Enum
-from behaviours import Craft, Equip, GatherMaterial, JumpIfStuck 
 from observation import Observation, not_stuck
-from py_trees.composites import Selector
-from sequence import Sequence
 from tree import BehaviourTree
 
 MAX_DELAY = 60
