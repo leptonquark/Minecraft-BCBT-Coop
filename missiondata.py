@@ -42,13 +42,14 @@ class MissionData:
             <AgentSection mode="Survival">
                 <Name>{self.name}</Name>
                 <AgentStart>
-                    <Placement x="247" y="65.0" z="252" pitch="18"/>
+                    <Placement x="247" y="68.0" z="232" pitch="18"/>
                 </AgentStart>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>
                     <InventoryCommands />
                     <SimpleCraftCommands/>
                     <MissionQuitCommands/>
+                    <ChatCommands />                    
                     <ObservationFromRay/>
                     <ObservationFromFullStats/>
                     <ObservationFromFullInventory/>
