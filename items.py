@@ -12,6 +12,7 @@ IRON_ORE = "iron_ore"
 DIAMOND_ORE = "diamond_ore"
 
 IRON_INGOT = "iron_ingot"
+DIAMOND = "diamond"
 
 STICKS = "stick"
 PLANKS = "planks"

@@ -10,6 +10,8 @@ def get_goal_tree(agent_host, goal):
     tree = Selector(
         "Obtain " + goal,
         children=[
+            Equip(agent_host, items.DIAMOND_PICKAXE),
+            Craft(agent_host, items.DIAMOND_PICKAXE),
             get_gather_tree(agent_host, [items.DIAMOND_ORE]),
             get_iron_craft_tree(agent_host),
             get_gather_tree(agent_host, [items.IRON_ORE]),
