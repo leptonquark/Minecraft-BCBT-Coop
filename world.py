@@ -15,11 +15,36 @@ PORT = 10000
 MAX_RETRIES = 3
 MAX_RESPONSE_TIME = 60
 
+
 class MissionTimeoutException(Exception):
     pass
 
 
-class World():
+def setup_mission(mission_data):
+    mission = MalmoPython.MissionSpec(mission_data.get_xml(), True)
+    mission.timeLimitInSeconds(TIME_LIMIT_IN_SECONDS)
+    mission.requestVideo(*VIDEO_SIZE)
+    return mission
+
+
+def setup_mission_record(agent_host):
+    mission_record = malmoutils.get_default_recording_object(agent_host, RECORDING_NAME)
+    return mission_record
+
+
+def setup_pool(client_info):
+    pool = MalmoPython.ClientPool()
+    pool.add(client_info)
+    return pool
+
+
+def setup_experiment_id():
+    experiment_id = str(uuid.uuid1())
+    print("experiment id " + experiment_id)
+    return experiment_id
+
+
+class World:
 
     def __init__(self, agent_host):
 
@@ -28,35 +53,15 @@ class World():
         malmoutils.parse_command_line(agent_host, [''])
 
         self.mission_data = MissionData()
-        self.mission = self.setupMission(self.mission_data)
-        self.mission_record = self.setupMissionRecord(agent_host)
+        self.mission = setup_mission(self.mission_data)
+        self.mission_record = setup_mission_record(agent_host)
 
         self.client_info = MalmoPython.ClientInfo(IP, PORT)
-        self.pool = self.setupPool(self.client_info)
+        self.pool = setup_pool(self.client_info)
 
-        self.experiment_id = self.setupExperimentId()
+        self.experiment_id = setup_experiment_id()
 
-    def setupMission(self, mission_data):
-        mission = MalmoPython.MissionSpec(mission_data.getXML(), True)
-        mission.timeLimitInSeconds(TIME_LIMIT_IN_SECONDS)
-        mission.requestVideo(*VIDEO_SIZE)
-        return mission
-
-    def setupMissionRecord(self, agent_host):
-        mission_record = malmoutils.get_default_recording_object(agent_host, RECORDING_NAME)
-        return mission_record
-
-    def setupPool(self, client_info):
-        pool = MalmoPython.ClientPool()
-        pool.add(client_info)
-        return pool
-
-    def setupExperimentId(self):
-        experiment_id = str(uuid.uuid1())
-        print("experiment id " + experiment_id)
-        return experiment_id
-
-    def startWorld(self):
+    def start_world(self):
         for retry in range(MAX_RETRIES):
             try:
                 self.agent_host.startMission(self.mission, self.pool, self.mission_record, 0, self.experiment_id)
@@ -79,12 +84,10 @@ class World():
                 self.restart_minecraft(world_state, "begin mission")
             world_state = self.agent_host.getWorldState()
             for error in world_state.errors:
-                print("Error:",error.text)
+                print("Error:", error.text)
         print()
 
-
-
-    def restart_minecraft(self, world_state, message = ""):
+    def restart_minecraft(self, world_state, message=""):
         """"Attempt to quit mission if running and kill the client"""
         if world_state.is_mission_running:
             self.agent_host.sendCommand("quit")

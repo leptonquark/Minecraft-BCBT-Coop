@@ -1,7 +1,8 @@
 FOREST_SEED = "-5603130799377933031"
-DESERT_SEED= "400009"
+DESERT_SEED = "400009"
 
-class MissionData():
+
+class MissionData:
 
     def __init__(self):
         self.start_time = 6000
@@ -11,13 +12,13 @@ class MissionData():
         self.name = "SteveBot"
 
         self.night_vision = True
-        
+
         grid_obs_range_x = (-30, 30)
         grid_obs_range_y = (-5, 5)
         grid_obs_range_z = (-35, 35)
-        self.grid_obs_range = [grid_obs_range_x, grid_obs_range_y, grid_obs_range_z] 
+        self.grid_obs_range = [grid_obs_range_x, grid_obs_range_y, grid_obs_range_z]
 
-    def getXML(self):
+    def get_xml(self):
         passage_of_time = "true" if self.allow_passage_of_time else "false"
         return f'''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
             <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

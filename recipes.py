@@ -1,26 +1,26 @@
-class RecipeBook():
-    
+class RecipeBook:
+
     def __init__(self):
         self.recipes = {
-            "planks" : [Ingredient("log")],
-            "crafting_table" : [Ingredient("planks", 4)],
-            "stick" : [Ingredient("planks", 2)],
-            "wooden_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("planks", 3)],   
-            "stone_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("cobblestone", 3)],
-            "iron_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("iron_ingot", 3)],
-            "furnace" : [Ingredient("crafting_table"), Ingredient("cobblestone", 8)],
-            "iron_ingot" : [Ingredient("furnace"), Ingredient("iron_ore", 1)]
+            "planks": [Ingredient("log")],
+            "crafting_table": [Ingredient("planks", 4)],
+            "stick": [Ingredient("planks", 2)],
+            "wooden_pickaxe": [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("planks", 3)],
+            "stone_pickaxe": [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("cobblestone", 3)],
+            "iron_pickaxe": [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("iron_ingot", 3)],
+            "furnace": [Ingredient("crafting_table"), Ingredient("cobblestone", 8)],
+            "iron_ingot": [Ingredient("furnace"), Ingredient("iron_ore")]
         }
 
-    def getIngredients(self, item):
+    def get_ingredients(self, item):
         for recipe in self.recipes:
             if recipe == item:
                 return self.recipes[item]
         return None
 
 
-class Ingredient():
-    def __init__(self, item, amount = 1):
+class Ingredient:
+    def __init__(self, item, amount=1):
         self.item = item
         self.amount = amount
 
