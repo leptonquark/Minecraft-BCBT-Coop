@@ -36,8 +36,10 @@ class BehaviourTree():
         tree = Selector(
             "Obtain " + goal,
             children=[
+                self.getGatherTree(agent_host, ["diamond_ore"], "iron_pickaxe"),
+                self.getIronCraftTree(agent_host),
                 self.getGatherTree(agent_host, ["iron_ore"], "stone_pickaxe"),
-                Craft(agent_host, "stone_pickaxe"),
+                self.getStoneCraftTree(agent_host),
                 self.getGatherTree(agent_host, ["stone"], "wooden_pickaxe"),
                 self.getWoodenCraftTree(agent_host),
                 self.getGatherTree(agent_host, ["log", "log2"])               
@@ -51,7 +53,7 @@ class BehaviourTree():
             "Craft wood",
             children=[ 
                 Craft(agent_host, "planks", 7),
-                Craft(agent_host, "stick", 4),
+                Craft(agent_host, "stick", 8),
                 Craft(agent_host, "crafting_table", 1),
                 Craft(agent_host, "wooden_pickaxe")
             ]
@@ -59,6 +61,28 @@ class BehaviourTree():
         tree.setup_with_descendants()
         return tree
 
+
+    def getStoneCraftTree(self, agent_host):
+        tree = Sequence(
+            "Craft Stone",
+            children=[
+                Craft(agent_host, "furnace"),
+                Craft(agent_host, "stone_pickaxe")
+            ]
+        )
+        tree.setup_with_descendants()
+        return tree
+
+    def getIronCraftTree(self, agent_host):
+        tree = Selector(
+            "Craft Iron",
+            children=[
+                Craft(agent_host, "iron_pickaxe"),
+                Craft(agent_host, "iron_ingot", 3)
+            ]
+        )
+        tree.setup_with_descendants()
+        return tree
 
         
 

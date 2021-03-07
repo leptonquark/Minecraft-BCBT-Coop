@@ -6,7 +6,10 @@ class RecipeBook():
             "crafting_table" : [Ingredient("planks", 4)],
             "stick" : [Ingredient("planks", 2)],
             "wooden_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("planks", 3)],   
-            "stone_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("cobblestone", 3)]
+            "stone_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("cobblestone", 3)],
+            "iron_pickaxe" : [Ingredient("crafting_table"), Ingredient("stick", 2), Ingredient("iron_ingot", 3)],
+            "furnace" : [Ingredient("crafting_table"), Ingredient("cobblestone", 8)],
+            "iron_ingot" : [Ingredient("furnace"), Ingredient("iron_ore", 1)]
         }
 
     def getIngredients(self, item):
