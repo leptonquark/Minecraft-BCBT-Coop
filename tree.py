@@ -3,17 +3,18 @@ import items
 from behaviours import Craft, Equip, JumpIfStuck, GoToMaterial, MineMaterial
 from py_trees.composites import Selector, Parallel
 from sequence import Sequence
+from utils import get_gathering_tools
 
 
 def get_goal_tree(agent_host, goal):
     tree = Selector(
         "Obtain " + goal,
         children=[
-            get_gather_tree(agent_host, [items.DIAMOND_ORE], items.IRON_PICKAXE),
+            get_gather_tree(agent_host, [items.DIAMOND_ORE]),
             get_iron_craft_tree(agent_host),
-            get_gather_tree(agent_host, [items.IRON_ORE], items.STONE_PICKAXE),
+            get_gather_tree(agent_host, [items.IRON_ORE]),
             get_stone_craft_tree(agent_host),
-            get_gather_tree(agent_host, [items.STONE], items.WOODEN_PICKAXE),
+            get_gather_tree(agent_host, [items.STONE]),
             get_wooden_craft_tree(agent_host),
             get_gather_tree(agent_host, [items.LOG, items.LOG_2])
         ]
@@ -81,11 +82,13 @@ def get_iron_craft_tree(agent_host):
     return tree
 
 
-def get_gather_tree(agent_host, material, tool=None):
+def get_gather_tree(agent_host, material):
+    tool = get_gathering_tools(material)
+
     children = []
-    if tool is not None:
+    if tool:
         children.append(Equip(agent_host, tool))
-    children += [GoToMaterial(agent_host, material, tool), MineMaterial(agent_host, material, tool)]
+    children += [GoToMaterial(agent_host, material), MineMaterial(agent_host, material)]
 
     tree = Sequence(
         "Gather " + str(material),

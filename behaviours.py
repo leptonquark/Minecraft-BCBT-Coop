@@ -1,11 +1,11 @@
 import time
-
 import numpy as np
-from py_trees.behaviour import Behaviour
-from py_trees.common import Status
 
 from inventory import HOTBAR_SIZE
 from observation import not_stuck, get_horizontal_distance, get_wanted_direction, get_wanted_angle
+from py_trees.behaviour import Behaviour
+from py_trees.common import Status
+from utils import get_gathering_tools
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -123,11 +123,11 @@ class JumpIfStuck(Behaviour):
 
 
 class GoToMaterial(Behaviour):
-    def __init__(self, agent_host, material, tool=None):
+    def __init__(self, agent_host, material):
         super(GoToMaterial, self).__init__("Go to " + str(material))
         self.agent_host = agent_host
         self.material = material
-        self.tool = tool
+        self.tool = get_gathering_tools(material)
 
     def update(self):
         # Use fallback for this
@@ -188,11 +188,11 @@ class GoToMaterial(Behaviour):
 
 
 class MineMaterial(Behaviour):
-    def __init__(self, agent_host, material, tool=None):
+    def __init__(self, agent_host, material):
         super(MineMaterial, self).__init__("Mine " + str(material))
         self.agent_host = agent_host
         self.material = material
-        self.tool = tool
+        self.tool = get_gathering_tools(material)
 
     def update(self):
         # Use fallback for this
