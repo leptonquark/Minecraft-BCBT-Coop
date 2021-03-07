@@ -16,7 +16,9 @@ class Player():
         self.world = world
         self.agent_host = agent_host
 
+        self.night_vision = world.mission_data.night_vision
         self.grid_size = world.mission_data.get_grid_size()
+
         self.name = world.mission_data.name
 
         self.tree = BehaviourTree(agent_host, goals)
@@ -29,6 +31,9 @@ class Player():
 
         time.sleep(1)
 
+
+        if self.night_vision:
+            self.agent_host.sendCommand("chat /effect @p night_vision 99999 255")
 
         # main loop:
         while world_state.is_mission_running:

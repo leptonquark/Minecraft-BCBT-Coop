@@ -9,6 +9,8 @@ class MissionData():
         self.seed = DESERT_SEED
         self.entity_ranges = (8, 2, 6)
         self.name = "SteveBot"
+
+        self.night_vision = True
         
         grid_obs_range_x = (-30, 30)
         grid_obs_range_y = (-5, 5)
