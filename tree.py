@@ -1,21 +1,21 @@
-from py_trees.composites import Selector, Parallel
+import items
 
 from behaviours import Craft, Equip, JumpIfStuck, GoToMaterial, MineMaterial
+from py_trees.composites import Selector, Parallel
 from sequence import Sequence
-
 
 
 def get_goal_tree(agent_host, goal):
     tree = Selector(
         "Obtain " + goal,
         children=[
-            get_gather_tree(agent_host, ["diamond_ore"], "iron_pickaxe"),
+            get_gather_tree(agent_host, [items.DIAMOND_ORE], items.IRON_PICKAXE),
             get_iron_craft_tree(agent_host),
-            get_gather_tree(agent_host, ["iron_ore"], "stone_pickaxe"),
+            get_gather_tree(agent_host, [items.IRON_ORE], items.STONE_PICKAXE),
             get_stone_craft_tree(agent_host),
-            get_gather_tree(agent_host, ["stone"], "wooden_pickaxe"),
+            get_gather_tree(agent_host, [items.STONE], items.WOODEN_PICKAXE),
             get_wooden_craft_tree(agent_host),
-            get_gather_tree(agent_host, ["log", "log2"])
+            get_gather_tree(agent_host, [items.LOG, items.LOG_2])
         ]
     )
     tree.setup_with_descendants()
@@ -47,10 +47,10 @@ def get_wooden_craft_tree(agent_host):
     tree = Parallel(
         "Craft wood",
         children=[
-            Craft(agent_host, "planks", 7),
-            Craft(agent_host, "stick", 8),
-            Craft(agent_host, "crafting_table", 1),
-            Craft(agent_host, "wooden_pickaxe")
+            Craft(agent_host, items.PLANKS, 7),
+            Craft(agent_host, items.STICKS, 8),
+            Craft(agent_host, items.CRAFTING_TABLE),
+            Craft(agent_host, items.WOODEN_PICKAXE)
         ]
     )
     tree.setup_with_descendants()
@@ -61,8 +61,8 @@ def get_stone_craft_tree(agent_host):
     tree = Sequence(
         "Craft Stone",
         children=[
-            Craft(agent_host, "furnace"),
-            Craft(agent_host, "stone_pickaxe")
+            Craft(agent_host, items.FURNACE),
+            Craft(agent_host, items.STONE_PICKAXE)
         ]
     )
     tree.setup_with_descendants()
@@ -73,8 +73,8 @@ def get_iron_craft_tree(agent_host):
     tree = Selector(
         "Craft Iron",
         children=[
-            Craft(agent_host, "iron_pickaxe"),
-            Craft(agent_host, "iron_ingot", 3)
+            Craft(agent_host, items.IRON_PICKAXE),
+            Craft(agent_host, items.IRON_INGOT, 3)
         ]
     )
     tree.setup_with_descendants()

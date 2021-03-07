@@ -1,3 +1,4 @@
+import items
 import numpy as np
 from enum import Enum
 
@@ -27,3 +28,9 @@ directionVector = {
 
 up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
+
+tools_gathering = {
+    items.STONE: items.WOODEN_PICKAXE,
+    items.IRON_ORE: items.STONE_PICKAXE,
+    items.DIAMOND_ORE: items.IRON_PICKAXE
+}

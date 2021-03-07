@@ -1,5 +1,6 @@
 import json
 
+import items
 import numpy as np
 
 from inventory import Inventory
@@ -12,7 +13,7 @@ DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.2
 
-not_stuck = ["air", "double_plant", "tallgrass", "yellow_flower"]
+not_stuck = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW]
 
 
 class Observation:
