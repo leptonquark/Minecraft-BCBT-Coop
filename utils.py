@@ -48,3 +48,7 @@ def get_gathering_tools(materials):
         return gathering_tools.get(materials)
     else:
         return None
+
+fuel = [
+
+]

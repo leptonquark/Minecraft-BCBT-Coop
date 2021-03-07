@@ -14,7 +14,7 @@ class MissionData:
         self.night_vision = True
 
         grid_obs_range_x = (-30, 30)
-        grid_obs_range_y = (-5, 5)
+        grid_obs_range_y = (-10, 10)
         grid_obs_range_z = (-35, 35)
         self.grid_obs_range = [grid_obs_range_x, grid_obs_range_y, grid_obs_range_z]
 

@@ -16,6 +16,7 @@ DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
 
+FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
 
@@ -70,19 +71,37 @@ class Craft(Behaviour):
         if self.agent_host.inventory.has_item(self.item, self.amount):
             return Status.SUCCESS
 
-        if self.has_ingredients():
+        if self.agent_host.inventory.has_ingredients(self.item):
             self.agent_host.sendCommand("craft " + self.item)
             return Status.SUCCESS
 
         return Status.FAILURE
 
-    def has_ingredients(self):
-        ingredients = self.agent_host.recipes.get_ingredients(self.item)
 
-        for ingredient in ingredients:
-            if not self.agent_host.inventory.has_item(ingredient.item, ingredient.amount):
-                return False
-        return True
+class Melt(Behaviour):
+    def __init__(self, agent_host, item, amount=1):
+        super(Melt, self).__init__("Melt " + item)
+        self.agent_host = agent_host
+        self.item = item
+        self.amount = amount
+
+    def update(self):
+        if self.agent_host.inventory.has_item(self.item, self.amount):
+            return Status.SUCCESS
+
+        fuel = self.agent_host.inventory.get_fuel()
+        if not fuel:
+            return Status.FAILURE
+
+        if not self.agent_host.inventory.has_ingredients(self.item):
+            return Status.FAILURE
+
+        fuel_position = self.agent_host.observation.inventory.find_item(fuel)
+        if fuel_position != FUEL_HOT_BAR_POSITION:
+            self.agent_host.sendCommand("swapInventoryItems " + str(fuel_position) + " " + str(FUEL_HOT_BAR_POSITION))
+            time.sleep(0.25)
+        self.agent_host.sendCommand("craft " + self.item)
+        return Status.SUCCESS
 
 
 class Equip(Behaviour):
@@ -100,9 +119,11 @@ class Equip(Behaviour):
 
     def find_and_equip_item(self, observation, item):
         position = observation.inventory.find_item(item)
-        if position > HOTBAR_SIZE:
+        print("pos", position)
+        if position >= HOTBAR_SIZE:
             self.agent_host.sendCommand("swapInventoryItems " + str(position) + " " + str(PICKAXE_HOT_BAR_POSITION))
             position = PICKAXE_HOT_BAR_POSITION
+            time.sleep(0.25)
 
         self.agent_host.sendCommand("hotbar.{0} 1".format(str(position + 1)))  # press
         self.agent_host.sendCommand("hotbar.{0} 0".format(str(position + 1)))  # release

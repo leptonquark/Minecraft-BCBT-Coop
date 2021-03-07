@@ -1,6 +1,6 @@
 import items
 
-from behaviours import Craft, Equip, JumpIfStuck, GoToMaterial, MineMaterial
+from behaviours import Craft, Equip, JumpIfStuck, Melt, GoToMaterial, MineMaterial
 from py_trees.composites import Selector, Parallel
 from sequence import Sequence
 from utils import get_gathering_tools
@@ -75,7 +75,7 @@ def get_iron_craft_tree(agent_host):
         "Craft Iron",
         children=[
             Craft(agent_host, items.IRON_PICKAXE),
-            Craft(agent_host, items.IRON_INGOT, 3)
+            Melt(agent_host, items.IRON_INGOT, 3)
         ]
     )
     tree.setup_with_descendants()

@@ -1,4 +1,11 @@
+import items
+
+from recipes import RecipeBook
+
 HOTBAR_SIZE = 9
+
+# Ordered by value
+fuels = [items.COAL, items.PLANKS, items.LOG]
 
 
 def get_size(info):
@@ -31,6 +38,7 @@ class Inventory:
             return
 
         self.inventory = fill_inventory(info, size)
+        self.recipes = RecipeBook()
         self.currentItem = info["currentItemIndex"]
 
     def __str__(self):
@@ -48,6 +56,20 @@ class Inventory:
             if inventorySlot.item == item:
                 return i
         return -1
+
+    def has_ingredients(self, item):
+        ingredients = self.recipes.get_ingredients(item)
+
+        for ingredient in ingredients:
+            if not self.has_item(ingredient.item, ingredient.amount):
+                return False
+        return True
+
+    def get_fuel(self):
+        for fuel in fuels:
+            if self.has_item(fuel):
+                return fuel
+        return None
 
 
 class InventorySlot:

@@ -5,6 +5,7 @@ FLOWER_YELLOW = "yellow_flower"
 
 LOG = "log"
 LOG_2 = "log2"
+COAL = "coal"
 STONE = "stone"
 COBBLESTONE = "cobblestone"
 IRON_ORE = "iron_ore"

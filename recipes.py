@@ -18,7 +18,8 @@ class RecipeBook:
                 Ingredient(items.CRAFTING_TABLE), Ingredient(items.STICKS, 2), Ingredient(items.IRON_INGOT, 3)
             ],
             items.FURNACE: [Ingredient(items.CRAFTING_TABLE), Ingredient(items.COBBLESTONE, 8)],
-            items.IRON_INGOT: [Ingredient(items.FURNACE), Ingredient(items.IRON_ORE)]
+            items.IRON_INGOT: [Ingredient(items.FURNACE), Ingredient(items.IRON_ORE)],
+
         }
 
     def get_ingredients(self, item):
