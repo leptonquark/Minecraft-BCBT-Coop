@@ -73,7 +73,7 @@ class Craft(Behaviour):
 
         if self.agent_host.inventory.has_ingredients(self.item):
             self.agent_host.sendCommand("craft " + self.item)
-            return Status.SUCCESS
+            return Status.RUNNING
 
         return Status.FAILURE
 

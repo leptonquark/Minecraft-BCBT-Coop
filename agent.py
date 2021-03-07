@@ -11,5 +11,6 @@ class MinerAgent(AgentHost):
 
     def set_observation(self, observation):
         self.observation = observation
-        self.inventory = observation.inventory
+        if observation:
+            self.inventory = observation.inventory
 

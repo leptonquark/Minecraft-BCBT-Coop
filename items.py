@@ -2,6 +2,7 @@ AIR = "air"
 PLANT = "double_plant"
 TALL_GRASS = "tallgrass"
 FLOWER_YELLOW = "yellow_flower"
+WATER = "water"
 
 LOG = "log"
 LOG_2 = "log2"

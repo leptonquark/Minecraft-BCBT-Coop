@@ -43,7 +43,7 @@ class Runner:
             world_state = self.agent_host.getWorldState()
             observation = Observation(world_state.observations, self.grid_size)
             self.agent_host.set_observation(observation)
-            observation.print()
+            # observation.print()
 
             # DO
             self.tree.root.tick_once()

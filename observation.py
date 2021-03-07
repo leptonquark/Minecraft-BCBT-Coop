@@ -13,16 +13,18 @@ DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.2
 
-not_stuck = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW]
+not_stuck = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
 
 
 class Observation:
 
     def __init__(self, observations, grid_size):
+
         self.grid_size = grid_size
 
         if observations is None or len(observations) == 0:
             print("Observations is null or empty")
+            self.inventory = None
             return
 
         infoJSON = observations[-1].text
