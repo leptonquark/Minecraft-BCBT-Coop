@@ -1,98 +1,148 @@
+import time
+import numpy as np
+
+from inventory import HOTBAR_SIZE
+from observation import not_stuck, get_horizontal_distance, get_wanted_direction, get_wanted_angle
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
-import random
-import time
-import json
-from enum import Enum
-import numpy as np
-from observation import Observation, not_stuck
-from inventory import HOTBAR_SIZE
-from utils import Direction, directionAngle, directionVector
-
-
+from gathering import get_gathering_tools
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
-PITCH_TOLERANCE = 10
+PITCH_TOLERANCE = 3
 MAX_PITCH = 0.5
 CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
-MOVE_TRESHOLD = 5
+MOVE_THRESHOLD = 5
+SAME_SPOT_Y_THRESHOLD = 4
 
-PICKAXE_HOTBAR_POSITION = 5
+FUEL_HOT_BAR_POSITION = 0
+PICKAXE_HOT_BAR_POSITION = 5
+
+
+def get_move_speed(horizontal_distance):
+    if horizontal_distance >= MOVE_THRESHOLD:
+        return 1
+    else:
+        return horizontal_distance / MOVE_THRESHOLD
+
+
+def get_pitch_change(pitch, wanted_pitch):
+    quarter_circle = CIRCLE_DEGREES / 4
+    diff = pitch - wanted_pitch
+    print(diff)
+    if np.abs(diff) <= PITCH_TOLERANCE:
+        return 0
+    else:
+        return -MAX_PITCH * diff / quarter_circle
+
+
+def get_wanted_pitch(dist_direction, distY):
+    half_circle = CIRCLE_DEGREES / 2
+
+    return -np.arctan(distY / dist_direction) * half_circle / np.pi
+
+
+def get_turn_direction(yaw, wanted_direction):
+    diff = get_wanted_angle(wanted_direction) - yaw
+    if diff <= 0:
+        diff += 360
+
+    if diff <= YAW_TOLERANCE or diff >= CIRCLE_DEGREES - YAW_TOLERANCE:
+        return 0
+    else:
+        half_circle = CIRCLE_DEGREES / 2
+        if diff <= half_circle:
+            return diff / half_circle
+        else:
+            return (diff - CIRCLE_DEGREES) / half_circle
+
+
+def has_arrived(move):
+    mat_horizontal_distance = get_horizontal_distance(move)
+    y_distance = move[1]
+    return (np.abs(
+        y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= 1) or mat_horizontal_distance == 0
 
 
 class Craft(Behaviour):
-    def __init__(self, agent_host):
-        super(Craft, self).__init__("Craft")
+    def __init__(self, agent_host, item, amount=1):
+        super(Craft, self).__init__("Craft " + item)
         self.agent_host = agent_host
+        self.item = item
+        self.amount = amount
 
     def update(self):
-        if self.agent_host.inventory.hasItem("log"):
-            self.agent_host.sendCommand("craft planks")
-        if not self.agent_host.inventory.hasItem("crafting_table", 1):
-            if self.agent_host.inventory.hasItem("planks", 4):
-                self.agent_host.sendCommand("craft crafting_table")
-        else:
-            if not self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 2):
-                self.agent_host.sendCommand("craft stick")
-            if not self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 3):
-                self.agent_host.sendCommand("craft wooden_pickaxe")
-            if not self.agent_host.inventory.hasItem("stone_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("cobblestone", 3):
-                self.agent_host.sendCommand("craft stone_pickaxe")
+        if self.agent_host.inventory.has_item(self.item, self.amount):
+            return Status.SUCCESS
+
+        if self.agent_host.inventory.has_ingredients(self.item):
+            self.agent_host.sendCommand("craft " + self.item)
+            return Status.RUNNING
+
+        return Status.FAILURE
 
 
-        if self.agent_host.inventory.hasItem("log"):
-            self.agent_host.sendCommand("craft planks")
-        if not self.agent_host.inventory.hasItem("crafting_table", 1):
-            if self.agent_host.inventory.hasItem("planks", 4):
-                self.agent_host.sendCommand("craft crafting_table")
-        else:
-            if not self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 2):
-                self.agent_host.sendCommand("craft stick")
-            if not self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("planks", 3):
-                self.agent_host.sendCommand("craft wooden_pickaxe")
-            if not self.agent_host.inventory.hasItem("stone_pickaxe") and self.agent_host.inventory.hasItem("stick", 2) and self.agent_host.inventory.hasItem("cobblestone", 3):
-                self.agent_host.sendCommand("craft stone_pickaxe")
-        
+class Melt(Behaviour):
+    def __init__(self, agent_host, item, amount=1):
+        super(Melt, self).__init__("Melt " + item)
+        self.agent_host = agent_host
+        self.item = item
+        self.amount = amount
+
+    def update(self):
+        if self.agent_host.inventory.has_item(self.item, self.amount):
+            return Status.SUCCESS
+
+        fuel = self.agent_host.inventory.get_fuel()
+        if not fuel:
+            return Status.FAILURE
+
+        if not self.agent_host.inventory.has_ingredients(self.item):
+            return Status.FAILURE
+
+        fuel_position = self.agent_host.observation.inventory.find_item(fuel)
+        if fuel_position != FUEL_HOT_BAR_POSITION:
+            self.agent_host.sendCommand("swapInventoryItems " + str(fuel_position) + " " + str(FUEL_HOT_BAR_POSITION))
+            time.sleep(0.25)
+        self.agent_host.sendCommand("craft " + self.item)
         return Status.SUCCESS
 
 
 class Equip(Behaviour):
-    def __init__(self, agent_host):
-        super(Equip, self).__init__("Equip")
+    def __init__(self, agent_host, item):
+        super(Equip, self).__init__("Equip " + item)
         self.agent_host = agent_host
+        self.item = item
 
     def update(self):
-        if self.agent_host.inventory.hasItem("stone_pickaxe"):
-            self.find_and_equip_item(self.agent_host.observation, "stone_pickaxe")
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2):
-            self.find_and_equip_item(self.agent_host.observation, "wooden_pickaxe")
+        if self.agent_host.inventory.has_item(self.item):
+            self.find_and_equip_item(self.agent_host.observation, self.item)
+            return Status.SUCCESS
 
-        return Status.SUCCESS
-
+        return Status.FAILURE
 
     def find_and_equip_item(self, observation, item):
-        position = observation.inventory.findItem(item)
-        if position > HOTBAR_SIZE:
-            self.agent_host.sendCommand("swapInventoryItems " + str(position) + " " + str(PICKAXE_HOTBAR_POSITION))
-            position = PICKAXE_HOTBAR_POSITION
+        position = observation.inventory.find_item(item)
+        print("pos", position)
+        if position >= HOTBAR_SIZE:
+            self.agent_host.sendCommand("swapInventoryItems " + str(position) + " " + str(PICKAXE_HOT_BAR_POSITION))
+            position = PICKAXE_HOT_BAR_POSITION
+            time.sleep(0.25)
 
-            
-        self.agent_host.sendCommand("hotbar." + str(position+1) + " 1")  # press
-        self.agent_host.sendCommand("hotbar." + str(position+1) + " 0")  # release
+        self.agent_host.sendCommand("hotbar.{0} 1".format(str(position + 1)))  # press
+        self.agent_host.sendCommand("hotbar.{0} 0".format(str(position + 1)))  # release
         time.sleep(0.1)
-
 
 
 class JumpIfStuck(Behaviour):
     def __init__(self, agent_host):
-        super(JumpIfStuck, self).__init__("Craft")
+        super(JumpIfStuck, self).__init__("JumpIfStuck")
         self.agent_host = agent_host
 
     def update(self):
-        if self.agent_host.observation.isStuck():
+        if self.agent_host.observation.is_stuck():
             self.agent_host.sendCommand("jump 1")
         else:
             self.agent_host.sendCommand("jump 0")
@@ -100,189 +150,147 @@ class JumpIfStuck(Behaviour):
 
 
 class GoToMaterial(Behaviour):
-    def __init__(self, agent_host):
-        super(GoToMaterial, self).__init__("GoToMaterial")
+    def __init__(self, agent_host, material):
+        super(GoToMaterial, self).__init__("Go to " + str(material))
         self.agent_host = agent_host
+        self.material = material
+        self.tool = get_gathering_tools(material)
 
     def update(self):
         # Use fallback for this
-        
-        if self.agent_host.inventory.hasItem("stone_pickaxe"):
-            move = self.agent_host.observation.getClosest(["iron_ore"])
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2):
-            move = self.agent_host.observation.getClosest(["stone"])
-        else:
-            move = self.agent_host.observation.getClosest(["log", "log2"])
+
+        move = self.agent_host.observation.get_closest(self.material)
 
         if move is None:
             return Status.FAILURE
 
+        if self.tool is not None and not self.agent_host.inventory.has_item(self.tool):
+            return Status.FAILURE
 
-        wantedDirection = self.getWantedDirection(move)
-        currentDirection = self.agent_host.observation.getCurrentDirection()
+        wanted_direction = get_wanted_direction(move)
+        current_direction = self.agent_host.observation.get_current_direction()
 
-        #Turn correct direction
-        turn_direction = self.getTurnDirection(self.agent_host.observation.yaw, wantedDirection)
-        self.agent_host.sendCommand( "move 0")
-        self.agent_host.sendCommand( "turn " + str(turn_direction))
+        # Turn correct direction
+        turn_direction = get_turn_direction(self.agent_host.observation.yaw, wanted_direction)
+        self.agent_host.sendCommand("move 0")
+        self.agent_host.sendCommand("turn " + str(turn_direction))
 
         if turn_direction != 0:
+            self.agent_host.sendCommand("attack 0")
             return Status.RUNNING
 
+        # Move towards
+        mat_horizontal_distance = get_horizontal_distance(move)
+        if not has_arrived(move):
+            if not self.agent_host.observation.upper_surroundings[current_direction] in not_stuck:
+                self.mine_forward(1)
+            elif not self.agent_host.observation.lower_surroundings[current_direction] in not_stuck:
+                self.mine_forward(0)
+            else:
+                self.move_forward(mat_horizontal_distance)
 
-        #Move towards
-        mat_horizontal_distance = self.getHorizontalDistance(move)
-        if mat_horizontal_distance > 1:
-            if(not self.agent_host.observation.upper_surroundings[currentDirection] in not_stuck):
-                wantedPitch = self.getWantedPitch(1, 0)
-                self.agent_host.sendCommand( "move 0")
-                pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
-                self.agent_host.sendCommand("pitch " + str(pitch_req))
-                if(pitch_req == 0):
-                    self.agent_host.sendCommand( "attack 1")
-                else:
-                    self.agent_host.sendCommand( "attack 0")
-                print("PITCH CHANGE TOP", pitch_req)
-            elif(not self.agent_host.observation.lower_surroundings[currentDirection] in not_stuck):
-                wantedPitch = self.getWantedPitch(1, -1)
-                self.agent_host.sendCommand( "move 0")
-                pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
-                self.agent_host.sendCommand("pitch " + str(pitch_req))
-                if(pitch_req == 0):
-                    self.agent_host.sendCommand( "attack 1")
-                else:
-                    self.agent_host.sendCommand( "attack 0")    
-                print("PITCH CHANGE BOTTOM", pitch_req)
-            else:                            
-                move_speed = self.getMoveSpeed(mat_horizontal_distance)
-                pitch_req = self.getPitchChange(self.agent_host.observation.pitch, 0)
-                self.agent_host.sendCommand("pitch " + str(pitch_req))
-                self.agent_host.sendCommand( "move " + str(move_speed))
-                self.agent_host.sendCommand( "attack 0")
-
-        if mat_horizontal_distance > 1:
             return Status.RUNNING
 
         return Status.SUCCESS
 
-    def getHorizontalDistance(self, distance):
-        return np.abs(distance[0]) + np.abs(distance[2])
+    def move_forward(self, horizontal_distance):
+        move_speed = get_move_speed(horizontal_distance)
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, 0)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+        self.agent_host.sendCommand("move " + str(move_speed))
+        self.agent_host.sendCommand("attack 0")
 
-
-    def getWantedDirection(self, move):
-        wantedDirection = Direction.North
-        if(np.abs(move[2]) >= np.abs(move[0])):
-            if(move[2] > 0):
-                wantedDirection = Direction.North
-            else:
-                wantedDirection = Direction.South
+    def mine_forward(self, vertical_distance):
+        wantedPitch = get_wanted_pitch(1, vertical_distance - 1)
+        self.agent_host.sendCommand("move 0")
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wantedPitch)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+        if pitch_req == 0:
+            self.agent_host.sendCommand("attack 1")
         else:
-            if(move[0] > 0):
-                wantedDirection = Direction.West
-            else:
-                wantedDirection = Direction.East
-        return wantedDirection
-
-
-
-    def getWantedAngle(self, direction):
-        return directionAngle[direction]
-
-    def getTurnDirection(self, yaw, wantedDirection):
-        diff = self.getWantedAngle(wantedDirection) - yaw
-        if diff <= 0:
-            diff += 360
-
-        if diff <= YAW_TOLERANCE or diff >= CIRCLE_DEGREES - YAW_TOLERANCE: 
-            return 0
-        else:
-            print("diff", diff)
-            half_circle = CIRCLE_DEGREES/2
-            if diff <= half_circle:
-                return diff/half_circle
-            else:
-                return (diff-CIRCLE_DEGREES)/half_circle
-
-
-    def getMoveSpeed(self, horizontal_distance):
-        if(horizontal_distance >= MOVE_TRESHOLD):
-            return 1
-        elif(horizontal_distance <= 1):
-            return 0
-        else:
-            return (horizontal_distance-1)/(MOVE_TRESHOLD-1)
-
-    def getPitchChange(self, pitch, wantedPitch):
-        quarter_circle = CIRCLE_DEGREES/4
-        diff = pitch - wantedPitch
-        print(diff)
-        if np.abs(diff) <= PITCH_TOLERANCE:
-            return 0
-        else:
-            return -MAX_PITCH * diff/quarter_circle
-
-    def getWantedPitch(self, distDirection, distY):
-        half_circle = CIRCLE_DEGREES/2
-
-        return -np.arctan(distY/distDirection) * half_circle/np.pi
-
+            self.agent_host.sendCommand("attack 0")
 
 
 class MineMaterial(Behaviour):
-    def __init__(self, agent_host):
-        super(MineMaterial, self).__init__("MineMaterial")
+    def __init__(self, agent_host, material):
+        super(MineMaterial, self).__init__("Mine " + str(material))
         self.agent_host = agent_host
+        self.material = material
+        self.tool = get_gathering_tools(material)
 
     def update(self):
         # Use fallback for this
-        
-        if self.agent_host.inventory.hasItem("stone_pickaxe"):
-            move = self.agent_host.observation.getClosest(["iron_ore"])
-        elif self.agent_host.inventory.hasItem("wooden_pickaxe") and self.agent_host.inventory.hasItem("stick", 2):
-            move = self.agent_host.observation.getClosest(["stone"])
-        else:
-            move = self.agent_host.observation.getClosest(["log", "log2"])
+
+        move = self.agent_host.observation.get_closest(self.material)
 
         if move is None:
             return Status.FAILURE
 
-        mat_horizontal_distance = self.getHorizontalDistance(move)
+        if self.tool is not None and not self.agent_host.inventory.has_item(self.tool):
+            return Status.FAILURE
 
-        #Look at
-        self.agent_host.sendCommand( "move 0")
-        wantedPitch = self.getWantedPitch(mat_horizontal_distance, -1+move[1])
-        pitch_req = self.getPitchChange(self.agent_host.observation.pitch, wantedPitch)
+        mat_horizontal_distance = get_horizontal_distance(move)
+        print("mat horizontal distance", mat_horizontal_distance)
+
+        if not has_arrived(move):
+            return Status.FAILURE
+
+        # Look at
+        self.agent_host.sendCommand("move 0")
+        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
+        print("wanted pitch", wanted_pitch)
+        print("current pitch", self.agent_host.observation.pitch)
+
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wanted_pitch)
         self.agent_host.sendCommand("pitch " + str(pitch_req))
-        print("PITCH CHANGE", pitch_req)
 
-        if(pitch_req != 0):
+        if pitch_req != 0:
+            self.agent_host.sendCommand("attack 0")
             return Status.RUNNING
-        print("mine")
 
-        #Mine
-        self.agent_host.sendCommand( "attack 1")
+        # Mine
+        self.agent_host.sendCommand("attack 1")
         if self.agent_host.observation.grid[tuple(self.agent_host.observation.pos + move)] != 'air':
             return Status.RUNNING
 
+        self.agent_host.sendCommand("attack 0")
+        return Status.SUCCESS
 
-        return Status.SUCCESS          
 
+# TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
+# First it will dig down to a correct height then start digging sideways.
+class DigDownwardsToMaterial(Behaviour):
+    PITCH_DOWNWARDS = 90
 
-    def getWantedPitch(self, distDirection, distY):
-        half_circle = CIRCLE_DEGREES/2
+    def __init__(self, agent_host, material):
+        super(DigDownwardsToMaterial, self).__init__("Dig downwards to " + str(material))
+        self.agent_host = agent_host
+        self.material = material
+        self.tool = get_gathering_tools(material)
 
-        return -np.arctan(distY/distDirection) * half_circle/np.pi
-        
+    def update(self):
 
-    def getPitchChange(self, pitch, wantedPitch):
-        quarter_circle = CIRCLE_DEGREES/4
-        diff = pitch - wantedPitch
-        print(diff)
-        if np.abs(diff) <= PITCH_TOLERANCE:
-            return 0
-        else:
-            return -MAX_PITCH * diff/quarter_circle
+        if self.tool is not None and not self.agent_host.inventory.has_item(self.tool):
+            return Status.FAILURE
 
-    def getHorizontalDistance(self, distance):
-        return np.abs(distance[0]) + np.abs(distance[2])
+        move = self.agent_host.observation.get_closest(self.material)
 
+        print(move)
+
+        if move is not None:
+            self.agent_host.sendCommand("attack 0")
+            return Status.SUCCESS
+
+        self.agent_host.sendCommand("move 0")
+        wanted_pitch = DigDownwardsToMaterial.PITCH_DOWNWARDS
+
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wanted_pitch)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+
+        if pitch_req != 0:
+            return Status.RUNNING
+
+        # Mine
+        self.agent_host.sendCommand("attack 1")
+
+        return Status.SUCCESS

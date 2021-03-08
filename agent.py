@@ -1,11 +1,16 @@
 from MalmoPython import AgentHost
-import time
+from recipes import RecipeBook
+
 
 class MinerAgent(AgentHost):
 
     def __init__(self, *args, **kwargs):
+        self.observation = None
+        self.inventory = None
         super().__init__(*args, **kwargs)
 
     def set_observation(self, observation):
         self.observation = observation
-        self.inventory = observation.inventory
+        if observation:
+            self.inventory = observation.inventory
+

@@ -1,53 +1,78 @@
+import items
+
+from recipes import RecipeBook
+
 HOTBAR_SIZE = 9
 
-class Inventory():
+# Ordered by value
+fuels = [items.COAL, items.PLANKS, items.LOG]
 
+
+def get_size(info):
+    size = 0
+    for inventory in info["inventoriesAvailable"]:
+        if inventory["name"] == "inventory":
+            size = inventory["size"]
+    return size
+
+
+def fill_inventory(info, size):
+    inventory = []
+    for i in range(size):
+        amount = info[f"InventorySlot_{i}_size"]
+        item = info[f"InventorySlot_{i}_item"]
+        inventory.append(InventorySlot(item, amount))
+    return inventory
+
+
+class Inventory:
 
     def __init__(self, info):
         if "inventoriesAvailable" not in info:
             print("Can't create inventory. No inventory available.")
             return
-        
-        size = self.getSize(info)
+
+        size = get_size(info)
         if size == 0:
             print("Inventory size is 0")
-            return 
-        
-        self.inventory = self.fillInventory(info, size)
-        
-    def getSize(self, info):
-        size = 0
-        for inventory in info["inventoriesAvailable"]:
-            if inventory["name"] == "inventory":
-                size = inventory["size"]
-        return size
+            return
 
-    def fillInventory(self, info, size):
-        inventory = []
-        for i in range(size):
-            amount = info[f"InventorySlot_{i}_size"]
-            item = info[f"InventorySlot_{i}_item"]
-            inventory.append(InventorySlot(item, amount))
-        return inventory
+        self.inventory = fill_inventory(info, size)
+        self.recipes = RecipeBook()
+        self.currentItem = info["currentItemIndex"]
 
     def __str__(self):
         return str(self.inventory)
 
-    def hasItem(self, item, amount = 1):
+    def has_item(self, item, amount=1):
         found = 0
         for inventorySlot in self.inventory:
             if inventorySlot.item == item:
                 found += inventorySlot.amount
         return found >= amount
 
-    def findItem(self, item):
+    def find_item(self, item):
         for i, inventorySlot in enumerate(self.inventory):
             if inventorySlot.item == item:
                 return i
         return -1
 
+    def has_ingredients(self, item):
+        ingredients = self.recipes.get_ingredients(item)
 
-class InventorySlot():
+        for ingredient in ingredients:
+            if not self.has_item(ingredient.item, ingredient.amount):
+                return False
+        return True
+
+    def get_fuel(self):
+        for fuel in fuels:
+            if self.has_item(fuel):
+                return fuel
+        return None
+
+
+class InventorySlot:
     def __init__(self, item, amount):
         self.item = item
         self.amount = amount

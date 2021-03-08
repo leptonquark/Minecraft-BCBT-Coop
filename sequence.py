@@ -5,7 +5,7 @@ class Sequence(pt.composites.Selector):
     """
     Borrowed from https://github.com/smarc-project/smarc_missions/blob/noetic-devel/smarc_bt/src/bt_common.py
     For testing purposes.
-    Reactive sequence overidding sequence with memory, py_trees' only available sequence.
+    Reactive sequence overriding sequence with memory, py_trees' only available sequence.
     """
 
     def __init__(self, name="Sequence", children=None):
@@ -23,7 +23,7 @@ class Sequence(pt.composites.Selector):
         # Required behaviour for *all* behaviours and composites is
         # for tick() to check if it isn't running and initialise
         if self.status != pt.common.Status.RUNNING:
-            # selectors dont do anything specific on initialisation
+            # selectors don't do anything specific on initialisation
             #   - the current child is managed by the update, never needs to be 'initialised'
             # run subclass (user) handles
             self.initialise()
@@ -47,7 +47,7 @@ class Sequence(pt.composites.Selector):
                                 passed = True if child == self.current_child else passed
                         yield self
                         return
-        # all children succeded, set succed ourselves and current child to the last bugger who failed us
+        # all children succeeded, set succeed ourselves and current child to the last bugger who failed us
         self.status = pt.common.Status.SUCCESS
         try:
             self.current_child = self.children[-1]

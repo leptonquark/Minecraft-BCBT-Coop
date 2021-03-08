@@ -1,7 +1,8 @@
 FOREST_SEED = "-5603130799377933031"
-DESERT_SEED= "400009"
+DESERT_SEED = "400009"
 
-class MissionData():
+
+class MissionData:
 
     def __init__(self):
         self.start_time = 6000
@@ -9,13 +10,15 @@ class MissionData():
         self.seed = DESERT_SEED
         self.entity_ranges = (8, 2, 6)
         self.name = "SteveBot"
-        
-        grid_obs_range_x = (-30, 30)
-        grid_obs_range_y = (-5, 5)
-        grid_obs_range_z = (-35, 35)
-        self.grid_obs_range = [grid_obs_range_x, grid_obs_range_y, grid_obs_range_z] 
 
-    def getXML(self):
+        self.night_vision = True
+
+        grid_obs_range_x = (-20, 20)
+        grid_obs_range_y = (-20, 20)
+        grid_obs_range_z = (-20, 20)
+        self.grid_obs_range = [grid_obs_range_x, grid_obs_range_y, grid_obs_range_z]
+
+    def get_xml(self):
         passage_of_time = "true" if self.allow_passage_of_time else "false"
         return f'''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
             <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -39,13 +42,14 @@ class MissionData():
             <AgentSection mode="Survival">
                 <Name>{self.name}</Name>
                 <AgentStart>
-                    <Placement x="247" y="65.0" z="252" pitch="18"/>
+                    <Placement x="247.5" y="68.0" z="232.5" pitch="18"/>
                 </AgentStart>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>
                     <InventoryCommands />
                     <SimpleCraftCommands/>
                     <MissionQuitCommands/>
+                    <ChatCommands />                    
                     <ObservationFromRay/>
                     <ObservationFromFullStats/>
                     <ObservationFromFullInventory/>
