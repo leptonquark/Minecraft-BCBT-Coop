@@ -113,3 +113,20 @@ def get_gather_tree(agent_host, material):
 class BehaviourTree:
     def __init__(self, agent_host):
         self.root = get_base_tree(agent_host)
+
+
+"""
+class BehaviourTree:
+    def __init__(self, agent_host):
+        tree = Selector(
+            "Obtain ",
+            children=[
+                get_gather_tree(agent_host, [items.STONE]),
+                get_wooden_craft_tree(agent_host),
+                get_gather_tree(agent_host, [items.LOG, items.LOG_2])
+            ]
+        )
+        tree.setup_with_descendants()
+        self.root = tree
+
+"""

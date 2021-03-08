@@ -9,12 +9,13 @@ from utils import get_gathering_tools
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
-PITCH_TOLERANCE = 10
+PITCH_TOLERANCE = 3
 MAX_PITCH = 0.5
 CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
+SAME_SPOT_Y_THRESHOLD = 4
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
@@ -23,10 +24,8 @@ PICKAXE_HOT_BAR_POSITION = 5
 def get_move_speed(horizontal_distance):
     if horizontal_distance >= MOVE_THRESHOLD:
         return 1
-    elif horizontal_distance <= 1:
-        return 0
     else:
-        return (horizontal_distance - 1) / (MOVE_THRESHOLD - 1)
+        return horizontal_distance / MOVE_THRESHOLD
 
 
 def get_pitch_change(pitch, wanted_pitch):
@@ -58,6 +57,13 @@ def get_turn_direction(yaw, wanted_direction):
             return diff / half_circle
         else:
             return (diff - CIRCLE_DEGREES) / half_circle
+
+
+def has_arrived(move):
+    mat_horizontal_distance = get_horizontal_distance(move)
+    y_distance = move[1]
+    return (np.abs(
+        y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= 1) or mat_horizontal_distance == 0
 
 
 class Craft(Behaviour):
@@ -174,38 +180,34 @@ class GoToMaterial(Behaviour):
 
         # Move towards
         mat_horizontal_distance = get_horizontal_distance(move)
-        if np.abs(move[1]) >= 4 or mat_horizontal_distance > 1:
+        if not has_arrived(move):
             if not self.agent_host.observation.upper_surroundings[current_direction] in not_stuck:
-                wantedPitch = get_wanted_pitch(1, 0)
-                self.agent_host.sendCommand("move 0")
-                pitch_req = get_pitch_change(self.agent_host.observation.pitch, wantedPitch)
-                self.agent_host.sendCommand("pitch " + str(pitch_req))
-                if pitch_req == 0:
-                    self.agent_host.sendCommand("attack 1")
-                else:
-                    self.agent_host.sendCommand("attack 0")
-                print("PITCH CHANGE TOP", pitch_req)
+                self.mine_forward(1)
             elif not self.agent_host.observation.lower_surroundings[current_direction] in not_stuck:
-                wantedPitch = get_wanted_pitch(1, -1)
-                self.agent_host.sendCommand("move 0")
-                pitch_req = get_pitch_change(self.agent_host.observation.pitch, wantedPitch)
-                self.agent_host.sendCommand("pitch " + str(pitch_req))
-                if pitch_req == 0:
-                    self.agent_host.sendCommand("attack 1")
-                else:
-                    self.agent_host.sendCommand("attack 0")
-                print("PITCH CHANGE BOTTOM", pitch_req)
+                self.mine_forward(0)
             else:
-                move_speed = get_move_speed(mat_horizontal_distance)
-                pitch_req = get_pitch_change(self.agent_host.observation.pitch, 0)
-                self.agent_host.sendCommand("pitch " + str(pitch_req))
-                self.agent_host.sendCommand("move " + str(move_speed))
-                self.agent_host.sendCommand("attack 0")
+                self.move_forward(mat_horizontal_distance)
 
-        if mat_horizontal_distance > 1:
             return Status.RUNNING
 
         return Status.SUCCESS
+
+    def move_forward(self, horizontal_distance):
+        move_speed = get_move_speed(horizontal_distance)
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, 0)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+        self.agent_host.sendCommand("move " + str(move_speed))
+        self.agent_host.sendCommand("attack 0")
+
+    def mine_forward(self, vertical_distance):
+        wantedPitch = get_wanted_pitch(1, vertical_distance - 1)
+        self.agent_host.sendCommand("move 0")
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wantedPitch)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+        if pitch_req == 0:
+            self.agent_host.sendCommand("attack 1")
+        else:
+            self.agent_host.sendCommand("attack 0")
 
 
 class MineMaterial(Behaviour):
@@ -227,16 +229,19 @@ class MineMaterial(Behaviour):
             return Status.FAILURE
 
         mat_horizontal_distance = get_horizontal_distance(move)
+        print("mat horizontal distance", mat_horizontal_distance)
 
-        if mat_horizontal_distance > 1:
+        if not has_arrived(move):
             return Status.FAILURE
 
         # Look at
         self.agent_host.sendCommand("move 0")
-        wantedPitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
-        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wantedPitch)
+        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
+        print("wanted pitch", wanted_pitch)
+        print("current pitch", self.agent_host.observation.pitch)
+
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wanted_pitch)
         self.agent_host.sendCommand("pitch " + str(pitch_req))
-        print("PITCH CHANGE", pitch_req)
 
         if pitch_req != 0:
             return Status.RUNNING
@@ -246,4 +251,5 @@ class MineMaterial(Behaviour):
         if self.agent_host.observation.grid[tuple(self.agent_host.observation.pos + move)] != 'air':
             return Status.RUNNING
 
+        self.agent_host.sendCommand("attack 1")
         return Status.SUCCESS

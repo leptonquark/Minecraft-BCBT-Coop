@@ -37,7 +37,7 @@ class Runner:
         # main loop:
         while world_state.is_mission_running:
             # SLEEP
-            time.sleep(0.25)
+            time.sleep(0.5)
 
             # SEE
             world_state = self.agent_host.getWorldState()

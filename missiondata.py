@@ -13,9 +13,9 @@ class MissionData:
 
         self.night_vision = True
 
-        grid_obs_range_x = (-30, 30)
-        grid_obs_range_y = (-10, 10)
-        grid_obs_range_z = (-35, 35)
+        grid_obs_range_x = (-20, 20)
+        grid_obs_range_y = (-20, 20)
+        grid_obs_range_z = (-20, 20)
         self.grid_obs_range = [grid_obs_range_x, grid_obs_range_y, grid_obs_range_z]
 
     def get_xml(self):
