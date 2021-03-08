@@ -5,7 +5,7 @@ from inventory import HOTBAR_SIZE
 from observation import not_stuck, get_horizontal_distance, get_wanted_direction, get_wanted_angle
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
-from utils import get_gathering_tools
+from gathering import get_gathering_tools
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -176,6 +176,7 @@ class GoToMaterial(Behaviour):
         self.agent_host.sendCommand("turn " + str(turn_direction))
 
         if turn_direction != 0:
+            self.agent_host.sendCommand("attack 0")
             return Status.RUNNING
 
         # Move towards
@@ -244,6 +245,7 @@ class MineMaterial(Behaviour):
         self.agent_host.sendCommand("pitch " + str(pitch_req))
 
         if pitch_req != 0:
+            self.agent_host.sendCommand("attack 0")
             return Status.RUNNING
 
         # Mine
@@ -251,5 +253,44 @@ class MineMaterial(Behaviour):
         if self.agent_host.observation.grid[tuple(self.agent_host.observation.pos + move)] != 'air':
             return Status.RUNNING
 
+        self.agent_host.sendCommand("attack 0")
+        return Status.SUCCESS
+
+
+# TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
+# First it will dig down to a correct height then start digging sideways.
+class DigDownwardsToMaterial(Behaviour):
+    PITCH_DOWNWARDS = 90
+
+    def __init__(self, agent_host, material):
+        super(DigDownwardsToMaterial, self).__init__("Dig downwards to " + str(material))
+        self.agent_host = agent_host
+        self.material = material
+        self.tool = get_gathering_tools(material)
+
+    def update(self):
+
+        if self.tool is not None and not self.agent_host.inventory.has_item(self.tool):
+            return Status.FAILURE
+
+        move = self.agent_host.observation.get_closest(self.material)
+
+        print(move)
+
+        if move is not None:
+            self.agent_host.sendCommand("attack 0")
+            return Status.SUCCESS
+
+        self.agent_host.sendCommand("move 0")
+        wanted_pitch = DigDownwardsToMaterial.PITCH_DOWNWARDS
+
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wanted_pitch)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+
+        if pitch_req != 0:
+            return Status.RUNNING
+
+        # Mine
         self.agent_host.sendCommand("attack 1")
+
         return Status.SUCCESS
