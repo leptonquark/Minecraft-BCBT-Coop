@@ -39,7 +39,7 @@ def get_base_goal_tree(agent_host):
 
 def get_base_tree(agent_host):
     baseGoalTree = get_base_goal_tree(agent_host)
-    tree = Parallel(
+    tree = Sequence(
         "BaseTree",
         children=[JumpIfStuck(agent_host), baseGoalTree]
     )

@@ -68,7 +68,7 @@ def has_arrived(move):
 
 class Craft(Behaviour):
     def __init__(self, agent_host, item, amount=1):
-        super(Craft, self).__init__("Craft " + item)
+        super(Craft, self).__init__("Craft {0}x {1}".format(amount, item))
         self.agent_host = agent_host
         self.item = item
         self.amount = amount
@@ -86,7 +86,7 @@ class Craft(Behaviour):
 
 class Melt(Behaviour):
     def __init__(self, agent_host, item, amount=1):
-        super(Melt, self).__init__("Melt " + item)
+        super(Melt, self).__init__("Melt {0}x {1}".format(amount, item))
         self.agent_host = agent_host
         self.item = item
         self.amount = amount
@@ -157,8 +157,6 @@ class GoToMaterial(Behaviour):
         self.tool = get_gathering_tools(material)
 
     def update(self):
-        # Use fallback for this
-
         move = self.agent_host.observation.get_closest(self.material)
 
         if move is None:
@@ -275,10 +273,7 @@ class DigDownwardsToMaterial(Behaviour):
 
         move = self.agent_host.observation.get_closest(self.material)
 
-        print(move)
-
         if move is not None:
-            self.agent_host.sendCommand("attack 0")
             return Status.SUCCESS
 
         self.agent_host.sendCommand("move 0")
