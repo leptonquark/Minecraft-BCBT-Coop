@@ -1,10 +1,9 @@
-import items
+from py_trees.composites import Selector
 
+import items
 from behaviours import Craft, Equip, JumpIfStuck, Melt, GoToMaterial, MineMaterial, DigDownwardsToMaterial
-from py_trees.common import ParallelPolicy
-from py_trees.composites import Selector, Parallel
-from sequence import Sequence
 from gathering import get_gathering_tools
+from sequence import Sequence
 
 
 def get_goal_tree(agent_host, goal):
@@ -19,7 +18,7 @@ def get_goal_tree(agent_host, goal):
             get_stone_craft_tree(agent_host),
             get_gather_tree(agent_host, [items.STONE]),
             get_wooden_craft_tree(agent_host),
-            get_gather_tree(agent_host, [items.LOG, items.LOG_2, items.COBBLESTONE])
+            get_gather_tree(agent_host, [items.LOG, items.LOG_2])
         ]
     )
     tree.setup_with_descendants()
@@ -48,9 +47,8 @@ def get_base_tree(agent_host):
 
 
 def get_wooden_craft_tree(agent_host):
-    sub_tree = Parallel(
+    sub_tree = Sequence(
         "Craft wood",
-        policy=ParallelPolicy.SuccessOnAll(),
         children=[
             Craft(agent_host, items.PLANKS, 10),
             Craft(agent_host, items.STICKS, 8),
