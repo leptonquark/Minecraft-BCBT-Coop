@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-from builtins import range
-import MalmoPython
 import malmoutils
 import os
 import sys

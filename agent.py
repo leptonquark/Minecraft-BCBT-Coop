@@ -1,5 +1,4 @@
 from MalmoPython import AgentHost
-from recipes import RecipeBook
 
 
 class MinerAgent(AgentHost):

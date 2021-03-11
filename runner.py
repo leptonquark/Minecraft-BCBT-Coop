@@ -6,7 +6,7 @@ from tree import BehaviourTree
 from utils import ms_to_seconds
 
 MAX_DELAY = 60
-EXTRA_SLEEP_TIME = 0.01
+EXTRA_SLEEP_TIME = 0.1
 
 
 class Runner:
@@ -49,7 +49,7 @@ class Runner:
 
             # DO
             self.tree.root.tick_once()
-            print(ascii_tree(self.tree.root))
+            # print(ascii_tree(self.tree.root))
 
             self.check_timeout(self.world, world_state)
 

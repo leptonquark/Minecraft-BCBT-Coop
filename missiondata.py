@@ -10,7 +10,7 @@ class MissionData:
         self.seed = DESERT_SEED
         self.entity_ranges = (8, 2, 6)
         self.name = "SteveBot"
-        self.ms_per_tick = 25  # Default: 50
+        self.ms_per_tick = 50  # Default: 50
 
         self.night_vision = True
 

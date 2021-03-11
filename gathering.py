@@ -1,6 +1,4 @@
 import items
-from enum import Enum
-
 
 gathering_tools = {
     items.STONE: items.WOODEN_PICKAXE,
