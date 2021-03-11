@@ -15,6 +15,8 @@ MAX_PITCH = 0.2
 
 not_stuck = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
 
+center_vector = np.array([0.5, 0, 0.5])
+
 
 class Observation:
 
@@ -43,7 +45,7 @@ class Observation:
         if "XPos" in info and "YPos" in info and "ZPos" in info:
             abs_pos = np.array([info["XPos"], info["YPos"], info["ZPos"]])
         print("Absolute Position", abs_pos)
-        self.inner_abs_pos = abs_pos % 1
+        self.inner_abs_pos = abs_pos % 1 - center_vector
         print("Inner Absolute Position", self.inner_abs_pos)
 
         self.los_pos = None
@@ -106,9 +108,10 @@ class Observation:
                 min_dist_arg = np.argmin(distances)
                 move = positions[min_dist_arg] - self.pos
 
-                print("move", move)
+                exact_move = move.astype("float64") - self.inner_abs_pos
+                print(exact_move)
 
-                return move
+                return exact_move
 
         return None
 
@@ -119,6 +122,10 @@ class Observation:
         for key in self.info:
             if key != "me":
                 print(key, self.info[key])
+
+
+def round_move(move):
+    return np.round(move).astype("int32")
 
 
 def get_horizontal_distance(distance):

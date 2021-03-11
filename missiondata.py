@@ -10,6 +10,7 @@ class MissionData:
         self.seed = DESERT_SEED
         self.entity_ranges = (8, 2, 6)
         self.name = "SteveBot"
+        self.ms_per_tick = 50  # Default: 50
 
         self.night_vision = True
 
@@ -26,6 +27,10 @@ class MissionData:
             <About>
                 <Summary>Behaviour Tree Malmo</Summary>
             </About>
+            
+            <ModSettings>
+                 <MsPerTick>{self.ms_per_tick}</MsPerTick>
+            </ModSettings>
 
             <ServerSection>
                 <ServerInitialConditions>

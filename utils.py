@@ -28,4 +28,8 @@ directionVector = {
 up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
 
+SECOND_PER_MS = 0.001
 
+
+def ms_to_seconds(ms):
+    return SECOND_PER_MS * ms

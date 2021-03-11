@@ -19,7 +19,7 @@ def get_goal_tree(agent_host, goal):
             get_stone_craft_tree(agent_host),
             get_gather_tree(agent_host, [items.STONE]),
             get_wooden_craft_tree(agent_host),
-            get_gather_tree(agent_host, [items.LOG, items.LOG_2])
+            get_gather_tree(agent_host, [items.LOG, items.LOG_2, items.COBBLESTONE])
         ]
     )
     tree.setup_with_descendants()
@@ -39,7 +39,7 @@ def get_base_goal_tree(agent_host):
 
 def get_base_tree(agent_host):
     baseGoalTree = get_base_goal_tree(agent_host)
-    tree = Parallel(
+    tree = Sequence(
         "BaseTree",
         children=[JumpIfStuck(agent_host), baseGoalTree]
     )

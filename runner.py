@@ -1,11 +1,12 @@
 import time
 
 from py_trees.display import ascii_tree
-
 from observation import Observation
 from tree import BehaviourTree
+from utils import ms_to_seconds
 
 MAX_DELAY = 60
+EXTRA_SLEEP_TIME = 0.1
 
 
 class Runner:
@@ -19,6 +20,7 @@ class Runner:
 
         self.night_vision = world.mission_data.night_vision
         self.grid_size = world.mission_data.get_grid_size()
+        self.sleep_time = ms_to_seconds(world.mission_data.ms_per_tick)
 
         self.name = world.mission_data.name
 
@@ -29,7 +31,7 @@ class Runner:
 
         self.last_delta = time.time()
 
-        time.sleep(1)
+        time.sleep(2)
 
         if self.night_vision:
             self.agent_host.sendCommand("chat /effect @p night_vision 99999 255")
@@ -37,7 +39,7 @@ class Runner:
         # main loop:
         while world_state.is_mission_running:
             # SLEEP
-            time.sleep(0.5)
+            time.sleep(self.sleep_time + EXTRA_SLEEP_TIME)
 
             # SEE
             world_state = self.agent_host.getWorldState()
@@ -47,7 +49,7 @@ class Runner:
 
             # DO
             self.tree.root.tick_once()
-            print(ascii_tree(self.tree.root))
+            # print(ascii_tree(self.tree.root))
 
             self.check_timeout(self.world, world_state)
 

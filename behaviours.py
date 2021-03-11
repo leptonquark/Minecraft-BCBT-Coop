@@ -2,7 +2,7 @@ import time
 import numpy as np
 
 from inventory import HOTBAR_SIZE
-from observation import not_stuck, get_horizontal_distance, get_wanted_direction, get_wanted_angle
+from observation import get_horizontal_distance, get_wanted_direction, get_wanted_angle, not_stuck, round_move
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from gathering import get_gathering_tools
@@ -15,10 +15,14 @@ CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
-SAME_SPOT_Y_THRESHOLD = 4
+SAME_SPOT_Y_THRESHOLD = 2
+EPSILON_ARRIVED_AT_POSITION = 0.1
+REACH = 1.3
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
+
+CRAFT_SLEEP = 0.25
 
 
 def get_move_speed(horizontal_distance):
@@ -62,13 +66,13 @@ def get_turn_direction(yaw, wanted_direction):
 def has_arrived(move):
     mat_horizontal_distance = get_horizontal_distance(move)
     y_distance = move[1]
-    return (np.abs(
-        y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= 1) or mat_horizontal_distance == 0
+    return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= REACH) \
+        or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
 
 
 class Craft(Behaviour):
     def __init__(self, agent_host, item, amount=1):
-        super(Craft, self).__init__("Craft " + item)
+        super(Craft, self).__init__("Craft {0}x {1}".format(amount, item))
         self.agent_host = agent_host
         self.item = item
         self.amount = amount
@@ -79,6 +83,7 @@ class Craft(Behaviour):
 
         if self.agent_host.inventory.has_ingredients(self.item):
             self.agent_host.sendCommand("craft " + self.item)
+            time.sleep(CRAFT_SLEEP)
             return Status.RUNNING
 
         return Status.FAILURE
@@ -86,7 +91,7 @@ class Craft(Behaviour):
 
 class Melt(Behaviour):
     def __init__(self, agent_host, item, amount=1):
-        super(Melt, self).__init__("Melt " + item)
+        super(Melt, self).__init__("Melt {0}x {1}".format(amount, item))
         self.agent_host = agent_host
         self.item = item
         self.amount = amount
@@ -107,6 +112,7 @@ class Melt(Behaviour):
             self.agent_host.sendCommand("swapInventoryItems " + str(fuel_position) + " " + str(FUEL_HOT_BAR_POSITION))
             time.sleep(0.25)
         self.agent_host.sendCommand("craft " + self.item)
+        time.sleep(CRAFT_SLEEP)
         return Status.SUCCESS
 
 
@@ -157,8 +163,6 @@ class GoToMaterial(Behaviour):
         self.tool = get_gathering_tools(material)
 
     def update(self):
-        # Use fallback for this
-
         move = self.agent_host.observation.get_closest(self.material)
 
         if move is None:
@@ -250,7 +254,8 @@ class MineMaterial(Behaviour):
 
         # Mine
         self.agent_host.sendCommand("attack 1")
-        if self.agent_host.observation.grid[tuple(self.agent_host.observation.pos + move)] != 'air':
+        target_grid_point = tuple(self.agent_host.observation.pos + round_move(move))
+        if self.agent_host.observation.grid[target_grid_point] != 'air':
             return Status.RUNNING
 
         self.agent_host.sendCommand("attack 0")
@@ -275,10 +280,7 @@ class DigDownwardsToMaterial(Behaviour):
 
         move = self.agent_host.observation.get_closest(self.material)
 
-        print(move)
-
         if move is not None:
-            self.agent_host.sendCommand("attack 0")
             return Status.SUCCESS
 
         self.agent_host.sendCommand("move 0")
