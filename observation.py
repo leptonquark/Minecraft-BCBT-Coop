@@ -130,7 +130,7 @@ def round_move(move):
 
 
 def get_horizontal_distance(distance):
-    return np.abs(distance[0]) + np.abs(distance[2])
+    return np.sqrt(distance[0]**2 + distance[2]**2)
 
 
 def get_wanted_direction(move):
