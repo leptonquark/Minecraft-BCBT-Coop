@@ -2,22 +2,23 @@ import time
 import numpy as np
 
 from inventory import HOTBAR_SIZE
-from observation import get_horizontal_distance, get_wanted_direction, get_wanted_angle, not_stuck, round_move
+from observation import get_horizontal_distance, get_wanted_direction, get_wanted_angle, not_stuck, round_move, \
+    get_exact_wanted_angle
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from gathering import get_gathering_tools
+from utils import CIRCLE_DEGREES, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
 PITCH_TOLERANCE = 3
 MAX_PITCH = 0.5
-CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
 SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.1
-REACH = 1.3
+EPSILON_ARRIVED_AT_POSITION = 0.05
+REACH = 3
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
@@ -44,12 +45,12 @@ def get_pitch_change(pitch, wanted_pitch):
 
 def get_wanted_pitch(dist_direction, distY):
     half_circle = CIRCLE_DEGREES / 2
+    pitch = -np.arctan(distY / dist_direction)
+    return rad_to_degrees(pitch)
 
-    return -np.arctan(distY / dist_direction) * half_circle / np.pi
 
-
-def get_turn_direction(yaw, wanted_direction):
-    diff = get_wanted_angle(wanted_direction) - yaw
+def get_turn_direction(yaw, wanted_angle):
+    diff = wanted_angle - yaw
     if diff <= 0:
         diff += 360
 
@@ -67,7 +68,7 @@ def has_arrived(move):
     mat_horizontal_distance = get_horizontal_distance(move)
     y_distance = move[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= REACH) \
-        or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
+           or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
 
 
 class Craft(Behaviour):
@@ -171,11 +172,13 @@ class GoToMaterial(Behaviour):
         if self.tool is not None and not self.agent_host.inventory.has_item(self.tool):
             return Status.FAILURE
 
+        if has_arrived(move):
+            return Status.SUCCESS
+
         wanted_direction = get_wanted_direction(move)
         current_direction = self.agent_host.observation.get_current_direction()
-
         # Turn correct direction
-        turn_direction = get_turn_direction(self.agent_host.observation.yaw, wanted_direction)
+        turn_direction = get_turn_direction(self.agent_host.observation.yaw, get_wanted_angle(wanted_direction))
         self.agent_host.sendCommand("move 0")
         self.agent_host.sendCommand("turn " + str(turn_direction))
 
@@ -244,11 +247,16 @@ class MineMaterial(Behaviour):
         wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
         print("wanted pitch", wanted_pitch)
         print("current pitch", self.agent_host.observation.pitch)
-
         pitch_req = get_pitch_change(self.agent_host.observation.pitch, wanted_pitch)
         self.agent_host.sendCommand("pitch " + str(pitch_req))
 
-        if pitch_req != 0:
+        wanted_angle = get_exact_wanted_angle(move)
+        print("wanted angle", wanted_angle)
+        print("current angle", self.agent_host.observation.yaw)
+        turn_direction = get_turn_direction(self.agent_host.observation.yaw, wanted_angle)
+        self.agent_host.sendCommand("turn " + str(turn_direction))
+
+        if pitch_req != 0 or turn_direction != 0:
             self.agent_host.sendCommand("attack 0")
             return Status.RUNNING
 
@@ -295,4 +303,51 @@ class DigDownwardsToMaterial(Behaviour):
         # Mine
         self.agent_host.sendCommand("attack 1")
 
+        return Status.SUCCESS
+
+
+class MineMaterialOld(Behaviour):
+    def __init__(self, agent_host, material):
+        super(MineMaterial, self).__init__("Mine " + str(material))
+        self.agent_host = agent_host
+        self.material = material
+        self.tool = get_gathering_tools(material)
+
+    def update(self):
+        # Use fallback for this
+
+        move = self.agent_host.observation.get_closest(self.material)
+
+        if move is None:
+            return Status.FAILURE
+
+        if self.tool is not None and not self.agent_host.inventory.has_item(self.tool):
+            return Status.FAILURE
+
+        mat_horizontal_distance = get_horizontal_distance(move)
+        print("mat horizontal distance", mat_horizontal_distance)
+
+        if not has_arrived(move):
+            return Status.FAILURE
+
+        # Look at
+        self.agent_host.sendCommand("move 0")
+        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
+        print("wanted pitch", wanted_pitch)
+        print("current pitch", self.agent_host.observation.pitch)
+
+        pitch_req = get_pitch_change(self.agent_host.observation.pitch, wanted_pitch)
+        self.agent_host.sendCommand("pitch " + str(pitch_req))
+
+        if pitch_req != 0:
+            self.agent_host.sendCommand("attack 0")
+            return Status.RUNNING
+
+        # Mine
+        self.agent_host.sendCommand("attack 1")
+        target_grid_point = tuple(self.agent_host.observation.pos + round_move(move))
+        if self.agent_host.observation.grid[target_grid_point] != 'air':
+            return Status.RUNNING
+
+        self.agent_host.sendCommand("attack 0")
         return Status.SUCCESS

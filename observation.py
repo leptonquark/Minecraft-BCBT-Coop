@@ -4,7 +4,7 @@ import items
 import numpy as np
 
 from inventory import Inventory
-from utils import Direction, directionAngle, directionVector, up_vector
+from utils import Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -62,6 +62,7 @@ class Observation:
             if yaw <= 0:
                 yaw += CIRCLE_DEGREES
         self.yaw = yaw
+        print("yaw", self.yaw)
 
         pitch = 0
         if "Pitch" in info:
@@ -148,3 +149,22 @@ def get_wanted_direction(move):
 
 def get_wanted_angle(direction):
     return directionAngle[direction]
+
+
+def get_exact_wanted_angle(move):
+    flat_move = np.copy(move)
+    flat_move[1] = 0.0
+    normalized_move = flat_move / np.linalg.norm(flat_move)
+
+    north_angle = directionVector[Direction.North]
+    dot_product_north = np.dot(normalized_move, north_angle)
+
+    west_angle = directionVector[Direction.West]
+    dot_product_west = np.dot(normalized_move, west_angle)
+
+    cos_angle = np.clip(dot_product_north, -1.0, 1.0)
+    angle = np.arccos(cos_angle)
+    angle = rad_to_degrees(angle)
+    if dot_product_west > 0:
+        angle = CIRCLE_DEGREES - angle
+    return angle

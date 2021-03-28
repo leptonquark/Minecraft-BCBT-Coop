@@ -29,7 +29,13 @@ up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
 
 SECOND_PER_MS = 0.001
+CIRCLE_DEGREES = 360
 
 
 def ms_to_seconds(ms):
     return SECOND_PER_MS * ms
+
+
+def rad_to_degrees(rad):
+    half_circle = CIRCLE_DEGREES / 2
+    return rad * half_circle / np.pi
