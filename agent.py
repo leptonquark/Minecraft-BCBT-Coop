@@ -71,8 +71,3 @@ class MinerAgent:
 
     def attack(self, active):
         self.agent_host.sendCommand("attack {0:d}".format(active))
-
-
-
-
-
