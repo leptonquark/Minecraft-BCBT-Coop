@@ -165,6 +165,8 @@ class GoToMaterial(Behaviour):
 
     def update(self):
         move = self.agent_host.observation.get_closest(self.material)
+        self.agent_host.sendCommand("jump 0")
+
 
         if move is None:
             return Status.FAILURE
@@ -190,9 +192,15 @@ class GoToMaterial(Behaviour):
         mat_horizontal_distance = get_horizontal_distance(move)
         if not has_arrived(move):
             if not self.agent_host.observation.upper_surroundings[current_direction] in not_stuck:
+                print("woof")
                 self.mine_forward(1)
+                print("Hore")
+                self.jump_forward()
             elif not self.agent_host.observation.lower_surroundings[current_direction] in not_stuck:
-                self.mine_forward(0)
+                if self.agent_host.observation.upper_upper_surroundings[current_direction] in not_stuck:
+                    self.jump_forward()
+                else:
+                    self.mine_forward(0)
             else:
                 self.move_forward(mat_horizontal_distance)
 
@@ -216,6 +224,10 @@ class GoToMaterial(Behaviour):
             self.agent_host.sendCommand("attack 1")
         else:
             self.agent_host.sendCommand("attack 0")
+
+    def jump_forward(self):
+        self.agent_host.sendCommand("move 1")
+        self.agent_host.sendCommand("jump 1")
 
 
 class MineMaterial(Behaviour):
@@ -243,6 +255,7 @@ class MineMaterial(Behaviour):
             return Status.FAILURE
 
         # Look at
+        self.agent_host.sendCommand("jump 0")
         self.agent_host.sendCommand("move 0")
         wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
         print("wanted pitch", wanted_pitch)

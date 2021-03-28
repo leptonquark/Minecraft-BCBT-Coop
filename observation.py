@@ -73,6 +73,9 @@ class Observation:
             self.grid = self.grid_observation_from_list(info["me"])
             self.pos = np.array([int(axis / 2) for axis in self.grid_size])
 
+            self.upper_upper_surroundings = {
+                direction: self.grid[tuple(self.pos + directionVector[direction] + 2*up_vector)]
+                for direction in Direction}
             self.upper_surroundings = {direction: self.grid[tuple(self.pos + directionVector[direction] + up_vector)]
                                        for direction in Direction}
             print("Upper Surroundings", self.upper_surroundings)
@@ -130,7 +133,7 @@ def round_move(move):
 
 
 def get_horizontal_distance(distance):
-    return np.sqrt(distance[0]**2 + distance[2]**2)
+    return np.sqrt(distance[0] ** 2 + distance[2] ** 2)
 
 
 def get_wanted_direction(move):
