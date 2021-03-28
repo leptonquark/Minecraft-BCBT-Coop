@@ -16,13 +16,13 @@ def run(argv=None):
         return
     malmoutils.fix_print()
 
-    agent_host = MinerAgent()
-    world = World(agent_host)
+    agent = MinerAgent()
+    world = World(agent)
     world.start_world()
 
     goals = ["stone_pickaxe"]
 
-    player = Runner(world, agent_host, goals)
+    player = Runner(world, agent, goals)
 
     player.run_mission()
 

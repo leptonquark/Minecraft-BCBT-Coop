@@ -13,7 +13,7 @@ DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.2
 
-not_stuck = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
+traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
 
 center_vector = np.array([0.5, 0, 0.5])
 
@@ -120,7 +120,7 @@ class Observation:
         return None
 
     def is_stuck(self):
-        return self.lower_surroundings[Direction.Zero] not in not_stuck
+        return self.lower_surroundings[Direction.Zero] not in traversable
 
     def print(self):
         for key in self.info:
@@ -150,11 +150,11 @@ def get_wanted_direction(move):
     return wantedDirection
 
 
-def get_wanted_angle(direction):
+def get_yaw_from_direction(direction):
     return directionAngle[direction]
 
 
-def get_exact_wanted_angle(move):
+def get_yaw_from_vector(move):
     flat_move = np.copy(move)
     flat_move[1] = 0.0
     normalized_move = flat_move / np.linalg.norm(flat_move)

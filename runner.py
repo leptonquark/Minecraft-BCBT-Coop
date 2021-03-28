@@ -11,11 +11,11 @@ EXTRA_SLEEP_TIME = 0.1
 
 class Runner:
 
-    def __init__(self, world, agent_host, goals=None):
+    def __init__(self, world, agent, goals=None):
         if goals is None:
             goals = []
         self.world = world
-        self.agent_host = agent_host
+        self.agent = agent
         self.last_delta = time.time()
 
         self.night_vision = world.mission_data.night_vision
@@ -24,17 +24,17 @@ class Runner:
 
         self.name = world.mission_data.name
 
-        self.tree = BehaviourTree(agent_host)
+        self.tree = BehaviourTree(agent)
 
     def run_mission(self):
-        world_state = self.agent_host.getWorldState()
+        world_state = self.agent.get_world_state()
 
         self.last_delta = time.time()
 
         time.sleep(2)
 
         if self.night_vision:
-            self.agent_host.sendCommand("chat /effect @p night_vision 99999 255")
+            self.agent.activate_night_vision()
 
         # main loop:
         while world_state.is_mission_running:
@@ -42,9 +42,9 @@ class Runner:
             time.sleep(self.sleep_time + EXTRA_SLEEP_TIME)
 
             # SEE
-            world_state = self.agent_host.getWorldState()
+            world_state = self.agent.get_world_state()
             observation = Observation(world_state.observations, self.grid_size)
-            self.agent_host.set_observation(observation)
+            self.agent.set_observation(observation)
             # observation.print()
 
             # DO

@@ -16,10 +16,6 @@ MAX_RETRIES = 3
 MAX_RESPONSE_TIME = 60
 
 
-class MissionTimeoutException(Exception):
-    pass
-
-
 def setup_mission(mission_data):
     mission = MalmoPython.MissionSpec(mission_data.get_xml(), True)
     mission.timeLimitInSeconds(TIME_LIMIT_IN_SECONDS)
@@ -27,8 +23,8 @@ def setup_mission(mission_data):
     return mission
 
 
-def setup_mission_record(agent_host):
-    mission_record = malmoutils.get_default_recording_object(agent_host, RECORDING_NAME)
+def setup_mission_record(agent):
+    mission_record = malmoutils.get_default_recording_object(agent.agent_host, RECORDING_NAME)
     return mission_record
 
 
@@ -46,15 +42,15 @@ def setup_experiment_id():
 
 class World:
 
-    def __init__(self, agent_host):
+    def __init__(self, agent):
 
-        self.agent_host = agent_host
+        self.agent = agent
 
-        malmoutils.parse_command_line(agent_host, [''])
+        malmoutils.parse_command_line(agent.agent_host, [''])
 
         self.mission_data = MissionData()
         self.mission = setup_mission(self.mission_data)
-        self.mission_record = setup_mission_record(agent_host)
+        self.mission_record = setup_mission_record(agent)
 
         self.client_info = MalmoPython.ClientInfo(IP, PORT)
         self.pool = setup_pool(self.client_info)
@@ -64,7 +60,7 @@ class World:
     def start_world(self):
         for retry in range(MAX_RETRIES):
             try:
-                self.agent_host.startMission(self.mission, self.pool, self.mission_record, 0, self.experiment_id)
+                self.agent.start_mission(self.mission, self.pool, self.mission_record, self.experiment_id)
                 break
             except RuntimeError as e:
                 if retry == MAX_RETRIES - 1:
@@ -75,22 +71,14 @@ class World:
 
         print("Waiting for the mission to start", end=' ')
         start_time = time.time()
-        world_state = self.agent_host.getWorldState()
+        world_state = self.agent.get_world_state()
         while not world_state.has_mission_begun:
             print(".", end="")
             time.sleep(0.1)
             if time.time() - start_time > MAX_RESPONSE_TIME:
                 print("Max delay exceeded for mission to begin")
-                self.restart_minecraft(world_state, "begin mission")
-            world_state = self.agent_host.getWorldState()
+                self.agent.restart_minecraft(world_state, "begin mission")
+            world_state = self.agent.get_world_state()
             for error in world_state.errors:
                 print("Error:", error.text)
         print()
-
-    def restart_minecraft(self, world_state, message=""):
-        """"Attempt to quit mission if running and kill the client"""
-        if world_state.is_mission_running:
-            self.agent_host.sendCommand("quit")
-            time.sleep(10)
-        self.agent_host.killClient(self.client_info)
-        raise MissionTimeoutException(message)
