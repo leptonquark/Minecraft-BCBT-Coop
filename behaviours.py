@@ -17,7 +17,8 @@ DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
 SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.1
+EPSILON_ARRIVED_AT_POSITION = 0.05
+MIN_MOVE_SPEED = 0.05
 REACH = 1
 
 FUEL_HOT_BAR_POSITION = 0
@@ -28,7 +29,7 @@ def get_move_speed(horizontal_distance):
     if horizontal_distance >= MOVE_THRESHOLD:
         return 1
     else:
-        return horizontal_distance / MOVE_THRESHOLD
+        return max(horizontal_distance / MOVE_THRESHOLD, MIN_MOVE_SPEED)
 
 
 def get_pitch_change(pitch, wanted_pitch):
@@ -233,40 +234,46 @@ class MineMaterial(Behaviour):
         if self.tool is not None and not self.agent.inventory.has_item(self.tool):
             return Status.FAILURE
 
-        move = self.agent.observation.get_closest(self.material)
-        if move is None:
+        distance = self.agent.observation.get_closest(self.material)
+        if distance is None:
             return Status.FAILURE
 
-        mat_horizontal_distance = get_horizontal_distance(move)
-
-        if not has_arrived(move):
+        if not has_arrived(distance):
             return Status.FAILURE
 
         # Look at
         self.agent.jump(False)
         self.agent.move(0)
 
-        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + move[1])
-        current_pitch = self.agent.observation.pitch
-        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
-        self.agent.pitch(pitch_req)
+        pitching = self.pitch_towards(distance)
+        turning = self.turn_towards(distance)
 
-        wanted_yaw = get_yaw_from_vector(move)
-        current_yaw = self.agent.observation.yaw
-        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
-        self.agent.turn(turn_direction)
-
-        if pitch_req != 0 or turn_direction != 0:
+        if pitching or turning:
             self.agent.attack(False)
             return Status.RUNNING
 
         self.agent.attack(True)
-        target_grid_point = tuple(self.agent.observation.pos + round_move(move))
+        target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
         if self.agent.observation.grid[target_grid_point] != 'air':
             return Status.RUNNING
 
         self.agent.attack(False)
         return Status.SUCCESS
+
+    def pitch_towards(self, distance):
+        mat_horizontal_distance = get_horizontal_distance(distance)
+        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
+        current_pitch = self.agent.observation.pitch
+        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
+        self.agent.pitch(pitch_req)
+        return pitch_req != 0
+
+    def turn_towards(self, distance):
+        wanted_yaw = get_yaw_from_vector(distance)
+        current_yaw = self.agent.observation.yaw
+        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
+        self.agent.turn(turn_direction)
+        return turn_direction != 0
 
 
 # TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
@@ -281,7 +288,6 @@ class DigDownwardsToMaterial(Behaviour):
         self.tool = get_gathering_tools(material)
 
     def update(self):
-
         if self.tool is not None and not self.agent.inventory.has_item(self.tool):
             return Status.FAILURE
 
