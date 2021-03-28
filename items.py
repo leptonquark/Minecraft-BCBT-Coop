@@ -25,3 +25,12 @@ DIAMOND_PICKAXE = "diamond_pickaxe"
 
 CRAFTING_TABLE = "crafting_table"
 FURNACE = "furnace"
+
+pickups = [
+    LOG,
+    IRON_ORE,
+    DIAMOND_ORE,
+    COBBLESTONE,
+    FURNACE,
+    CRAFTING_TABLE
+]

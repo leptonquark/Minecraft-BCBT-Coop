@@ -27,6 +27,7 @@ directionVector = {
 
 up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
+center_vector = np.array([0.5, 0, 0.5])
 
 SECOND_PER_MS = 0.001
 CIRCLE_DEGREES = 360

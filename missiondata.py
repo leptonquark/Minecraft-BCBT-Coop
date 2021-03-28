@@ -8,7 +8,7 @@ class MissionData:
         self.start_time = 6000
         self.allow_passage_of_time = False
         self.seed = DESERT_SEED
-        self.entity_ranges = (8, 2, 6)
+        self.entity_ranges = (40, 40, 40)
         self.name = "SteveBot"
         self.ms_per_tick = 50  # Default: 50
 

@@ -2,6 +2,7 @@ import items
 
 from recipes import RecipeBook
 
+NO_SELECTION = -1
 HOTBAR_SIZE = 9
 
 # Ordered by value
@@ -25,7 +26,14 @@ def fill_inventory(info, size):
     return inventory
 
 
+def get_selection_from_info(info):
+    if Inventory.CURRENT_SELECTION in info:
+        return info[Inventory.CURRENT_SELECTION]
+    return 0
+
+
 class Inventory:
+    CURRENT_SELECTION = "currentItemIndex"
 
     def __init__(self, info):
         if "inventoriesAvailable" not in info:
@@ -38,6 +46,7 @@ class Inventory:
             return
 
         self.inventory = fill_inventory(info, size)
+        self.current_selection = get_selection_from_info(info)
         self.recipes = RecipeBook()
         self.currentItem = info["currentItemIndex"]
 
@@ -50,6 +59,9 @@ class Inventory:
             if inventorySlot.item == item:
                 found += inventorySlot.amount
         return found >= amount
+
+    def has_item_equipped(self, item):
+        return self.inventory[self.current_selection].item == item
 
     def find_item(self, item):
         for i, inventorySlot in enumerate(self.inventory):

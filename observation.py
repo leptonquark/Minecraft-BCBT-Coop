@@ -1,10 +1,12 @@
 import json
 
+import animals
 import items
 import numpy as np
 
 from inventory import Inventory
-from utils import Direction, directionAngle, directionVector, up_vector, rad_to_degrees
+from pickup import PickUp
+from utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -15,10 +17,28 @@ MAX_PITCH = 0.2
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
 
-center_vector = np.array([0.5, 0, 0.5])
 
 
 class Observation:
+    GRID = "me"
+
+    X = "XPos"
+    Y = "YPos"
+    Z = "ZPos"
+
+    LOS = "LineOfSight"
+    LOS_X = "x"
+    LOS_Y = "y"
+    LOS_Z = "z"
+
+    YAW = "Yaw"
+    PITCH = "Pitch"
+
+    ENTITIES = "entities"
+    ENTITY_NAME = "name"
+    ENTITY_X = "x"
+    ENTITY_Y = "y"
+    ENTITY_Z = "z"
 
     def __init__(self, observations, grid_size):
 
@@ -42,39 +62,39 @@ class Observation:
         los_abs_pos = None
 
         abs_pos = None
-        if "XPos" in info and "YPos" in info and "ZPos" in info:
-            abs_pos = np.array([info["XPos"], info["YPos"], info["ZPos"]])
+        if Observation.X in info and Observation.Y in info and Observation.Z in info:
+            abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
         print("Absolute Position", abs_pos)
+        self.abs_pos = abs_pos
         self.inner_abs_pos = abs_pos % 1 - center_vector
         print("Inner Absolute Position", self.inner_abs_pos)
 
         self.los_pos = None
-        if "LineOfSight" in info:
-            los = info["LineOfSight"]
-            print("los", los)
-            los_abs_pos = np.array([los["x"], los["y"], los["z"]])
+        if Observation.LOS in info:
+            los = info[Observation.LOS]
+            los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
             self.los_pos = los_abs_pos - abs_pos
         print("LOS", self.los_pos)
 
         yaw = 0
-        if "Yaw" in info:
-            yaw = info["Yaw"]
+        if Observation.YAW in info:
+            yaw = info[Observation.YAW]
             if yaw <= 0:
                 yaw += CIRCLE_DEGREES
         self.yaw = yaw
         print("yaw", self.yaw)
 
         pitch = 0
-        if "Pitch" in info:
-            pitch = info["Pitch"]
+        if Observation.PITCH in info:
+            pitch = info[Observation.PITCH]
         self.pitch = pitch
 
-        if "me" in info:
-            self.grid = self.grid_observation_from_list(info["me"])
+        if Observation.GRID in info:
+            self.grid = self.grid_observation_from_list(info[Observation.GRID])
             self.pos = np.array([int(axis / 2) for axis in self.grid_size])
 
             self.upper_upper_surroundings = {
-                direction: self.grid[tuple(self.pos + directionVector[direction] + 2*up_vector)]
+                direction: self.grid[tuple(self.pos + directionVector[direction] + 2 * up_vector)]
                 for direction in Direction}
             self.upper_surroundings = {direction: self.grid[tuple(self.pos + directionVector[direction] + up_vector)]
                                        for direction in Direction}
@@ -83,8 +103,24 @@ class Observation:
                                        in Direction}
             print("Lower Surroundings", self.lower_surroundings)
 
+        self.pickups = []
+        self.animals = []
+        if Observation.ENTITIES in info:
+            print(info[Observation.ENTITIES])
+            for entity in info[Observation.ENTITIES]:
+                entity_name = entity.get(Observation.ENTITY_NAME, None)
+                entity_x = entity.get(Observation.ENTITY_X, None)
+                entity_y = entity.get(Observation.ENTITY_Y, None)
+                entity_z = entity.get(Observation.ENTITY_Z, None)
+
+                if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
+                    if entity_name in items.pickups:
+                        self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
+                    elif entity_name in animals.animals:
+                        self.animals.append(entity)
+
     def grid_observation_from_list(self, grid_observation_list):
-        grid = np.array(grid_observation_list).reshape(self.grid_size[1], self.grid_size[2], self.grid_size[0])
+        grid = np.array(grid_observation_list).reshape((self.grid_size[1], self.grid_size[2], self.grid_size[0]))
         grid = np.transpose(grid, (2, 0, 1))
         return grid
 
@@ -124,8 +160,15 @@ class Observation:
 
     def print(self):
         for key in self.info:
-            if key != "me":
+            if key != Observation.GRID:
                 print(key, self.info[key])
+
+    def get_pickup_position(self, wanted):
+        print("pickups", self.pickups)
+        for pickup in self.pickups:
+            if pickup.name in wanted:
+                return pickup.get_centralized_position() - self.abs_pos
+        return None
 
 
 def round_move(move):

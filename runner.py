@@ -18,11 +18,9 @@ class Runner:
         self.agent = agent
         self.last_delta = time.time()
 
-        self.night_vision = world.mission_data.night_vision
         self.grid_size = world.mission_data.get_grid_size()
+        self.night_vision = world.mission_data.night_vision
         self.sleep_time = ms_to_seconds(world.mission_data.ms_per_tick)
-
-        self.name = world.mission_data.name
 
         self.tree = BehaviourTree(agent)
 
@@ -45,7 +43,7 @@ class Runner:
             world_state = self.agent.get_world_state()
             observation = Observation(world_state.observations, self.grid_size)
             self.agent.set_observation(observation)
-            # observation.print()
+            #observation.print()
 
             # DO
             self.tree.root.tick_once()

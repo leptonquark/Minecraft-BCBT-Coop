@@ -1,7 +1,7 @@
 from py_trees.composites import Selector
 
 import items
-from behaviours import Craft, Equip, JumpIfStuck, Melt, GoToMaterial, MineMaterial, DigDownwardsToMaterial
+from behaviours import Craft, DigDownwardsToMaterial, GoToMaterial, Equip, JumpIfStuck, Melt, MineMaterial, PickupItem
 from gathering import get_gathering_tools
 from sequence import Sequence
 
@@ -95,15 +95,16 @@ def get_gather_tree(agent, material):
     tool = get_gathering_tools(material)
 
     children = []
+    children += [
+        PickupItem(agent, material),
+        MineMaterial(agent, material),
+        GoToMaterial(agent, material),
+        DigDownwardsToMaterial(agent, material)
+    ]
     if tool:
         children.append(Equip(agent, tool))
-    children += [
-        DigDownwardsToMaterial(agent, material),
-        GoToMaterial(agent, material),
-        MineMaterial(agent, material)
-    ]
 
-    tree = Sequence(
+    tree = Selector(
         "Gather " + str(material),
         children=children
     )
