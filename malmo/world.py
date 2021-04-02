@@ -1,8 +1,9 @@
-import MalmoPython
-import malmoutils
+import malmo.malmoutils as malmoutils
 import uuid
 import time
-from missiondata import MissionData
+
+from malmo.MalmoPython import MissionSpec, ClientInfo, ClientPool
+from malmo.missiondata import MissionData
 
 TIME_LIMIT_IN_SECONDS = 1000
 VIDEO_SIZE = (800, 600)
@@ -17,7 +18,7 @@ MAX_RESPONSE_TIME = 60
 
 
 def setup_mission(mission_data):
-    mission = MalmoPython.MissionSpec(mission_data.get_xml(), True)
+    mission = MissionSpec(mission_data.get_xml(), True)
     mission.timeLimitInSeconds(TIME_LIMIT_IN_SECONDS)
     mission.requestVideo(*VIDEO_SIZE)
     return mission
@@ -29,7 +30,7 @@ def setup_mission_record(agent):
 
 
 def setup_pool(client_info):
-    pool = MalmoPython.ClientPool()
+    pool = ClientPool()
     pool.add(client_info)
     return pool
 
@@ -52,7 +53,7 @@ class World:
         self.mission = setup_mission(self.mission_data)
         self.mission_record = setup_mission_record(agent)
 
-        self.client_info = MalmoPython.ClientInfo(IP, PORT)
+        self.client_info = ClientInfo(IP, PORT)
         self.pool = setup_pool(self.client_info)
 
         self.experiment_id = setup_experiment_id()

@@ -1,4 +1,4 @@
-import items
+from items import items
 
 gathering_tools = {
     items.STONE: items.WOODEN_PICKAXE,

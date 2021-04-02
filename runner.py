@@ -2,7 +2,7 @@ import time
 
 from py_trees.display import ascii_tree
 from observation import Observation
-from tree import BehaviourTree
+from bt.tree import BehaviourTree
 from utils import ms_to_seconds
 
 MAX_DELAY = 60

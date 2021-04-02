@@ -1,11 +1,11 @@
 from __future__ import print_function
 
-import malmoutils
+from malmo import malmoutils
 import os
 import sys
-from agent import MinerAgent
+from malmo.agent import MinerAgent
 from runner import Runner
-from world import World
+from malmo.world import World
 
 
 def run(argv=None):

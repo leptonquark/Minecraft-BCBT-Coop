@@ -1,11 +1,11 @@
 import json
 
-import animals
-import items
+from mobs import animals
+from items import items
 import numpy as np
 
-from inventory import Inventory
-from pickup import PickUp
+from items.inventory import Inventory
+from items.pickup import PickUp
 from utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
@@ -16,7 +16,6 @@ LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.2
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
-
 
 
 class Observation:

@@ -1,6 +1,6 @@
-import items
+from items import items
 
-from recipes import RecipeBook
+from items.recipes import RecipeBook
 
 NO_SELECTION = -1
 HOTBAR_SIZE = 9

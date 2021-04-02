@@ -1,9 +1,9 @@
 from py_trees.composites import Selector
 
-import items
-from behaviours import Craft, DigDownwardsToMaterial, GoToMaterial, Equip, JumpIfStuck, Melt, MineMaterial, PickupItem
-from gathering import get_gathering_tools
-from sequence import Sequence
+from items import items
+from bt.behaviours import Craft, DigDownwardsToMaterial, GoToMaterial, Equip, JumpIfStuck, Melt, MineMaterial, PickupItem
+from items.gathering import get_gathering_tools
+from bt.sequence import Sequence
 
 
 class BehaviourTree:
@@ -26,7 +26,6 @@ class BehaviourTree:
                 self.get_gather_tree([items.LOG, items.LOG_2])
             ]
         )
-        tree.setup_with_descendants()
         return tree
 
     def get_base_goal_tree(self):
@@ -36,7 +35,6 @@ class BehaviourTree:
             "BaseGoalTree",
             children=children
         )
-        tree.setup_with_descendants()
         return tree
 
     def get_base_tree(self):
@@ -57,7 +55,6 @@ class BehaviourTree:
                 Craft(self.agent, items.CRAFTING_TABLE),
             ],
         )
-        sub_tree.setup_with_descendants()
         tree = Sequence(
             "Craft wooden pickaxe",
             children=[
@@ -65,7 +62,6 @@ class BehaviourTree:
                 Craft(self.agent, items.WOODEN_PICKAXE)
             ]
         )
-        tree.setup_with_descendants()
         return tree
 
     def get_stone_craft_tree(self):
@@ -76,7 +72,6 @@ class BehaviourTree:
                 Craft(self.agent, items.STONE_PICKAXE)
             ]
         )
-        tree.setup_with_descendants()
         return tree
 
     def get_iron_craft_tree(self):
@@ -87,7 +82,6 @@ class BehaviourTree:
                 Melt(self.agent, items.IRON_INGOT, 3)
             ]
         )
-        tree.setup_with_descendants()
         return tree
 
     def get_gather_tree(self, material):
@@ -107,5 +101,4 @@ class BehaviourTree:
             "Gather " + str(material),
             children=children
         )
-        tree.setup_with_descendants()
         return tree
