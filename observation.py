@@ -1,11 +1,11 @@
 import json
-
-from mobs import animals
-from items import items
 import numpy as np
 
+from items import items
+from items.gathering import get_vein
 from items.inventory import Inventory
 from items.pickup import PickUp
+from mobs import animals
 from utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
@@ -105,7 +105,6 @@ class Observation:
         self.pickups = []
         self.animals = []
         if Observation.ENTITIES in info:
-            print(info[Observation.ENTITIES])
             for entity in info[Observation.ENTITIES]:
                 entity_name = entity.get(Observation.ENTITY_NAME, None)
                 entity_x = entity.get(Observation.ENTITY_X, None)
@@ -136,10 +135,7 @@ class Observation:
 
     def get_closest(self, materials):
         if self.grid is not None:
-            hits = (self.grid == materials[0])
-            if len(materials) > 1:
-                for i in range(1, len(materials)):
-                    hits = (hits | (self.grid == materials[i]))
+            hits = self.get_hits(materials)
             positions = np.argwhere(hits)
             if len(positions) > 0:
                 distances = positions - self.pos
@@ -151,8 +147,15 @@ class Observation:
                 print(exact_move)
 
                 return exact_move
-
         return None
+
+    def get_hits(self, material):
+        hits = (self.grid == material)
+        vein = get_vein(material)
+        print(vein)
+        if vein is not None:
+            hits = (hits | (self.grid == vein))
+        return hits
 
     def is_stuck(self):
         return self.lower_surroundings[Direction.Zero] not in traversable
@@ -163,9 +166,8 @@ class Observation:
                 print(key, self.info[key])
 
     def get_pickup_position(self, wanted):
-        print("pickups", self.pickups)
         for pickup in self.pickups:
-            if pickup.name in wanted:
+            if pickup.name == wanted:
                 return pickup.get_centralized_position() - self.abs_pos
         return None
 

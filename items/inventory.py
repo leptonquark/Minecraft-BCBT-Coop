@@ -1,6 +1,6 @@
 from items import items
 
-from items.recipes import RecipeBook
+from items.recipes import get_ingredients
 
 NO_SELECTION = -1
 HOTBAR_SIZE = 9
@@ -27,9 +27,7 @@ def fill_inventory(info, size):
 
 
 def get_selection_from_info(info):
-    if Inventory.CURRENT_SELECTION in info:
-        return info[Inventory.CURRENT_SELECTION]
-    return 0
+    return info.get(Inventory.CURRENT_SELECTION, 0)
 
 
 class Inventory:
@@ -47,7 +45,6 @@ class Inventory:
 
         self.inventory = fill_inventory(info, size)
         self.current_selection = get_selection_from_info(info)
-        self.recipes = RecipeBook()
         self.currentItem = info["currentItemIndex"]
 
     def __str__(self):
@@ -70,7 +67,7 @@ class Inventory:
         return -1
 
     def has_ingredients(self, item):
-        ingredients = self.recipes.get_ingredients(item)
+        ingredients = get_ingredients(item)
 
         for ingredient in ingredients:
             if not self.has_item(ingredient.item, ingredient.amount):

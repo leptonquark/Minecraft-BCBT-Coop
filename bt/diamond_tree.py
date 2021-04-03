@@ -2,7 +2,7 @@ from py_trees.composites import Selector
 
 from items import items
 from bt.behaviours import Craft, DigDownwardsToMaterial, GoToMaterial, Equip, JumpIfStuck, Melt, MineMaterial, PickupItem
-from items.gathering import get_gathering_tools
+from items.gathering import get_gathering_tool
 from bt.sequence import Sequence
 
 
@@ -17,13 +17,13 @@ class BehaviourTree:
             children=[
                 Equip(self.agent, items.DIAMOND_PICKAXE),
                 Craft(self.agent, items.DIAMOND_PICKAXE),
-                self.get_gather_tree([items.DIAMOND_ORE]),
+                self.get_gather_tree(items.DIAMOND_ORE),
                 self.get_iron_craft_tree(),
-                self.get_gather_tree([items.IRON_ORE]),
+                self.get_gather_tree(items.IRON_ORE),
                 self.get_stone_craft_tree(),
-                self.get_gather_tree([items.STONE]),
+                self.get_gather_tree(items.STONE),
                 self.get_wooden_craft_tree(),
-                self.get_gather_tree([items.LOG, items.LOG_2])
+                self.get_gather_tree(items.LOG)
             ]
         )
         return tree
@@ -85,7 +85,7 @@ class BehaviourTree:
         return tree
 
     def get_gather_tree(self, material):
-        tool = get_gathering_tools(material)
+        tool = get_gathering_tool(material)
 
         children = []
         children += [

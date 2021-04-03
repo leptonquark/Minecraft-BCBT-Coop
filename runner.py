@@ -2,7 +2,8 @@ import time
 
 from py_trees.display import ascii_tree
 from observation import Observation
-from bt.tree import BehaviourTree
+from bt.back_chain_tree import BackChainTree
+from bt.diamond_tree import BehaviourTree
 from utils import ms_to_seconds
 
 MAX_DELAY = 60
@@ -22,7 +23,7 @@ class Runner:
         self.night_vision = world.mission_data.night_vision
         self.sleep_time = ms_to_seconds(world.mission_data.ms_per_tick)
 
-        self.tree = BehaviourTree(agent)
+        self.tree = BackChainTree(agent)
 
     def run_mission(self):
         world_state = self.agent.get_world_state()

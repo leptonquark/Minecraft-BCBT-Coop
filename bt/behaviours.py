@@ -2,7 +2,7 @@ import numpy as np
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
-from items.gathering import get_gathering_tools
+from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
 from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, traversable, \
     round_move, get_yaw_from_vector
@@ -34,7 +34,6 @@ def get_move_speed(horizontal_distance):
 def get_pitch_change(pitch, wanted_pitch):
     quarter_circle = CIRCLE_DEGREES / 4
     diff = pitch - wanted_pitch
-    print(diff)
     if np.abs(diff) <= PITCH_TOLERANCE:
         return 0
     else:
@@ -69,16 +68,12 @@ def has_arrived(move):
 
 
 class Craft(Behaviour):
-    def __init__(self, agent, item, amount=1):
-        super(Craft, self).__init__("Craft {0}x {1}".format(amount, item))
+    def __init__(self, agent, item):
+        super(Craft, self).__init__("Craft {0}".format(item))
         self.agent = agent
         self.item = item
-        self.amount = amount
 
     def update(self):
-        if self.agent.inventory.has_item(self.item, self.amount):
-            return Status.SUCCESS
-
         if not self.agent.inventory.has_ingredients(self.item):
             return Status.FAILURE
 
@@ -119,14 +114,13 @@ class Equip(Behaviour):
 
     def update(self):
         if self.agent.inventory.has_item(self.item):
-            self.find_and_equip_item(self.agent.observation, self.item)
+            self.equip_item(self.agent.observation, self.item)
             return Status.SUCCESS
 
         return Status.FAILURE
 
-    def find_and_equip_item(self, observation, item):
+    def equip_item(self, observation, item):
         position = observation.inventory.find_item(item)
-        print("pos", position)
         if position >= HOTBAR_SIZE:
             self.agent.swap_items(position, PICKAXE_HOT_BAR_POSITION)
             position = PICKAXE_HOT_BAR_POSITION
@@ -225,7 +219,7 @@ class GoToMaterial(GoToObject):
         super(GoToMaterial, self).__init__(agent, "Go to " + str(material))
         self.agent = agent
         self.material = material
-        self.tool = get_gathering_tools(material)
+        self.tool = get_gathering_tool(material)
 
     def update(self):
         distance = self.agent.observation.get_closest(self.material)
@@ -244,8 +238,6 @@ class GoToMaterial(GoToObject):
 
         wanted_direction = get_wanted_direction(distance)
         current_direction = self.agent.observation.get_current_direction()
-        print("cy", self.agent.observation.yaw)
-        print("wy", get_yaw_from_direction(wanted_direction))
         turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
         self.agent.turn(turn_direction)
 
@@ -275,7 +267,7 @@ class MineMaterial(Behaviour):
         super(MineMaterial, self).__init__("Mine " + str(material))
         self.agent = agent
         self.material = material
-        self.tool = get_gathering_tools(material)
+        self.tool = get_gathering_tool(material)
 
     def update(self):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
@@ -332,7 +324,7 @@ class DigDownwardsToMaterial(Behaviour):
         super(DigDownwardsToMaterial, self).__init__("Dig downwards to " + str(material))
         self.agent = agent
         self.material = material
-        self.tool = get_gathering_tools(material)
+        self.tool = get_gathering_tool(material)
 
     def update(self):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
