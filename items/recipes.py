@@ -1,36 +1,44 @@
+from enum import Enum
 from items import items
+from items.ingredient import Ingredient
 
 
-class Ingredient:
-    def __init__(self, item, amount=1):
-        self.item = item
-        self.amount = amount
+class RecipeType(Enum):
+    Crafting = 0
+    Melting = 1
 
-    def __str__(self):
-        return f"Ingredient: {self.amount}x {self.item}"
 
-    def __repr__(self):
-        return str(self)
+class Recipe:
+
+    def __init__(self, ingredients, output_amount=1, station=None):
+        self.ingredients = ingredients
+        self.output_amount = output_amount
+        self.station = station
+        self.recipe_type = RecipeType.Melting if (station == items.FURNACE) else RecipeType.Crafting
 
 
 recipes = {
-    items.PLANKS: [Ingredient(items.LOG)],
-    items.CRAFTING_TABLE: [Ingredient(items.PLANKS, 4)],
-    items.STICKS: [Ingredient(items.PLANKS, 2)],
-    items.WOODEN_PICKAXE: [
-        Ingredient(items.CRAFTING_TABLE), Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 3)
-    ],
-    items.STONE_PICKAXE: [
-        Ingredient(items.CRAFTING_TABLE), Ingredient(items.STICKS, 2), Ingredient(items.COBBLESTONE, 3)
-    ],
-    items.IRON_PICKAXE: [
-        Ingredient(items.CRAFTING_TABLE), Ingredient(items.STICKS, 2), Ingredient(items.IRON_INGOT, 3)
-    ],
-    items.FURNACE: [Ingredient(items.CRAFTING_TABLE), Ingredient(items.COBBLESTONE, 8)],
-    items.IRON_INGOT: [Ingredient(items.FURNACE), Ingredient(items.IRON_ORE)],
-    items.DIAMOND_PICKAXE: [
-        Ingredient(items.CRAFTING_TABLE), Ingredient(items.STICKS, 2), Ingredient(items.DIAMOND, 3)
-    ]
+    items.PLANKS: Recipe([Ingredient(items.LOG)], 4),
+    items.CRAFTING_TABLE: Recipe([Ingredient(items.PLANKS)], 4),
+    items.STICKS: Recipe([Ingredient(items.PLANKS, 2)], 4),
+    items.FURNACE: Recipe([Ingredient(items.COBBLESTONE, 8)], station=items.CRAFTING_TABLE),
+    items.IRON_INGOT: Recipe([Ingredient(items.COAL), Ingredient(items.IRON_ORE)], station=items.FURNACE),
+    items.WOODEN_PICKAXE: Recipe(
+        [Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 3)],
+        station=items.CRAFTING_TABLE
+    ),
+    items.STONE_PICKAXE: Recipe(
+        [Ingredient(items.STICKS, 2), Ingredient(items.COBBLESTONE, 3)],
+        station=items.CRAFTING_TABLE
+    ),
+    items.IRON_PICKAXE: Recipe(
+        [Ingredient(items.STICKS, 2), Ingredient(items.IRON_INGOT, 3)],
+        station=items.CRAFTING_TABLE
+    ),
+    items.DIAMOND_PICKAXE: Recipe(
+        [Ingredient(items.STICKS, 2), Ingredient(items.DIAMOND, 3)],
+        station=items.CRAFTING_TABLE
+    )
 }
 
 
@@ -40,5 +48,9 @@ def has_recipe(item):
 
 def get_ingredients(item):
     if has_recipe(item):
-        return recipes[item]
+        return recipes[item].ingredients
     return None
+
+
+def get_recipe(item):
+    return recipes.get(item, None)

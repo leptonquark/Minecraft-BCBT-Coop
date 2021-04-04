@@ -1,18 +1,24 @@
-from bt.behaviours import Craft, DigDownwardsToMaterial, GoToMaterial, Equip, MineMaterial, PickupItem
+import math
+
+from bt.behaviours import Craft, Melt, DigDownwardsToMaterial, GoToMaterial, Equip, MineMaterial, PickupItem
 from bt.conditions import HasItem, HasItemEquipped
 from bt.sequence import Sequence
 from items.gathering import get_gathering_tool
-from items.recipes import get_ingredients, has_recipe
+from items.recipes import get_recipe, RecipeType
 from py_trees.composites import Selector
 
 
 def condition_to_ppa_tree(agent, condition):
     if isinstance(condition, HasItem):
-        if has_recipe(condition.item):
-            ppa = CraftPPA(agent, condition.item, condition.amount)
+        recipe = get_recipe(condition.item)
+        if recipe is None:
+            return GatherPPA(agent, condition.item, condition.amount)
         else:
-            ppa = GatherPPA(agent, condition.item, condition.amount)
-        return ppa
+            if recipe.recipe_type == RecipeType.Melting:
+                return MeltPPA(agent, condition.item, condition.amount)
+            else:
+                return CraftPPA(agent, condition.item, condition.amount)
+
     elif isinstance(condition, HasItemEquipped):
         return EquipPPA(agent, condition.item)
     return None
@@ -56,11 +62,30 @@ class CraftPPA(PPA):
         super(CraftPPA, self).__init__()
         self.name = "Craft {1}x {0}".format(item, amount)
         self.post_condition = HasItem(agent, item, amount)
-        ingredients = get_ingredients(item)
-        if ingredients is not None:
-            for ingredient in ingredients:
-                self.pre_conditions.append(HasItem(agent, ingredient.item, ingredient.amount))
-        self.action = Craft(agent, item)
+        recipe = get_recipe(item)
+        if recipe is not None:
+            if recipe.station:
+                self.pre_conditions.append(HasItem(agent, recipe.station))
+            for ingredient in recipe.ingredients:
+                ingredient_amount = math.ceil(amount / recipe.output_amount) * ingredient.amount
+                self.pre_conditions.append(HasItem(agent, ingredient.item, ingredient_amount))
+        self.action = Craft(agent, item, amount)
+
+
+class MeltPPA(PPA):
+
+    def __init__(self, agent, item, amount=1):
+        super(MeltPPA, self).__init__()
+        self.name = "Melt {1}x {0}".format(item, amount)
+        self.post_condition = HasItem(agent, item, amount)
+        recipe = get_recipe(item)
+        if recipe is not None:
+            if recipe.station:
+                self.pre_conditions.append(HasItem(agent, recipe.station))
+            for ingredient in recipe.ingredients:
+                ingredient_amount = math.ceil(amount / recipe.output_amount) * ingredient.amount
+                self.pre_conditions.append(HasItem(agent, ingredient.item, ingredient_amount))
+        self.action = Melt(agent, item, amount)
 
 
 class GatherPPA(PPA):

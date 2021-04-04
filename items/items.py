@@ -9,6 +9,7 @@ LOG_2 = "log2"
 COAL = "coal"
 STONE = "stone"
 COBBLESTONE = "cobblestone"
+COAL_ORE = "coal_ore"
 IRON_ORE = "iron_ore"
 DIAMOND_ORE = "diamond_ore"
 
@@ -28,6 +29,7 @@ FURNACE = "furnace"
 
 pickups = [
     LOG,
+    COAL,
     IRON_ORE,
     DIAMOND_ORE,
     COBBLESTONE,

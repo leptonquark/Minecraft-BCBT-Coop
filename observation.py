@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 from items import items
-from items.gathering import get_vein
+from items.gathering import get_ore
 from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
@@ -151,10 +151,9 @@ class Observation:
 
     def get_hits(self, material):
         hits = (self.grid == material)
-        vein = get_vein(material)
-        print(vein)
-        if vein is not None:
-            hits = (hits | (self.grid == vein))
+        ore = get_ore(material)
+        if ore is not None:
+            hits = (hits | (self.grid == ore))
         return hits
 
     def is_stuck(self):

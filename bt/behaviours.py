@@ -64,20 +64,22 @@ def has_arrived(move):
     mat_horizontal_distance = get_horizontal_distance(move)
     y_distance = move[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= REACH) \
-           or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
+        or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
 
 
 class Craft(Behaviour):
-    def __init__(self, agent, item):
+    def __init__(self, agent, item, amount=1):
         super(Craft, self).__init__("Craft {0}".format(item))
         self.agent = agent
+        self.amount = amount
         self.item = item
 
     def update(self):
         if not self.agent.inventory.has_ingredients(self.item):
             return Status.FAILURE
 
-        self.agent.craft(self.item)
+        for i in range(self.amount):
+            self.agent.craft(self.item)
         return Status.SUCCESS
 
 
@@ -89,8 +91,6 @@ class Melt(Behaviour):
         self.amount = amount
 
     def update(self):
-        if self.agent.inventory.has_item(self.item, self.amount):
-            return Status.SUCCESS
 
         fuel = self.agent.inventory.get_fuel()
         if not fuel:
@@ -102,7 +102,8 @@ class Melt(Behaviour):
         fuel_position = self.agent.observation.inventory.find_item(fuel)
         if fuel_position != FUEL_HOT_BAR_POSITION:
             self.agent.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
-        self.agent.craft(self.item)
+        for i in range(self.amount):
+            self.agent.craft(self.item)
         return Status.SUCCESS
 
 

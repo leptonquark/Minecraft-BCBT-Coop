@@ -15,7 +15,6 @@ class HasItem(Condition):
         self.amount = amount
 
     def update(self):
-
         if self.agent.inventory.has_item(self.item, self.amount):
             return Status.SUCCESS
         else:

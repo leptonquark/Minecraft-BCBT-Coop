@@ -1,4 +1,5 @@
 from bt.ppa import CraftPPA, GatherPPA, EquipPPA, condition_to_ppa_tree
+from items import items
 
 
 class BackChainTree:
@@ -7,7 +8,7 @@ class BackChainTree:
         self.root = self.get_base_tree_back_chain()
 
     def get_base_tree_back_chain(self):
-        stone_pickaxe_ppa = EquipPPA(self.agent, "stone_pickaxe")
+        stone_pickaxe_ppa = EquipPPA(self.agent, items.DIAMOND_PICKAXE)
         return self.back_chain_recursive(stone_pickaxe_ppa)
 
     def back_chain_recursive(self, ppa):
