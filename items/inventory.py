@@ -44,7 +44,6 @@ class Inventory:
             return
 
         self.inventory = fill_inventory(info, size)
-        print(self.inventory)
         self.current_selection = get_selection_from_info(info)
         self.currentItem = info["currentItemIndex"]
 

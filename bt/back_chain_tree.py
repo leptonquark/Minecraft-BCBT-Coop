@@ -1,15 +1,26 @@
-from bt.ppa import CraftPPA, GatherPPA, EquipPPA, condition_to_ppa_tree
-from items import items
+from bt.behaviours import JumpIfStuck
+from bt.conditions import Condition
+from bt.ppa import PPA, condition_to_ppa_tree
+from bt.sequence import Sequence
 
 
 class BackChainTree:
-    def __init__(self, agent):
+    def __init__(self, agent, goals):
         self.agent = agent
-        self.root = self.get_base_tree_back_chain()
+        self.root = self.get_base_back_chain_tree(goals)
 
-    def get_base_tree_back_chain(self):
-        stone_pickaxe_ppa = EquipPPA(self.agent, items.DIAMOND_PICKAXE)
-        return self.back_chain_recursive(stone_pickaxe_ppa)
+    def get_base_back_chain_tree(self, goals):
+        children = [JumpIfStuck(self.agent)]
+        for goal in goals:
+            goal_ppa = None
+            if isinstance(goal, Condition):
+                goal_ppa = condition_to_ppa_tree(self.agent, goal)
+            elif isinstance(goal, PPA):
+                goal_ppa = condition_to_ppa_tree(self.agent, goal)
+            if goal_ppa is not None:
+                self.back_chain_recursive(goal_ppa)
+                children.append(goal_ppa.tree)
+        return Sequence("BaseTree", children=children)
 
     def back_chain_recursive(self, ppa):
         for i, pre_condition in enumerate(ppa.pre_conditions):
