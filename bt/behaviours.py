@@ -60,11 +60,11 @@ def get_turn_direction(yaw, wanted_angle):
             return (diff - CIRCLE_DEGREES) / half_circle
 
 
-def has_arrived(move):
-    mat_horizontal_distance = get_horizontal_distance(move)
-    y_distance = move[1]
+def has_arrived(distance):
+    mat_horizontal_distance = get_horizontal_distance(distance)
+    y_distance = distance[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= REACH) \
-        or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
+           or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
 
 
 class Craft(Behaviour):
@@ -91,7 +91,6 @@ class Melt(Behaviour):
         self.amount = amount
 
     def update(self):
-
         fuel = self.agent.inventory.get_fuel()
         if not fuel:
             return Status.FAILURE
@@ -137,15 +136,39 @@ class JumpIfStuck(Behaviour):
     def update(self):
         if self.agent.observation.is_stuck():
             self.agent.jump(True)
+            return Status.RUNNING
         else:
             self.agent.jump(False)
-        return Status.SUCCESS
+            return Status.SUCCESS
 
 
 class GoToObject(Behaviour):
     def __init__(self, agent, name):
         super(GoToObject, self).__init__(name)
         self.agent = agent
+
+    def go_to_position(self, distance):
+
+        wanted_direction = get_wanted_direction(distance)
+        current_direction = self.agent.observation.get_current_direction()
+        turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
+        self.agent.turn(turn_direction)
+
+        if turn_direction != 0:
+            self.agent.attack(False)
+            self.agent.move(0)
+            return Status.RUNNING
+        # Move towards
+        mat_horizontal_distance = get_horizontal_distance(distance)
+        if not self.agent.observation.upper_surroundings[current_direction] in traversable:
+            self.mine_forward(1)
+        elif not self.agent.observation.lower_surroundings[current_direction] in traversable:
+            if self.can_jump(current_direction):
+                self.jump_forward()
+            else:
+                self.mine_forward(0)
+        else:
+            self.move_forward(mat_horizontal_distance)
 
     def move_forward(self, horizontal_distance):
         self.agent.attack(False)
@@ -181,33 +204,13 @@ class PickupItem(GoToObject):
         self.item = item
 
     def update(self):
-        distance = self.agent.observation.get_pickup_position(self.item)
-
         self.agent.jump(False)
+
+        distance = self.agent.observation.get_pickup_position(self.item)
         if distance is None:
             return Status.FAILURE
 
-        self.agent.move(0)
-
-        wanted_direction = get_wanted_direction(distance)
-        current_direction = self.agent.observation.get_current_direction()
-        turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
-        self.agent.turn(turn_direction)
-
-        if turn_direction != 0:
-            self.agent.attack(False)
-            return Status.RUNNING
-        # Move towards
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        if not self.agent.observation.upper_surroundings[current_direction] in traversable:
-            self.mine_forward(1)
-        elif not self.agent.observation.lower_surroundings[current_direction] in traversable:
-            if self.can_jump(current_direction):
-                self.jump_forward()
-            else:
-                self.mine_forward(0)
-        else:
-            self.move_forward(mat_horizontal_distance)
+        self.go_to_position(distance)
 
         if self.agent.observation.get_pickup_position(self.item) is None:
             return Status.SUCCESS
@@ -223,44 +226,21 @@ class GoToMaterial(GoToObject):
         self.tool = get_gathering_tool(material)
 
     def update(self):
-        distance = self.agent.observation.get_closest(self.material)
         self.agent.jump(False)
+        if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
+            return Status.FAILURE
+
+        distance = self.agent.observation.get_closest(self.material)
 
         if distance is None:
             return Status.FAILURE
 
-        if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
-            return Status.FAILURE
+        self.go_to_position(distance)
 
         if has_arrived(distance):
             return Status.SUCCESS
-
-        self.agent.move(0)
-
-        wanted_direction = get_wanted_direction(distance)
-        current_direction = self.agent.observation.get_current_direction()
-        turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
-        self.agent.turn(turn_direction)
-
-        if turn_direction != 0:
-            self.agent.attack(False)
+        else:
             return Status.RUNNING
-        # Move towards
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        if not has_arrived(distance):
-            if not self.agent.observation.upper_surroundings[current_direction] in traversable:
-                self.mine_forward(1)
-            elif not self.agent.observation.lower_surroundings[current_direction] in traversable:
-                if super().can_jump(current_direction):
-                    self.jump_forward()
-                else:
-                    self.mine_forward(0)
-            else:
-                self.move_forward(mat_horizontal_distance)
-
-            return Status.RUNNING
-
-        return Status.SUCCESS
 
 
 class MineMaterial(Behaviour):

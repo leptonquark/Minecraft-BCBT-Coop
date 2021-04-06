@@ -157,7 +157,7 @@ class Observation:
         return hits
 
     def is_stuck(self):
-        return self.lower_surroundings[Direction.Zero] not in traversable
+        return self.lower_surroundings is not None and self.lower_surroundings[Direction.Zero] not in traversable
 
     def print(self):
         for key in self.info:
