@@ -42,10 +42,22 @@ class Observation:
     ENTITY_Z = "z"
 
     def __init__(self, observations, grid_size):
+        self.grid_size = grid_size
+
+        self.abs_pos = None
+        self.abs_pos_inner = None
+        self.animals = None
+        self.grid = None
         self.inventory = None
         self.lower_surroundings = None
-
-        self.grid_size = grid_size
+        self.los_abs_pos = None
+        self.los_pos = None
+        self.upper_surroundings = None
+        self.upper_upper_surroundings = None
+        self.pos = None
+        self.pickups = None
+        self.pitch = None
+        self.yaw = None
 
         if observations is None or len(observations) == 0:
             print("Observations is null or empty")
@@ -61,36 +73,36 @@ class Observation:
 
         self.inventory = Inventory(info)
 
-        los_abs_pos = None
-
         abs_pos = None
-        if Observation.X in info and Observation.Y in info and Observation.Z in info:
-            abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
-        print("Absolute Position", abs_pos)
-        self.abs_pos = abs_pos
-        self.inner_abs_pos = abs_pos % 1 - center_vector
-        print("Inner Absolute Position", self.inner_abs_pos)
 
-        self.los_pos = None
+        self.setup_line_of_sight(info)
+        self.setup_yaw(info)
+        self.setup_pitch(info)
+        self.setup_grid(info)
+        self.setup_entities(info)
+
+    def setup_absolute_position(self, info):
+        if Observation.X in info and Observation.Y in info and Observation.Z in info:
+            self.abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
+            self.abs_pos_inner = self.abs_pos % 1 - center_vector
+
+    def setup_line_of_sight(self, info):
         if Observation.LOS in info:
             los = info[Observation.LOS]
-            los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
-            self.los_pos = los_abs_pos - abs_pos
-        print("LOS", self.los_pos)
+            self.los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
+            self.los_pos = self.los_abs_pos - self.abs_pos
 
-        yaw = 0
+    def setup_yaw(self, info):
         if Observation.YAW in info:
-            yaw = info[Observation.YAW]
-            if yaw <= 0:
-                yaw += CIRCLE_DEGREES
-        self.yaw = yaw
-        print("yaw", self.yaw)
+            self.yaw = info[Observation.YAW]
+            if self.yaw <= 0:
+                self.yaw += CIRCLE_DEGREES
 
-        pitch = 0
+    def setup_pitch(self, info):
         if Observation.PITCH in info:
-            pitch = info[Observation.PITCH]
-        self.pitch = pitch
+            self.pitch = info[Observation.PITCH]
 
+    def setup_grid(self, info):
         if Observation.GRID in info:
             self.grid = self.grid_observation_from_list(info[Observation.GRID])
             self.pos = np.array([int(axis / 2) for axis in self.grid_size])
@@ -105,9 +117,10 @@ class Observation:
                                        in Direction}
             print("Lower Surroundings", self.lower_surroundings)
 
-        self.pickups = []
-        self.animals = []
+    def setup_entities(self, info):
         if Observation.ENTITIES in info:
+            self.pickups = []
+            self.animals = []
             for entity in info[Observation.ENTITIES]:
                 entity_name = entity.get(Observation.ENTITY_NAME, None)
                 entity_x = entity.get(Observation.ENTITY_X, None)
