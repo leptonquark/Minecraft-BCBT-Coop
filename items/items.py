@@ -28,6 +28,7 @@ CRAFTING_TABLE = "crafting_table"
 FURNACE = "furnace"
 
 BEEF = "beef"
+MUTTON = "mutton"
 
 pickups = [
     LOG,

@@ -1,15 +1,17 @@
 import numpy as np
 from items import items
 
+CHICKEN = "Chicken"
+PIG = "Pig"
 SHEEP = "Sheep"
 COW = "Cow"
 HORSE = "Horse"
-CHICKEN = "Chicken"
 
-species = [CHICKEN, SHEEP, COW, HORSE]
+species = [CHICKEN, PIG, SHEEP, COW, HORSE]
 
 loot = {
-    items.BEEF: COW
+    items.BEEF: COW,
+    items.MUTTON: SHEEP
 }
 
 
