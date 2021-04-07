@@ -133,10 +133,11 @@ class HuntPPA(PPA):
 
         self.action = self.get_hunting_tree(mob)
 
-    def get_hunting_tree(self, mob):
+    def get_hunting_tree(self, item, mob):
         return Selector(
-            "Hunt " + str(mob),
+            f"Hunt {mob} for {item}" + str(mob),
             children=[
+                actions.PickupItem(self.agent, item),
                 actions.AttackAnimal(self.agent, mob),
                 actions.GoToAnimal(self.agent, mob)
             ]
