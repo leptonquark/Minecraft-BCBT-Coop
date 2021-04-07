@@ -1,10 +1,10 @@
 import time
 
-from py_trees.display import ascii_tree
-
 from bt.back_chain_tree import BackChainTree
 from observation import Observation
-from utils.utils import ms_to_seconds
+from py_trees.display import ascii_tree
+from utils.string import tree_to_string
+from utils.time import ms_to_seconds
 
 MAX_DELAY = 60
 EXTRA_SLEEP_TIME = 0.1
@@ -49,6 +49,7 @@ class Runner:
             # DO
             self.tree.root.tick_once()
             print(ascii_tree(self.tree.root))
+            #print(tree_to_string(self.tree.root))
 
             self.check_timeout(self.world, world_state)
 

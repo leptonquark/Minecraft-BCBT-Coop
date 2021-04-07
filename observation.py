@@ -8,7 +8,8 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils.utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
+from utils.time import rad_to_degrees
+from utils.vectors import Direction, directionAngle, directionVector, up_vector, center_vector
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -157,7 +158,7 @@ class Observation:
                 min_dist_arg = np.argmin(distances)
                 move = positions[min_dist_arg] - self.pos
 
-                exact_move = move.astype("float64") - self.inner_abs_pos
+                exact_move = move.astype("float64") - self.abs_pos_inner
                 print(exact_move)
 
                 return exact_move

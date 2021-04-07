@@ -16,7 +16,7 @@ loot = {
 
 
 def get_loot_source(item):
-    return loot.get(items.BEEF)
+    return loot.get(item)
 
 
 class Animal:
