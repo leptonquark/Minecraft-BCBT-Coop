@@ -131,7 +131,7 @@ class HuntPPA(PPA):
         self.agent = agent
         self.post_condition = HasItem(agent, item, amount)
 
-        self.action = self.get_hunting_tree(mob)
+        self.action = self.get_hunting_tree(item, mob)
 
     def get_hunting_tree(self, item, mob):
         return Selector(
@@ -150,5 +150,5 @@ class EquipPPA(PPA):
         self.name = "Equip {0}".format(item)
         self.agent = agent
         self.post_condition = HasItemEquipped(agent, item)
-        self.action = Equip(agent, item)
+        self.action = actions.Equip(agent, item)
         self.pre_conditions = [HasItem(agent, item)]

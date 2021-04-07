@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import center_vector
+from utils.utils import center_vector
 
 
 class PickUp:

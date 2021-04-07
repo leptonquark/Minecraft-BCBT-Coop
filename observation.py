@@ -8,7 +8,7 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
+from utils.utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -73,8 +73,7 @@ class Observation:
 
         self.inventory = Inventory(info)
 
-        abs_pos = None
-
+        self.setup_absolute_position(info)
         self.setup_line_of_sight(info)
         self.setup_yaw(info)
         self.setup_pitch(info)
