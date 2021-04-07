@@ -1,4 +1,5 @@
 import json
+
 import numpy as np
 
 from items import items
@@ -6,6 +7,7 @@ from items.gathering import get_ore
 from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
+from mobs.animals import Animal
 from utils import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
@@ -40,12 +42,13 @@ class Observation:
     ENTITY_Z = "z"
 
     def __init__(self, observations, grid_size):
+        self.inventory = None
+        self.lower_surroundings = None
 
         self.grid_size = grid_size
 
         if observations is None or len(observations) == 0:
             print("Observations is null or empty")
-            self.inventory = None
             return
 
         infoJSON = observations[-1].text
@@ -110,12 +113,11 @@ class Observation:
                 entity_x = entity.get(Observation.ENTITY_X, None)
                 entity_y = entity.get(Observation.ENTITY_Y, None)
                 entity_z = entity.get(Observation.ENTITY_Z, None)
-
                 if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
                     if entity_name in items.pickups:
                         self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
-                    elif entity_name in animals.animals:
-                        self.animals.append(entity)
+                    elif entity_name in animals.species:
+                        self.animals.append(Animal(entity_name, entity_x, entity_y, entity_z))
 
     def grid_observation_from_list(self, grid_observation_list):
         grid = np.array(grid_observation_list).reshape((self.grid_size[1], self.grid_size[2], self.grid_size[0]))
@@ -133,9 +135,9 @@ class Observation:
                 return key
         return Direction.North
 
-    def get_closest(self, materials):
+    def get_closest_block(self, block_type):
         if self.grid is not None:
-            hits = self.get_hits(materials)
+            hits = self.get_hits(block_type)
             positions = np.argwhere(hits)
             if len(positions) > 0:
                 distances = positions - self.pos
@@ -169,6 +171,16 @@ class Observation:
             if pickup.name == wanted:
                 return pickup.get_centralized_position() - self.abs_pos
         return None
+
+    def get_closest_animal(self, specie=None):
+        closest_distance = None
+        for animal in self.animals:
+            if specie is None or animal.specie == specie:
+                distance = animal.position - self.abs_pos
+                if closest_distance is None or np.linalg.norm(distance) < np.linalg.norm(closest_distance):
+                    closest_distance = distance
+        print(closest_distance)
+        return closest_distance
 
 
 def round_move(move):

@@ -27,6 +27,8 @@ DIAMOND_PICKAXE = "diamond_pickaxe"
 CRAFTING_TABLE = "crafting_table"
 FURNACE = "furnace"
 
+BEEF = "beef"
+
 pickups = [
     LOG,
     COAL,

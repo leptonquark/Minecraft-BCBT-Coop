@@ -3,11 +3,12 @@ from __future__ import print_function
 import os
 import sys
 
-from bt import conditions
+from bt import actions, conditions
+from items import items
 from malmo import malmoutils
 from malmo.agent import MinerAgent
 from malmo.world import World
-from items import  items
+from mobs import animals
 from runner import Runner
 
 
@@ -23,7 +24,9 @@ def run(argv=None):
     world = World(agent)
     world.start_world()
 
-    goals = [conditions.HasItemEquipped(agent, items.STONE_PICKAXE)]
+    #goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+    goals = [conditions.HasItem(agent, items.BEEF)]
+    #goals = [actions.GoToAnimal(agent, animals.COW), actions.AttackAnimal(agent, animals.COW)]
     player = Runner(world, agent, goals)
 
     player.run_mission()

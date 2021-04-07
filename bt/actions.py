@@ -18,7 +18,8 @@ MOVE_THRESHOLD = 5
 SAME_SPOT_Y_THRESHOLD = 2
 EPSILON_ARRIVED_AT_POSITION = 0.05
 MIN_MOVE_SPEED = 0.05
-REACH = 3
+GATHERING_REACH = 3
+ATTACK_REACH = 2
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
@@ -60,14 +61,19 @@ def get_turn_direction(yaw, wanted_angle):
             return (diff - CIRCLE_DEGREES) / half_circle
 
 
-def has_arrived(distance):
+def has_arrived(distance, reach=GATHERING_REACH):
     mat_horizontal_distance = get_horizontal_distance(distance)
     y_distance = distance[1]
-    return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= REACH) \
+    return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
            or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
 
 
-class Craft(Behaviour):
+class Action(Behaviour):
+    def __init__(self, name):
+        super(Action, self).__init__(name)
+
+
+class Craft(Action):
     def __init__(self, agent, item, amount=1):
         super(Craft, self).__init__("Craft {0}".format(item))
         self.agent = agent
@@ -83,7 +89,7 @@ class Craft(Behaviour):
         return Status.SUCCESS
 
 
-class Melt(Behaviour):
+class Melt(Action):
     def __init__(self, agent, item, amount=1):
         super(Melt, self).__init__("Melt {0}x {1}".format(amount, item))
         self.agent = agent
@@ -106,7 +112,7 @@ class Melt(Behaviour):
         return Status.SUCCESS
 
 
-class Equip(Behaviour):
+class Equip(Action):
     def __init__(self, agent, item):
         super(Equip, self).__init__("Equip " + item)
         self.agent = agent
@@ -128,7 +134,7 @@ class Equip(Behaviour):
         self.agent.select_on_hotbar(position)
 
 
-class JumpIfStuck(Behaviour):
+class JumpIfStuck(Action):
     def __init__(self, agent):
         super(JumpIfStuck, self).__init__("JumpIfStuck")
         self.agent = agent
@@ -142,7 +148,7 @@ class JumpIfStuck(Behaviour):
             return Status.SUCCESS
 
 
-class GoToObject(Behaviour):
+class GoToObject(Action):
     def __init__(self, agent, name):
         super(GoToObject, self).__init__(name)
         self.agent = agent
@@ -220,7 +226,7 @@ class PickupItem(GoToObject):
 
 class GoToAnimal(GoToObject):
     def __init__(self, agent, specie=None):
-        super(GoToAnimal, self).__init__(agent, "Go to animal " + str(specie))
+        super(GoToAnimal, self).__init__(agent, f"Go to {specie if specie else 'animal'}")
         self.specie = specie
 
     def update(self):
@@ -232,7 +238,7 @@ class GoToAnimal(GoToObject):
 
         self.go_to_position(distance)
 
-        if has_arrived(distance):
+        if has_arrived(distance, ATTACK_REACH):
             return Status.SUCCESS
         else:
             return Status.RUNNING
@@ -250,7 +256,7 @@ class GoToMaterial(GoToObject):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest(self.material)
+        distance = self.agent.observation.get_closest_block(self.material)
 
         if distance is None:
             return Status.FAILURE
@@ -263,7 +269,7 @@ class GoToMaterial(GoToObject):
             return Status.RUNNING
 
 
-class MineMaterial(Behaviour):
+class MineMaterial(Action):
     def __init__(self, agent, material):
         super(MineMaterial, self).__init__("Mine " + str(material))
         self.agent = agent
@@ -274,7 +280,7 @@ class MineMaterial(Behaviour):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest(self.material)
+        distance = self.agent.observation.get_closest_block(self.material)
         if distance is None:
             return Status.FAILURE
 
@@ -316,9 +322,58 @@ class MineMaterial(Behaviour):
         return turn_direction != 0
 
 
+class AttackAnimal(Action):
+    def __init__(self, agent, specie=None):
+        super(AttackAnimal, self).__init__(f"Attack {specie if specie else 'animal'}")
+        self.agent = agent
+        self.specie = specie
+
+    def update(self):
+        distance = self.agent.observation.get_closest_animal(self.specie)
+        if distance is None:
+            return Status.FAILURE
+
+        if not has_arrived(distance, ATTACK_REACH):
+            return Status.FAILURE
+
+        # Look at
+        self.agent.jump(False)
+        self.agent.move(0)
+
+        pitching = self.pitch_towards(distance)
+        turning = self.turn_towards(distance)
+
+        if pitching or turning:
+            self.agent.attack(False)
+            return Status.RUNNING
+
+        self.agent.attack(True)
+        target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
+        if self.agent.observation.grid[target_grid_point] != 'air':
+            return Status.RUNNING
+
+        self.agent.attack(False)
+        return Status.SUCCESS
+
+    def pitch_towards(self, distance):
+        mat_horizontal_distance = get_horizontal_distance(distance)
+        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
+        current_pitch = self.agent.observation.pitch
+        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
+        self.agent.pitch(pitch_req)
+        return pitch_req != 0
+
+    def turn_towards(self, distance):
+        wanted_yaw = get_yaw_from_vector(distance)
+        current_yaw = self.agent.observation.yaw
+        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
+        self.agent.turn(turn_direction)
+        return turn_direction != 0
+
+
 # TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
 # First it will dig down to a correct height then start digging sideways.
-class DigDownwardsToMaterial(Behaviour):
+class DigDownwardsToMaterial(Action):
     PITCH_DOWNWARDS = 90
 
     def __init__(self, agent, material):
@@ -331,7 +386,7 @@ class DigDownwardsToMaterial(Behaviour):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest(self.material)
+        distance = self.agent.observation.get_closest_block(self.material)
 
         if distance is not None:
             return Status.SUCCESS

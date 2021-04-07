@@ -1,4 +1,4 @@
-from bt.behaviours import JumpIfStuck
+from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
 from bt.ppa import PPA, condition_to_ppa_tree
 from bt.sequence import Sequence
@@ -12,14 +12,17 @@ class BackChainTree:
     def get_base_back_chain_tree(self, goals):
         children = [JumpIfStuck(self.agent)]
         for goal in goals:
-            goal_ppa = None
-            if isinstance(goal, Condition):
-                goal_ppa = condition_to_ppa_tree(self.agent, goal)
-            elif isinstance(goal, PPA):
-                goal_ppa = condition_to_ppa_tree(self.agent, goal)
-            if goal_ppa is not None:
-                self.back_chain_recursive(goal_ppa)
-                children.append(goal_ppa.tree)
+            if isinstance(goal, Action):
+                children.append(goal)
+            else:
+                goal_ppa = None
+                if isinstance(goal, Condition):
+                    goal_ppa = condition_to_ppa_tree(self.agent, goal)
+                elif isinstance(goal, PPA):
+                    goal_ppa = condition_to_ppa_tree(self.agent, goal)
+                if goal_ppa is not None:
+                    self.back_chain_recursive(goal_ppa)
+                    children.append(goal_ppa.tree)
         return Sequence("BaseTree", children=children)
 
     def back_chain_recursive(self, ppa):
