@@ -218,6 +218,26 @@ class PickupItem(GoToObject):
             return Status.RUNNING
 
 
+class GoToAnimal(GoToObject):
+    def __init__(self, agent, specie=None):
+        super(GoToAnimal, self).__init__(agent, "Go to animal " + str(specie))
+        self.specie = specie
+
+    def update(self):
+        self.agent.jump(False)
+
+        distance = self.agent.observation.get_closest_animal(self.specie)
+        if distance is None:
+            return Status.FAILURE
+
+        self.go_to_position(distance)
+
+        if has_arrived(distance):
+            return Status.SUCCESS
+        else:
+            return Status.RUNNING
+
+
 class GoToMaterial(GoToObject):
     def __init__(self, agent, material):
         super(GoToMaterial, self).__init__(agent, "Go to " + str(material))
