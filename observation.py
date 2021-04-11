@@ -8,8 +8,7 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils.time import rad_to_degrees
-from utils.vectors import Direction, directionAngle, directionVector, up_vector, center_vector
+from utils.vectors import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5

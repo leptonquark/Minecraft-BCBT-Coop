@@ -28,3 +28,8 @@ up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
 center_vector = np.array([0.5, 0, 0.5])
 CIRCLE_DEGREES = 360
+
+
+def rad_to_degrees(rad):
+    half_circle = CIRCLE_DEGREES / 2
+    return rad * half_circle / np.pi

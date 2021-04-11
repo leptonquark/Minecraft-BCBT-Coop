@@ -6,8 +6,7 @@ from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
 from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, traversable, \
     round_move, get_yaw_from_vector
-from utils.time import rad_to_degrees
-from utils.vectors import Direction, CIRCLE_DEGREES
+from utils.vectors import CIRCLE_DEGREES, Direction, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5

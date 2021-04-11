@@ -1,10 +1,8 @@
 import time
 
 from bt.back_chain_tree import BackChainTree
-from observation import Observation
 from py_trees.display import ascii_tree
-from utils.string import tree_to_string
-from utils.time import ms_to_seconds
+from observation import Observation
 
 MAX_DELAY = 60
 EXTRA_SLEEP_TIME = 0.1
@@ -21,7 +19,6 @@ class Runner:
 
         self.grid_size = world.mission_data.get_grid_size()
         self.night_vision = world.mission_data.night_vision
-        self.sleep_time = ms_to_seconds(world.mission_data.ms_per_tick)
 
         self.tree = BackChainTree(agent, goals)
 
@@ -37,12 +34,14 @@ class Runner:
 
         # main loop:
         while world_state.is_mission_running:
-            # SLEEP
-            time.sleep(self.sleep_time + EXTRA_SLEEP_TIME)
+            #
 
-            # SEE
-            world_state = self.agent.get_world_state()
-            observation = Observation(world_state.observations, self.grid_size)
+            observations = None
+            while observations is None or len(observations) == 0:
+                world_state = self.agent.get_world_state()
+                observations = world_state.observations
+
+            observation = Observation(observations, self.grid_size)
             self.agent.set_observation(observation)
             #observation.print()
 
