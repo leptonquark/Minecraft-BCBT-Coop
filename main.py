@@ -26,7 +26,8 @@ def run(argv=None):
 
     #goals = [conditions.HasItem(agent, items.BEEF), conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
     #goals = [conditions.HasItem(agent, items.BEEF)]
-    goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+    #goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+    goals = [conditions.HasItem(agent, items.LOG, 10)]
     player = Runner(world, agent, goals)
 
     player.run_mission()

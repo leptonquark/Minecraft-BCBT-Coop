@@ -11,8 +11,8 @@ gathering_tools = {
 }
 
 
-def get_gathering_tool(materials):
-    return gathering_tools.get(materials)
+def get_gathering_tool(blocks):
+    return gathering_tools.get(blocks)
 
 
 ores = {

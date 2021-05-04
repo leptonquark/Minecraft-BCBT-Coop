@@ -16,6 +16,9 @@ CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.2
+SAME_SPOT_Y_THRESHOLD = 2
+EPSILON_ARRIVED_AT_POSITION = 0.05
+GATHERING_REACH = 3
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
 
@@ -147,6 +150,12 @@ class Observation:
                 return key
         return Direction.North
 
+    def is_block_observable(self, block_type):
+        hits = None
+        if self.grid is not None:
+            hits = self.get_hits(block_type)
+        return hits is not None and np.any(hits)
+
     def get_closest_block(self, block_type):
         if self.grid is not None:
             hits = self.get_hits(block_type)
@@ -183,6 +192,9 @@ class Observation:
             if pickup.name == wanted:
                 return pickup.get_centralized_position() - self.abs_pos
         return None
+
+    def has_pickup_nearby(self, wanted):
+        return any(pickup.name == wanted for pickup in self.pickups)
 
     def get_closest_animal(self, specie=None):
         closest_distance = None
@@ -238,3 +250,10 @@ def get_yaw_from_vector(move):
     if dot_product_west > 0:
         angle = CIRCLE_DEGREES - angle
     return angle
+
+
+def has_arrived(distance, reach=GATHERING_REACH):
+    mat_horizontal_distance = get_horizontal_distance(distance)
+    y_distance = distance[1]
+    return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
+           or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION

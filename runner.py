@@ -3,6 +3,7 @@ import time
 from bt.back_chain_tree import BackChainTree
 from py_trees.display import ascii_tree
 from observation import Observation
+from utils.string import tree_to_string
 
 MAX_DELAY = 60
 EXTRA_SLEEP_TIME = 0.1

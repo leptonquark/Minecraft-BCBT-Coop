@@ -4,8 +4,8 @@ from py_trees.common import Status
 
 from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
-from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, traversable, \
-    round_move, get_yaw_from_vector
+from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, has_arrived,\
+    traversable, round_move, get_yaw_from_vector
 from utils.vectors import CIRCLE_DEGREES, Direction, rad_to_degrees
 
 MAX_DELAY = 60
@@ -15,10 +15,8 @@ MAX_PITCH = 0.5
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
-SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.05
+
 MIN_MOVE_SPEED = 0.05
-GATHERING_REACH = 3
 ATTACK_REACH = 2
 
 FUEL_HOT_BAR_POSITION = 0
@@ -61,11 +59,6 @@ def get_turn_direction(yaw, wanted_angle):
             return (diff - CIRCLE_DEGREES) / half_circle
 
 
-def has_arrived(distance, reach=GATHERING_REACH):
-    mat_horizontal_distance = get_horizontal_distance(distance)
-    y_distance = distance[1]
-    return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
-           or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
 
 
 class Action(Behaviour):
@@ -244,19 +237,19 @@ class GoToAnimal(GoToObject):
             return Status.RUNNING
 
 
-class GoToMaterial(GoToObject):
-    def __init__(self, agent, material):
-        super(GoToMaterial, self).__init__(agent, "Go to " + str(material))
+class GoToBlock(GoToObject):
+    def __init__(self, agent, block):
+        super(GoToBlock, self).__init__(agent, "Go to " + str(block))
         self.agent = agent
-        self.material = material
-        self.tool = get_gathering_tool(material)
+        self.block = block
+        self.tool = get_gathering_tool(block)
 
     def update(self):
         self.agent.jump(False)
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest_block(self.material)
+        distance = self.agent.observation.get_closest_block(self.block)
 
         if distance is None:
             return Status.FAILURE
@@ -330,8 +323,6 @@ class AttackAnimal(Action):
 
     def update(self):
         distance = self.agent.observation.get_closest_animal(self.specie)
-        if distance is None:
-            return Status.FAILURE
 
         if not has_arrived(distance, ATTACK_REACH):
             return Status.FAILURE
@@ -348,9 +339,9 @@ class AttackAnimal(Action):
             return Status.RUNNING
 
         self.agent.attack(True)
-        target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
-        if self.agent.observation.grid[target_grid_point] != 'air':
+        if distance is not None:
             return Status.RUNNING
+
 
         self.agent.attack(False)
         return Status.SUCCESS
