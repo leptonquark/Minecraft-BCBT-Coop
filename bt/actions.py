@@ -4,9 +4,10 @@ from py_trees.common import Status
 
 from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
-from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, has_arrived,\
+from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, has_arrived, \
     traversable, round_move, get_yaw_from_vector
-from utils.vectors import CIRCLE_DEGREES, Direction, rad_to_degrees
+from utils.constants import ATTACK_REACH
+from utils.vectors import CIRCLE_DEGREES, Direction, directionVector, rad_to_degrees
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -17,7 +18,6 @@ LOS_TOLERANCE = 0.5
 MOVE_THRESHOLD = 5
 
 MIN_MOVE_SPEED = 0.05
-ATTACK_REACH = 2
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
@@ -57,8 +57,6 @@ def get_turn_direction(yaw, wanted_angle):
             return diff / half_circle
         else:
             return (diff - CIRCLE_DEGREES) / half_circle
-
-
 
 
 class Action(Behaviour):
@@ -342,7 +340,6 @@ class AttackAnimal(Action):
         if distance is not None:
             return Status.RUNNING
 
-
         self.agent.attack(False)
         return Status.SUCCESS
 
@@ -395,3 +392,25 @@ class DigDownwardsToMaterial(Action):
         self.agent.attack(True)
 
         return Status.SUCCESS
+
+
+# TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for materials
+# First it will dig down to a correct height then start digging sideways.
+class RunForwardTowardsAnimal(GoToObject):
+    def __init__(self, agent, specie=None):
+        super(RunForwardTowardsAnimal, self).__init__(agent, f"Look for {specie}")
+        self.specie = specie
+
+    def update(self):
+        self.agent.jump(False)
+
+        distance = directionVector[Direction.North]
+        if distance is None:
+            return Status.FAILURE
+
+        self.go_to_position(distance)
+
+        if has_arrived(distance, ATTACK_REACH):
+            return Status.SUCCESS
+        else:
+            return Status.RUNNING

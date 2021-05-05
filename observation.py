@@ -156,6 +156,11 @@ class Observation:
             hits = self.get_hits(block_type)
         return hits is not None and np.any(hits)
 
+    def is_animal_observable(self, specie):
+        if not self.animals:
+            return False
+        return any(animal.specie == specie for animal in self.animals)
+
     def get_closest_block(self, block_type):
         if self.grid is not None:
             hits = self.get_hits(block_type)
@@ -253,6 +258,8 @@ def get_yaw_from_vector(move):
 
 
 def has_arrived(distance, reach=GATHERING_REACH):
+    if distance is None:
+        return False
     mat_horizontal_distance = get_horizontal_distance(distance)
     y_distance = distance[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \

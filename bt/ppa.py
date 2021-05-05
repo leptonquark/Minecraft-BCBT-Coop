@@ -134,10 +134,10 @@ class GatherPPA(PPA):
                                                 Sequence(
                                                     "Precondition Handler Go To Block",
                                                     children=[
-                                                        conditions.IsBlockObservable(self.agent, material),
                                                         Selector(
                                                             name="PPA Dig downwards",
                                                             children=[
+                                                                conditions.IsBlockObservable(self.agent, material),
                                                                 actions.DigDownwardsToMaterial(self.agent, material)
                                                             ]
                                                         ),
@@ -157,6 +157,14 @@ class GatherPPA(PPA):
             ]
         )
 
+class PickupPPA(PPA):
+    def __init__(self, agent, material):
+        super(PickupPPA, self).__init__()
+        self.name = "Pick up {0}".format(material)
+        self.post_condition = conditions.HasPickupNearby(agent, material)
+        self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
+        self.action = actions.GoToBlock(agent, material)
+
 
 class ExplorePPA(PPA):
     def __init__(self, agent, material):
@@ -171,6 +179,16 @@ class GoToBlockPPA(PPA):
         super(GoToBlockPPA, self).__init__()
         self.name = "Go to {0}".format(material)
         self.post_condition = conditions.IsBlockWithinReach(agent, material)
+        self.pre_conditions = [conditions.IsBlockObservable(agent, material)]
+        self.action = actions.GoToBlock(agent, material)
+
+
+class MinePPA(PPA):
+    def __init__(self, agent, material):
+        super(MinePPA, self).__init__()
+        self.name = "Mine {0}".format(material)
+        self.post_condition = conditions.HasPickupNearby(agent, material)
+        self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
         self.action = actions.GoToBlock(agent, material)
 
 
@@ -184,15 +202,50 @@ class HuntPPA(PPA):
         self.agent = agent
         self.post_condition = conditions.HasItem(agent, item, amount)
 
-        self.action = self.get_hunting_tree(item, mob)
+        self.action = self.get_hunting_tree(item, mob, amount)
 
-    def get_hunting_tree(self, item, mob):
+    def get_hunting_tree(self, item, mob, amount):
         return Selector(
-            f"Hunt {mob} for {item}" + str(mob),
+            "PPA Pickup" + str(item),
             children=[
-                actions.PickupItem(self.agent, item),
-                actions.AttackAnimal(self.agent, mob),
-                actions.GoToAnimal(self.agent, mob)
+                conditions.HasItem(self.agent, item, amount),
+                Sequence(
+                    "Precondition Handler Pickup " + str(item),
+                    children=[
+                        Selector(
+                            "PPA AttackAnimal " + str(item),
+                            children=[
+                                conditions.HasPickupNearby(self.agent, item),
+                                Sequence(
+                                    "Precondition Handler Attack Animal" + str(item),
+                                    children=[
+                                        Selector(
+                                            "PPA Go to Animal",
+                                            children=[
+                                                conditions.IsAnimalWithinReach(self.agent, mob),
+                                                Sequence(
+                                                    "Precondition Handler Go To Block",
+                                                    children=[
+                                                        conditions.IsAnimalObservable(self.agent, mob),
+                                                        Selector(
+                                                            name="PPA Dig downwards",
+                                                            children=[
+                                                                actions.RunForwardTowardsAnimal(self.agent, mob)
+                                                            ]
+                                                        ),
+                                                        actions.GoToAnimal(self.agent, mob)
+                                                    ]
+                                                )
+                                            ]
+                                        ),
+                                        actions.AttackAnimal(self.agent, mob)
+                                    ]
+                                )
+                            ]
+                        ),
+                        actions.PickupItem(self.agent, item),
+                    ]
+                )
             ]
         )
 

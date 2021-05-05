@@ -1,6 +1,7 @@
 from observation import has_arrived
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
+from utils.constants import ATTACK_REACH
 
 
 class Condition(Behaviour):
@@ -65,3 +66,26 @@ class IsBlockObservable(Condition):
 
     def update(self):
         return Status.SUCCESS if self.agent.observation.is_block_observable(self.block) else Status.FAILURE
+
+
+class IsAnimalWithinReach(Condition):
+    def __init__(self, agent, specie):
+        super(IsAnimalWithinReach, self).__init__("Is Animal {0} Within Reach ".format(specie))
+        self.agent = agent
+        self.specie = specie
+
+    def update(self):
+        distance = self.agent.observation.get_closest_animal(self.specie)
+        within_reach = has_arrived(distance, ATTACK_REACH)
+        print(within_reach)
+        return Status.SUCCESS if within_reach else Status.FAILURE
+
+
+class IsAnimalObservable(Condition):
+    def __init__(self, agent, specie):
+        super(IsAnimalObservable, self).__init__("Is Animal {0} Observable ".format(specie))
+        self.agent = agent
+        self.specie = specie
+
+    def update(self):
+        return Status.SUCCESS if self.agent.observation.is_animal_observable(self.specie) else Status.FAILURE
