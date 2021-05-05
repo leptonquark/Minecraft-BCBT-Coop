@@ -16,14 +16,14 @@ def tree_to_string(tree, depth=0):
     elif isinstance(tree, Condition):
         symbol = "(C)"
     elif isinstance(tree, Action):
-        if tree.status == Status.RUNNING:
+        if tree.status != Status.INVALID:
             symbol = "[A]"
             isRunning = True
         else:
             symbol = "[a]"
     indent = "    " * (depth-1)
     if isRunning:
-        indent = "-----" * (depth-1)
+        indent = "----" * (depth-1)
     arrow = "--> " if depth > 0 else ""
     output = f"{indent}{arrow}{symbol} {tree.name} \n"
     for child in tree.children:

@@ -10,15 +10,12 @@ from items.recipes import get_recipe, RecipeType
 from mobs.animals import get_loot_source
 
 
+# TODO: This should be done in a more dynamic way
 def condition_to_ppa_tree(agent, condition):
     if isinstance(condition, conditions.HasItem):
         recipe = get_recipe(condition.item)
         if recipe is None:
-            source = get_loot_source(condition.item)
-            if source is None:
-                return GatherPPA(agent, condition.item, condition.amount)
-            else:
-                return HuntPPA(agent, condition.item, condition.amount)
+            return PickupPPA(agent, condition.item, condition.amount)
         else:
             if recipe.recipe_type == RecipeType.Melting:
                 return MeltPPA(agent, condition.item, condition.amount)
@@ -26,10 +23,20 @@ def condition_to_ppa_tree(agent, condition):
                 return CraftPPA(agent, condition.item, condition.amount)
     elif isinstance(condition, conditions.HasItemEquipped):
         return EquipPPA(agent, condition.item)
-    elif isinstance(condition, condition.IsBlockObservable):
-        return ExplorePPA(agent, condition.block)
-    elif isinstance(condition, condition.IsBlockWithinReach):
+    elif isinstance(condition, conditions.HasPickupNearby):
+        source = get_loot_source(condition.item)
+        if source is None:
+            return MinePPA(agent, condition.item)
+        else:
+            return HuntPPA(agent, condition.item)
+    elif isinstance(condition, conditions.IsBlockWithinReach):
         return GoToBlockPPA(agent, condition.block)
+    elif isinstance(condition, conditions.IsBlockObservable):
+        return ExplorePPA(agent, condition.block)
+    elif isinstance(condition, conditions.IsAnimalWithinReach):
+        return GoToAnimalPPA(agent, condition.specie)
+    elif isinstance(condition, conditions.IsAnimalObservable):
+        return LookForAnimalPPA(agent, condition.specie)
     return None
 
 
@@ -48,20 +55,20 @@ class PPA:
 
         if len(self.pre_conditions) > 0:
             sub_tree = Sequence(
-                name="Precondition Handler {}".format(self.name),
+                name=f"Precondition Handler {self.name}",
                 children=self.pre_conditions + [self.action]
             )
         else:
             sub_tree = self.action
         if self.post_condition is not None:
             self.tree = Selector(
-                name="Postcondition Handler {}".format(self.name),
+                name=f"Postcondition Handler {self.name}",
                 children=[self.post_condition, sub_tree]
             )
         else:
             self.tree = sub_tree
 
-        self.tree.name = "PPA {}".format(self.name)
+        self.tree.name = f"PPA {self.name}"
         self.tree.setup_with_descendants()
 
 
@@ -69,7 +76,7 @@ class CraftPPA(PPA):
 
     def __init__(self, agent, item, amount=1):
         super(CraftPPA, self).__init__()
-        self.name = "Craft {1}x {0}".format(item, amount)
+        self.name = f"Craft {amount}x {item}"
         self.post_condition = conditions.HasItem(agent, item, amount)
         recipe = get_recipe(item)
         craft_amount = amount
@@ -87,7 +94,7 @@ class MeltPPA(PPA):
 
     def __init__(self, agent, item, amount=1):
         super(MeltPPA, self).__init__()
-        self.name = "Melt {1}x {0}".format(item, amount)
+        self.name = f"Melt {amount}x {item}"
         self.post_condition = conditions.HasItem(agent, item, amount)
         recipe = get_recipe(item)
         if recipe is not None:
@@ -99,71 +106,13 @@ class MeltPPA(PPA):
         self.action = actions.Melt(agent, item, amount)
 
 
-class GatherPPA(PPA):
-
-    def __init__(self, agent, item, amount=1):
-        super(GatherPPA, self).__init__()
-        self.name = "Gather {1}x {0}".format(item, amount)
-        self.agent = agent
-        self.post_condition = conditions.HasItem(agent, item, amount)
-
-        tool = get_gathering_tool(item)
-        if tool is not None:
-            self.pre_conditions.append(conditions.HasItemEquipped(agent, tool))
-        self.action = self.get_gather_tree(item, amount)
-
-    def get_gather_tree(self, material, amount):
-        return Selector(
-            "PPA Pickup" + str(material),
-            children=[
-                conditions.HasItem(self.agent, material, amount),
-                Sequence(
-                    "Precondition Handler Pickup " + str(material),
-                    children=[
-                        Selector(
-                            "PPA Mine " + str(material),
-                            children=[
-                                conditions.HasPickupNearby(self.agent, material),
-                                Sequence(
-                                    "Precondition Handler Mine " + str(material),
-                                    children=[
-                                        Selector(
-                                            "PPA Go to Block",
-                                            children=[
-                                                conditions.IsBlockWithinReach(self.agent, material),
-                                                Sequence(
-                                                    "Precondition Handler Go To Block",
-                                                    children=[
-                                                        Selector(
-                                                            name="PPA Dig downwards",
-                                                            children=[
-                                                                conditions.IsBlockObservable(self.agent, material),
-                                                                actions.DigDownwardsToMaterial(self.agent, material)
-                                                            ]
-                                                        ),
-                                                        actions.GoToBlock(self.agent, material)
-                                                    ]
-                                                )
-                                            ]
-                                        ),
-                                        actions.MineMaterial(self.agent, material)
-                                    ]
-                                )
-                            ]
-                        ),
-                        actions.PickupItem(self.agent, material),
-                    ]
-                )
-            ]
-        )
-
 class PickupPPA(PPA):
-    def __init__(self, agent, material):
+    def __init__(self, agent, material, amount):
         super(PickupPPA, self).__init__()
         self.name = "Pick up {0}".format(material)
-        self.post_condition = conditions.HasPickupNearby(agent, material)
-        self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
-        self.action = actions.GoToBlock(agent, material)
+        self.post_condition = conditions.HasItem(agent, material, amount)
+        self.pre_conditions = [conditions.HasPickupNearby(agent, material)]
+        self.action = actions.PickupItem(agent, material)
 
 
 class ExplorePPA(PPA):
@@ -188,66 +137,39 @@ class MinePPA(PPA):
         super(MinePPA, self).__init__()
         self.name = "Mine {0}".format(material)
         self.post_condition = conditions.HasPickupNearby(agent, material)
-        self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
-        self.action = actions.GoToBlock(agent, material)
+        self.pre_conditions = []
+        tool = get_gathering_tool(material)
+        if tool is not None:
+            self.pre_conditions.append(conditions.HasItemEquipped(agent, tool))
+        self.pre_conditions.append(conditions.IsBlockWithinReach(agent, material))
+        self.action = actions.MineMaterial(agent, material)
 
 
 class HuntPPA(PPA):
-
-    def __init__(self, agent, item, amount=1):
+    def __init__(self, agent, item):
         super(HuntPPA, self).__init__()
-
         mob = get_loot_source(item)
-        self.name = "Hunt {2} for {1}x {0}".format(item, amount, mob)
-        self.agent = agent
-        self.post_condition = conditions.HasItem(agent, item, amount)
+        self.name = f"Hunt {item} for {mob}"
+        self.post_condition = conditions.HasPickupNearby(agent, item)
+        self.pre_conditions = [conditions.IsAnimalWithinReach(agent, mob)]
+        self.action = actions.AttackAnimal(agent, mob)
 
-        self.action = self.get_hunting_tree(item, mob, amount)
 
-    def get_hunting_tree(self, item, mob, amount):
-        return Selector(
-            "PPA Pickup" + str(item),
-            children=[
-                conditions.HasItem(self.agent, item, amount),
-                Sequence(
-                    "Precondition Handler Pickup " + str(item),
-                    children=[
-                        Selector(
-                            "PPA AttackAnimal " + str(item),
-                            children=[
-                                conditions.HasPickupNearby(self.agent, item),
-                                Sequence(
-                                    "Precondition Handler Attack Animal" + str(item),
-                                    children=[
-                                        Selector(
-                                            "PPA Go to Animal",
-                                            children=[
-                                                conditions.IsAnimalWithinReach(self.agent, mob),
-                                                Sequence(
-                                                    "Precondition Handler Go To Block",
-                                                    children=[
-                                                        conditions.IsAnimalObservable(self.agent, mob),
-                                                        Selector(
-                                                            name="PPA Dig downwards",
-                                                            children=[
-                                                                actions.RunForwardTowardsAnimal(self.agent, mob)
-                                                            ]
-                                                        ),
-                                                        actions.GoToAnimal(self.agent, mob)
-                                                    ]
-                                                )
-                                            ]
-                                        ),
-                                        actions.AttackAnimal(self.agent, mob)
-                                    ]
-                                )
-                            ]
-                        ),
-                        actions.PickupItem(self.agent, item),
-                    ]
-                )
-            ]
-        )
+class GoToAnimalPPA(PPA):
+    def __init__(self, agent, animal):
+        super(GoToAnimalPPA, self).__init__()
+        self.name = f"Go to {animal}"
+        self.post_condition = conditions.IsAnimalWithinReach(agent, animal)
+        self.pre_conditions = [conditions.IsAnimalObservable(agent, animal)]
+        self.action = actions.GoToAnimal(agent, animal)
+
+
+class LookForAnimalPPA(PPA):
+    def __init__(self, agent, animal):
+        super(LookForAnimalPPA, self).__init__()
+        self.name = f"Look for {animal}"
+        self.post_condition = conditions.IsAnimalObservable(agent, animal)
+        self.action = actions.RunForwardTowardsAnimal(agent, animal)
 
 
 class EquipPPA(PPA):
