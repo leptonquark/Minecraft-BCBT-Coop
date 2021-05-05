@@ -138,6 +138,9 @@ class JumpIfStuck(Action):
             self.agent.jump(False)
             return Status.SUCCESS
 
+    def terminate(self, new_status):
+        self.agent.jump(False)
+
 
 class GoToObject(Action):
     def __init__(self, agent, name):
@@ -154,6 +157,7 @@ class GoToObject(Action):
         if turn_direction != 0:
             self.agent.attack(False)
             self.agent.move(0)
+            self.agent.pitch(0)
             return Status.RUNNING
         # Move towards
         mat_horizontal_distance = get_horizontal_distance(distance)
@@ -193,6 +197,14 @@ class GoToObject(Action):
         self.agent.attack(False)
         self.agent.move(1)
         self.agent.jump(True)
+
+    def terminate(self, new_status):
+        self.agent.attack(False)
+        self.agent.jump(False)
+        self.agent.move(0)
+        self.agent.pitch(0)
+        self.agent.turn(0)
+
 
 
 class PickupItem(GoToObject):
@@ -312,6 +324,13 @@ class MineMaterial(Action):
         self.agent.turn(turn_direction)
         return turn_direction != 0
 
+    def terminate(self, new_status):
+        self.agent.attack(False)
+        self.agent.jump(False)
+        self.agent.move(0)
+        self.agent.pitch(0)
+        self.agent.turn(0)
+
 
 class AttackAnimal(Action):
     def __init__(self, agent, specie=None):
@@ -359,6 +378,15 @@ class AttackAnimal(Action):
         return turn_direction != 0
 
 
+    def terminate(self, new_status):
+        self.agent.attack(False)
+        self.agent.jump(False)
+        self.agent.move(0)
+        self.agent.pitch(0)
+        self.agent.turn(0)
+
+
+
 # TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
 # First it will dig down to a correct height then start digging sideways.
 class DigDownwardsToMaterial(Action):
@@ -391,7 +419,16 @@ class DigDownwardsToMaterial(Action):
 
         self.agent.attack(True)
 
-        return Status.SUCCESS
+        return Status.RUNNING
+
+
+    def terminate(self, new_status):
+        self.agent.attack(False)
+        self.agent.jump(False)
+        self.agent.move(0)
+        self.agent.pitch(0)
+        self.agent.turn(0)
+
 
 
 # TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for materials
@@ -410,7 +447,13 @@ class RunForwardTowardsAnimal(GoToObject):
 
         self.go_to_position(distance)
 
-        if has_arrived(distance, ATTACK_REACH):
-            return Status.SUCCESS
-        else:
-            return Status.RUNNING
+        return Status.RUNNING
+
+
+    def terminate(self, new_status):
+        self.agent.attack(False)
+        self.agent.jump(False)
+        self.agent.move(0)
+        self.agent.pitch(0)
+        self.agent.turn(0)
+
