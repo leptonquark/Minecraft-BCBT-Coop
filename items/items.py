@@ -24,6 +24,8 @@ STONE_PICKAXE = "stone_pickaxe"
 IRON_PICKAXE = "iron_pickaxe"
 DIAMOND_PICKAXE = "diamond_pickaxe"
 
+WOODEN_SWORD = "wooden_sword"
+
 CRAFTING_TABLE = "crafting_table"
 FURNACE = "furnace"
 

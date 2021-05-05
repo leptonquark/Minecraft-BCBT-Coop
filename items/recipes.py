@@ -38,7 +38,12 @@ recipes = {
     items.DIAMOND_PICKAXE: Recipe(
         [Ingredient(items.STICKS, 2), Ingredient(items.DIAMOND, 3)],
         station=items.CRAFTING_TABLE
-    )
+    ),
+    items.WOODEN_SWORD: Recipe(
+        [Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 2)],
+        station=items.CRAFTING_TABLE
+    ),
+
 }
 
 

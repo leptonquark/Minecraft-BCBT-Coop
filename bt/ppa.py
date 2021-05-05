@@ -8,6 +8,7 @@ from bt.sequence import Sequence
 from items.gathering import get_gathering_tool
 from items.recipes import get_recipe, RecipeType
 from mobs.animals import get_loot_source
+from mobs.hunting import get_hunting_tool
 
 
 # TODO: This should be done in a more dynamic way
@@ -137,11 +138,10 @@ class MinePPA(PPA):
         super(MinePPA, self).__init__()
         self.name = "Mine {0}".format(material)
         self.post_condition = conditions.HasPickupNearby(agent, material)
-        self.pre_conditions = []
+        self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
         tool = get_gathering_tool(material)
         if tool is not None:
-            self.pre_conditions.append(conditions.HasItemEquipped(agent, tool))
-        self.pre_conditions.append(conditions.IsBlockWithinReach(agent, material))
+            self.pre_conditions.insert(0, conditions.HasItemEquipped(agent, tool))
         self.action = actions.MineMaterial(agent, material)
 
 
@@ -152,6 +152,9 @@ class HuntPPA(PPA):
         self.name = f"Hunt {item} for {mob}"
         self.post_condition = conditions.HasPickupNearby(agent, item)
         self.pre_conditions = [conditions.IsAnimalWithinReach(agent, mob)]
+        tool = get_hunting_tool(mob)
+        if tool is not None:
+            self.pre_conditions.insert(0, conditions.HasItemEquipped(agent, tool))
         self.action = actions.AttackAnimal(agent, mob)
 
 
