@@ -47,7 +47,6 @@ class MissionData:
             <AgentSection mode="Survival">
                 <Name>{self.name}</Name>
                 <AgentStart>
-                    <Placement x="247.5" y="68.0" z="232.5" pitch="18"/>
                 </AgentStart>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>

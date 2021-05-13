@@ -14,6 +14,12 @@ loot = {
     items.MUTTON: SHEEP
 }
 
+starting_life = {
+    COW: 10,
+    SHEEP: 8,
+    HORSE: 25
+}
+
 
 def get_loot_source(item):
     return loot.get(item)
@@ -21,9 +27,15 @@ def get_loot_source(item):
 
 class Animal:
 
-    def __init__(self, name, x, y, z):
+    def __init__(self, name, x, y, z, life=None):
         self.specie = name
         self.position = np.array([x, y, z])
+
+        self.life = None
+        if life:
+            self.life = life
+        else:
+            self.life = starting_life.get(self.specie, 0)
 
     def __str__(self):
         return f"Animal: {self.specie} at position {self.position[0]}, {self.position[1]}, {self.position[2]}"

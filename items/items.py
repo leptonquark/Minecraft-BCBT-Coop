@@ -33,6 +33,8 @@ BEEF = "beef"
 MUTTON = "mutton"
 
 pickups = [
+    BEEF,
+    MUTTON,
     LOG,
     COAL,
     IRON_ORE,

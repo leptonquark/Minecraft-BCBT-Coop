@@ -43,6 +43,7 @@ class Observation:
     ENTITY_X = "x"
     ENTITY_Y = "y"
     ENTITY_Z = "z"
+    ENTITY_LIFE = "life"
 
     def __init__(self, observations, grid_size):
         self.grid_size = grid_size
@@ -128,11 +129,13 @@ class Observation:
                 entity_x = entity.get(Observation.ENTITY_X, None)
                 entity_y = entity.get(Observation.ENTITY_Y, None)
                 entity_z = entity.get(Observation.ENTITY_Z, None)
+                print(entity)
                 if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
                     if entity_name in items.pickups:
                         self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
                     elif entity_name in animals.species:
-                        self.animals.append(Animal(entity_name, entity_x, entity_y, entity_z))
+                        animal_life = entity.get(Observation.ENTITY_LIFE, None)
+                        self.animals.append(Animal(entity_name, entity_x, entity_y, entity_z, animal_life))
 
     def grid_observation_from_list(self, grid_observation_list):
         grid = np.array(grid_observation_list).reshape((self.grid_size[1], self.grid_size[2], self.grid_size[0]))
@@ -199,7 +202,30 @@ class Observation:
         return None
 
     def has_pickup_nearby(self, wanted):
+        print(self.pickups)
+        print(wanted)
+        print(any(pickup.name == wanted for pickup in self.pickups))
         return any(pickup.name == wanted for pickup in self.pickups)
+
+    def get_weakest_animal(self, specie=None):
+        # Get the weakest animal. If there are several, take the closest of them.
+        weakest_animal = None
+        for animal in self.animals:
+            if specie is None or animal.specie == specie:
+                if weakest_animal is None:
+                    weakest_animal = animal
+                elif animal.life < weakest_animal.life:
+                    weakest_animal = animal
+                elif animal.life == weakest_animal.life:
+                    distance = animal.position - self.abs_pos
+                    weakest_distance = weakest_animal.position - self.abs_pos
+                    if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
+                        weakest_animal = animal
+
+        if weakest_animal is not None:
+            return weakest_animal.position - self.abs_pos
+        else:
+            return None
 
     def get_closest_animal(self, specie=None):
         closest_distance = None
@@ -208,7 +234,6 @@ class Observation:
                 distance = animal.position - self.abs_pos
                 if closest_distance is None or np.linalg.norm(distance) < np.linalg.norm(closest_distance):
                     closest_distance = distance
-        print(closest_distance)
         return closest_distance
 
 

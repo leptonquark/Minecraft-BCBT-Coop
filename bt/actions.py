@@ -235,7 +235,7 @@ class GoToAnimal(GoToObject):
     def update(self):
         self.agent.jump(False)
 
-        distance = self.agent.observation.get_closest_animal(self.specie)
+        distance = self.agent.observation.get_weakest_animal(self.specie)
         if distance is None:
             return Status.FAILURE
 
@@ -339,7 +339,7 @@ class AttackAnimal(Action):
         self.specie = specie
 
     def update(self):
-        distance = self.agent.observation.get_closest_animal(self.specie)
+        distance = self.agent.observation.get_weakest_animal(self.specie)
 
         if not has_arrived(distance, ATTACK_REACH):
             return Status.FAILURE

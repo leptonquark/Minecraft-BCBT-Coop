@@ -75,9 +75,8 @@ class IsAnimalWithinReach(Condition):
         self.specie = specie
 
     def update(self):
-        distance = self.agent.observation.get_closest_animal(self.specie)
+        distance = self.agent.observation.get_weakest_animal(self.specie)
         within_reach = has_arrived(distance, ATTACK_REACH)
-        print(within_reach)
         return Status.SUCCESS if within_reach else Status.FAILURE
 
 
