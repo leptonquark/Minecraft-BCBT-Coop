@@ -1,10 +1,22 @@
 import time
 
 from malmo.MalmoPython import AgentHost
+from observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
+    get_pitch_change
 
 CRAFT_SLEEP = 0.25
 SWAP_SLEEP = 0.25
 HOT_BAR_SLEEP = 0.1
+
+MOVE_THRESHOLD = 5
+MIN_MOVE_SPEED = 0.05
+
+
+def get_move_speed(horizontal_distance):
+    if horizontal_distance >= MOVE_THRESHOLD:
+        return 1
+    else:
+        return max(horizontal_distance / MOVE_THRESHOLD, MIN_MOVE_SPEED)
 
 
 class MissionTimeoutException(Exception):
@@ -60,11 +72,35 @@ class MinerAgent:
     def move(self, speed):
         self.agent_host.sendCommand("move {0}".format(speed))
 
+    def move_forward(self, horizontal_distance):
+        self.attack(False)
+
+        move_speed = get_move_speed(horizontal_distance)
+        self.move(move_speed)
+
+        pitch_req = get_pitch_change(self.observation.pitch, 0)
+        self.pitch(pitch_req)
+
     def turn(self, speed):
         self.agent_host.sendCommand("turn {0}".format(speed))
 
+    def turn_towards(self, distance):
+        wanted_yaw = get_yaw_from_vector(distance)
+        current_yaw = self.observation.yaw
+        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
+        self.turn(turn_direction)
+        return turn_direction != 0
+
     def pitch(self, speed):
         self.agent_host.sendCommand("pitch {0}".format(speed))
+
+    def pitch_towards(self, distance):
+        mat_horizontal_distance = get_horizontal_distance(distance)
+        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
+        current_pitch = self.observation.pitch
+        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
+        self.pitch(pitch_req)
+        return pitch_req != 0
 
     def jump(self, active):
         self.agent_host.sendCommand("jump {0:d}".format(active))

@@ -8,19 +8,20 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils.vectors import center_vector, Direction, directionAngle, directionVector, up_vector, rad_to_degrees
+from utils.vectors import CIRCLE_DEGREES, center_vector, Direction, directionAngle, directionVector, up_vector \
+    , rad_to_degrees, true_center_vector
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
-CIRCLE_DEGREES = 360
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
-MAX_PITCH = 0.2
+MAX_PITCH = 0.5
+PITCH_TOLERANCE = 3
 SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.05
+EPSILON_ARRIVED_AT_POSITION = 0.045
 GATHERING_REACH = 3
 
-traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.WATER]
+traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.FLOWER_RED, items.WATER]
 
 
 class Observation:
@@ -84,6 +85,7 @@ class Observation:
         self.setup_grid(info)
         self.setup_entities(info)
 
+
     def setup_absolute_position(self, info):
         if Observation.X in info and Observation.Y in info and Observation.Z in info:
             self.abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
@@ -91,6 +93,7 @@ class Observation:
 
     def setup_line_of_sight(self, info):
         if Observation.LOS in info:
+            print(info[Observation.LOS])
             los = info[Observation.LOS]
             self.los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
             self.los_pos = self.los_abs_pos - self.abs_pos
@@ -129,7 +132,6 @@ class Observation:
                 entity_x = entity.get(Observation.ENTITY_X, None)
                 entity_y = entity.get(Observation.ENTITY_Y, None)
                 entity_z = entity.get(Observation.ENTITY_Z, None)
-                print(entity)
                 if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
                     if entity_name in items.pickups:
                         self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
@@ -175,7 +177,6 @@ class Observation:
                 move = positions[min_dist_arg] - self.pos
 
                 exact_move = move.astype("float64") - self.abs_pos_inner
-                print(exact_move)
 
                 return exact_move
         return None
@@ -202,9 +203,6 @@ class Observation:
         return None
 
     def has_pickup_nearby(self, wanted):
-        print(self.pickups)
-        print(wanted)
-        print(any(pickup.name == wanted for pickup in self.pickups))
         return any(pickup.name == wanted for pickup in self.pickups)
 
     def get_weakest_animal(self, specie=None):
@@ -236,6 +234,21 @@ class Observation:
                     closest_distance = distance
         return closest_distance
 
+    def is_looking_at(self, distance):
+        print(distance)
+        exact_center_pos = self.abs_pos + distance
+        exact_center_pos[1] += 0.5
+        rounded_los_pos = np.around(self.los_abs_pos-true_center_vector)+true_center_vector
+        print(exact_center_pos)
+        print(rounded_los_pos)
+        return np.all(rounded_los_pos == exact_center_pos)
+
+    def get_exact_move(self, direction, deltaHorizontal):
+        move = directionVector[direction]
+        exact_move = move.astype("float64") - self.abs_pos_inner
+        exact_move[1] += deltaHorizontal
+        print(exact_move)
+        return exact_move
 
 def round_move(move):
     return np.round(move).astype("int32")
@@ -282,6 +295,35 @@ def get_yaw_from_vector(move):
     return angle
 
 
+def get_turn_direction(yaw, wanted_angle):
+    diff = wanted_angle - yaw
+    if diff <= 0:
+        diff += 360
+
+    if diff <= YAW_TOLERANCE or diff >= CIRCLE_DEGREES - YAW_TOLERANCE:
+        return 0
+    else:
+        half_circle = CIRCLE_DEGREES / 2
+        if diff <= half_circle:
+            return diff / half_circle
+        else:
+            return (diff - CIRCLE_DEGREES) / half_circle
+
+
+def get_wanted_pitch(dist_direction, distY):
+    pitch = -np.arctan(distY / dist_direction)
+    return rad_to_degrees(pitch)
+
+
+def get_pitch_change(pitch, wanted_pitch):
+    quarter_circle = CIRCLE_DEGREES / 4
+    diff = pitch - wanted_pitch
+    if np.abs(diff) <= PITCH_TOLERANCE:
+        return 0
+    else:
+        return -MAX_PITCH * diff / quarter_circle
+
+
 def has_arrived(distance, reach=GATHERING_REACH):
     if distance is None:
         return False
@@ -289,3 +331,6 @@ def has_arrived(distance, reach=GATHERING_REACH):
     y_distance = distance[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
            or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
+
+
+

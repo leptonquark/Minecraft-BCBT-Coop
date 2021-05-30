@@ -2,6 +2,7 @@ from enum import Enum
 
 import numpy as np
 
+CIRCLE_DEGREES = 360
 
 class Direction(Enum):
     Zero = 0
@@ -27,7 +28,7 @@ directionVector = {
 up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
 center_vector = np.array([0.5, 0, 0.5])
-CIRCLE_DEGREES = 360
+true_center_vector = np.array([0.5, 0.5, 0.5])
 
 
 def rad_to_degrees(rad):

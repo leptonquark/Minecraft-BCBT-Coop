@@ -1,62 +1,22 @@
-import numpy as np
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
-from observation import get_horizontal_distance, get_wanted_direction, get_yaw_from_direction, has_arrived, \
-    traversable, round_move, get_yaw_from_vector
+from observation import get_horizontal_distance, get_pitch_change, get_wanted_direction, get_wanted_pitch, \
+    get_yaw_from_direction, get_yaw_from_vector, get_turn_direction, has_arrived, round_move, traversable
 from utils.constants import ATTACK_REACH
-from utils.vectors import CIRCLE_DEGREES, Direction, directionVector, rad_to_degrees
+from utils.vectors import Direction, directionVector, down_vector
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
-PITCH_TOLERANCE = 3
-MAX_PITCH = 0.5
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
-MOVE_THRESHOLD = 5
 
-MIN_MOVE_SPEED = 0.05
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
-
-def get_move_speed(horizontal_distance):
-    if horizontal_distance >= MOVE_THRESHOLD:
-        return 1
-    else:
-        return max(horizontal_distance / MOVE_THRESHOLD, MIN_MOVE_SPEED)
-
-
-def get_pitch_change(pitch, wanted_pitch):
-    quarter_circle = CIRCLE_DEGREES / 4
-    diff = pitch - wanted_pitch
-    if np.abs(diff) <= PITCH_TOLERANCE:
-        return 0
-    else:
-        return -MAX_PITCH * diff / quarter_circle
-
-
-def get_wanted_pitch(dist_direction, distY):
-    pitch = -np.arctan(distY / dist_direction)
-    return rad_to_degrees(pitch)
-
-
-def get_turn_direction(yaw, wanted_angle):
-    diff = wanted_angle - yaw
-    if diff <= 0:
-        diff += 360
-
-    if diff <= YAW_TOLERANCE or diff >= CIRCLE_DEGREES - YAW_TOLERANCE:
-        return 0
-    else:
-        half_circle = CIRCLE_DEGREES / 2
-        if diff <= half_circle:
-            return diff / half_circle
-        else:
-            return (diff - CIRCLE_DEGREES) / half_circle
 
 
 class Action(Behaviour):
@@ -148,9 +108,62 @@ class GoToObject(Action):
         self.agent = agent
 
     def go_to_position(self, distance):
-
         wanted_direction = get_wanted_direction(distance)
+
         current_direction = self.agent.observation.get_current_direction()
+
+        lower_free = self.agent.observation.lower_surroundings[wanted_direction] in traversable
+        upper_free = self.agent.observation.upper_surroundings[wanted_direction] in traversable
+
+        if lower_free and upper_free:
+            turning = self.agent.turn_towards(distance)
+
+            if turning:
+                self.agent.attack(False)
+                self.agent.move(0)
+                self.agent.pitch(0)
+                return Status.RUNNING
+
+            self.agent.move_forward(get_horizontal_distance(distance))
+
+        else:
+            wanted_direction = get_wanted_direction(distance)
+            if not upper_free:
+                self.mine_forward(1, wanted_direction)
+            elif not lower_free:
+                if self.can_jump(current_direction):
+                    self.jump_forward(wanted_direction)
+                else:
+                    self.mine_forward(0, wanted_direction)
+
+
+    def mine_forward(self, vertical_distance, wanted_direction):
+        exact_move = self.agent.observation.get_exact_move(wanted_direction, vertical_distance)
+
+        if not self.agent.observation.is_looking_at(exact_move):
+            turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
+            self.agent.turn(turn_direction)
+
+            wantedPitch = get_wanted_pitch(1, vertical_distance - 1)
+            pitch_req = get_pitch_change(self.agent.observation.pitch, wantedPitch)
+            self.agent.pitch(pitch_req)
+
+            if turn_direction != 0 or pitch_req != 0:
+                self.agent.attack(False)
+                self.agent.move(0)
+                return Status.RUNNING
+        self.agent.turn(0)
+        self.agent.pitch(0)
+        self.agent.move(0)
+
+        self.agent.attack(True)
+
+    def can_jump(self, current_direction):
+        free_above = self.agent.observation.upper_upper_surroundings[Direction.Zero] in traversable
+        free_above_direction = self.agent.observation.upper_upper_surroundings[current_direction] in traversable
+        return free_above and free_above_direction
+
+    def jump_forward(self, wanted_direction):
         turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
         self.agent.turn(turn_direction)
 
@@ -159,41 +172,9 @@ class GoToObject(Action):
             self.agent.move(0)
             self.agent.pitch(0)
             return Status.RUNNING
-        # Move towards
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        if not self.agent.observation.upper_surroundings[current_direction] in traversable:
-            self.mine_forward(1)
-        elif not self.agent.observation.lower_surroundings[current_direction] in traversable:
-            if self.can_jump(current_direction):
-                self.jump_forward()
-            else:
-                self.mine_forward(0)
-        else:
-            self.move_forward(mat_horizontal_distance)
-
-    def move_forward(self, horizontal_distance):
-        self.agent.attack(False)
-
-        move_speed = get_move_speed(horizontal_distance)
-        self.agent.move(move_speed)
-
-        pitch_req = get_pitch_change(self.agent.observation.pitch, 0)
-        self.agent.pitch(pitch_req)
-
-    def mine_forward(self, vertical_distance):
         self.agent.move(0)
 
-        wantedPitch = get_wanted_pitch(1, vertical_distance - 1)
-        pitch_req = get_pitch_change(self.agent.observation.pitch, wantedPitch)
-        self.agent.pitch(pitch_req)
-        self.agent.attack(pitch_req == 0)
 
-    def can_jump(self, current_direction):
-        free_above = self.agent.observation.upper_upper_surroundings[Direction.Zero] in traversable
-        free_above_direction = self.agent.observation.upper_upper_surroundings[current_direction] in traversable
-        return free_above and free_above_direction
-
-    def jump_forward(self):
         self.agent.attack(False)
         self.agent.move(1)
         self.agent.jump(True)
@@ -204,7 +185,6 @@ class GoToObject(Action):
         self.agent.move(0)
         self.agent.pitch(0)
         self.agent.turn(0)
-
 
 
 class PickupItem(GoToObject):
@@ -294,12 +274,15 @@ class MineMaterial(Action):
         self.agent.jump(False)
         self.agent.move(0)
 
-        pitching = self.pitch_towards(distance)
-        turning = self.turn_towards(distance)
+        if not self.agent.observation.is_looking_at(distance):
+            pitching = self.agent.pitch_towards(distance)
+            turning = self.agent.turn_towards(distance)
 
-        if pitching or turning:
-            self.agent.attack(False)
-            return Status.RUNNING
+            if pitching or turning:
+                self.agent.attack(False)
+                return Status.RUNNING
+        self.agent.turn(0)
+        self.agent.pitch(0)
 
         self.agent.attack(True)
         target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
@@ -308,21 +291,6 @@ class MineMaterial(Action):
 
         self.agent.attack(False)
         return Status.SUCCESS
-
-    def pitch_towards(self, distance):
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
-        current_pitch = self.agent.observation.pitch
-        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
-        self.agent.pitch(pitch_req)
-        return pitch_req != 0
-
-    def turn_towards(self, distance):
-        wanted_yaw = get_yaw_from_vector(distance)
-        current_yaw = self.agent.observation.yaw
-        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
-        self.agent.turn(turn_direction)
-        return turn_direction != 0
 
     def terminate(self, new_status):
         self.agent.attack(False)
@@ -377,14 +345,12 @@ class AttackAnimal(Action):
         self.agent.turn(turn_direction)
         return turn_direction != 0
 
-
     def terminate(self, new_status):
         self.agent.attack(False)
         self.agent.jump(False)
         self.agent.move(0)
         self.agent.pitch(0)
         self.agent.turn(0)
-
 
 
 # TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
@@ -407,6 +373,21 @@ class DigDownwardsToMaterial(Action):
         if distance is not None:
             return Status.SUCCESS
 
+        digging_direction = down_vector
+        print(has_arrived(digging_direction))
+
+        if not has_arrived(digging_direction):
+            turning = self.agent.turn_towards(digging_direction)
+
+            if turning:
+                self.agent.attack(False)
+                self.agent.move(0)
+                self.agent.pitch(0)
+                return Status.RUNNING
+
+            self.agent.move_forward(get_horizontal_distance(digging_direction))
+
+
         self.agent.move(0)
 
         wanted_pitch = DigDownwardsToMaterial.PITCH_DOWNWARDS
@@ -421,14 +402,12 @@ class DigDownwardsToMaterial(Action):
 
         return Status.RUNNING
 
-
     def terminate(self, new_status):
         self.agent.attack(False)
         self.agent.jump(False)
         self.agent.move(0)
         self.agent.pitch(0)
         self.agent.turn(0)
-
 
 
 # TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for materials
@@ -449,11 +428,9 @@ class RunForwardTowardsAnimal(GoToObject):
 
         return Status.RUNNING
 
-
     def terminate(self, new_status):
         self.agent.attack(False)
         self.agent.jump(False)
         self.agent.move(0)
         self.agent.pitch(0)
         self.agent.turn(0)
-
