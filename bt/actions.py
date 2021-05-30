@@ -316,12 +316,13 @@ class AttackAnimal(Action):
         self.agent.jump(False)
         self.agent.move(0)
 
-        pitching = self.pitch_towards(distance)
-        turning = self.turn_towards(distance)
+        if not self.agent.observation.is_looking_at_type(self.specie):
+            pitching = self.pitch_towards(distance)
+            turning = self.turn_towards(distance)
 
-        if pitching or turning:
-            self.agent.attack(False)
-            return Status.RUNNING
+            if pitching or turning:
+                self.agent.attack(False)
+                return Status.RUNNING
 
         self.agent.attack(True)
         if distance is not None:

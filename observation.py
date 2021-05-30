@@ -32,6 +32,7 @@ class Observation:
     Z = "ZPos"
 
     LOS = "LineOfSight"
+    LOS_TYPE = "type"
     LOS_X = "x"
     LOS_Y = "y"
     LOS_Z = "z"
@@ -57,6 +58,8 @@ class Observation:
         self.lower_surroundings = None
         self.los_abs_pos = None
         self.los_pos = None
+        self.los_type = None
+
         self.upper_surroundings = None
         self.upper_upper_surroundings = None
         self.pos = None
@@ -94,8 +97,11 @@ class Observation:
         if Observation.LOS in info:
             print(info[Observation.LOS])
             los = info[Observation.LOS]
-            self.los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
-            self.los_pos = self.los_abs_pos - self.abs_pos
+            if Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
+                self.los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
+                self.los_pos = self.los_abs_pos - self.abs_pos
+            if Observation.LOS_TYPE in los:
+                self.los_type = los[Observation.LOS_TYPE]
 
     def setup_yaw(self, info):
         if Observation.YAW in info:
@@ -246,6 +252,8 @@ class Observation:
         rounded_los_pos = np.around(self.los_abs_pos - true_center_vector) + true_center_vector
         return np.all(rounded_los_pos == exact_center_pos)
 
+    def is_looking_at_type(self, los_type):
+        return self.los_type == los_type
 
     def get_exact_move(self, direction, deltaHorizontal):
         move = directionVector[direction]
