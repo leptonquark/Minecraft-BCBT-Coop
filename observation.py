@@ -53,7 +53,7 @@ class Observation:
         self.abs_pos_inner = None
         self.animals = None
         self.grid = None
-        self.inventory = None
+        self._inventory = None
         self.lower_surroundings = None
         self.los_abs_pos = None
         self.los_pos = None
@@ -64,6 +64,8 @@ class Observation:
         self.pitch = None
         self.yaw = None
 
+        self.hits = {}
+
         if observations is None or len(observations) == 0:
             print("Observations is null or empty")
             return
@@ -73,18 +75,15 @@ class Observation:
             print("Info is null")
             return
 
-        info = json.loads(infoJSON)
-        self.info = info
+        self.info = json.loads(infoJSON)
+        self.inventory = Inventory(self.info)
 
-        self.inventory = Inventory(info)
-
-        self.setup_absolute_position(info)
-        self.setup_line_of_sight(info)
-        self.setup_yaw(info)
-        self.setup_pitch(info)
-        self.setup_grid(info)
-        self.setup_entities(info)
-
+        self.setup_absolute_position(self.info)
+        self.setup_line_of_sight(self.info)
+        self.setup_yaw(self.info)
+        self.setup_pitch(self.info)
+        self.setup_grid(self.info)
+        self.setup_entities(self.info)
 
     def setup_absolute_position(self, info):
         if Observation.X in info and Observation.Y in info and Observation.Z in info:
@@ -182,10 +181,14 @@ class Observation:
         return None
 
     def get_hits(self, material):
+        if material in self.hits:
+            return self.hits[material]
+
         hits = (self.grid == material)
         ore = get_ore(material)
         if ore is not None:
             hits = (hits | (self.grid == ore))
+        self.hits[material] = hits
         return hits
 
     def is_stuck(self):
@@ -235,13 +238,14 @@ class Observation:
         return closest_distance
 
     def is_looking_at(self, distance):
-        print(distance)
+        if self.los_abs_pos is None:
+            return False
+
         exact_center_pos = self.abs_pos + distance
         exact_center_pos[1] += 0.5
-        rounded_los_pos = np.around(self.los_abs_pos-true_center_vector)+true_center_vector
-        print(exact_center_pos)
-        print(rounded_los_pos)
+        rounded_los_pos = np.around(self.los_abs_pos - true_center_vector) + true_center_vector
         return np.all(rounded_los_pos == exact_center_pos)
+
 
     def get_exact_move(self, direction, deltaHorizontal):
         move = directionVector[direction]
@@ -249,6 +253,7 @@ class Observation:
         exact_move[1] += deltaHorizontal
         print(exact_move)
         return exact_move
+
 
 def round_move(move):
     return np.round(move).astype("int32")
@@ -331,6 +336,3 @@ def has_arrived(distance, reach=GATHERING_REACH):
     y_distance = distance[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
            or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
-
-
-
