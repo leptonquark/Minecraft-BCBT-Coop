@@ -6,7 +6,7 @@ from items.inventory import HOTBAR_SIZE
 from observation import get_horizontal_distance, get_pitch_change, get_wanted_direction, get_wanted_pitch, \
     get_yaw_from_direction, get_yaw_from_vector, get_turn_direction, has_arrived, narrow, \
     round_move, traversable, unclimbable
-from utils.constants import ATTACK_REACH
+from utils.constants import ATTACK_REACH, PLACING_REACH
 from utils.vectors import Direction, directionVector, down_vector
 
 MAX_DELAY = 60
@@ -271,7 +271,7 @@ class GoToPosition(GoToObject):
 
         self.go_to_position(distance)
 
-        if has_arrived(distance):
+        if has_arrived(distance, ATTACK_REACH):
             return Status.SUCCESS
         else:
             return Status.RUNNING
@@ -389,8 +389,8 @@ class PlaceBlockAtPosition(Action):
     def update(self):
         distance = self.agent.observation.get_distance_to_position(self.position_below)
 
-        #if not has_arrived(distance, ATTACK_REACH):
-        #    return Status.FAILURE
+        if not has_arrived(distance, ATTACK_REACH):
+            return Status.FAILURE
 
         # Look at
         self.agent.jump(False)
@@ -403,7 +403,6 @@ class PlaceBlockAtPosition(Action):
             return Status.RUNNING
 
         if not self.agent.observation.is_looking_at(distance):
-
             self.agent.attack(True)
             return Status.RUNNING
 

@@ -1,7 +1,7 @@
 from observation import has_arrived
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
-from utils.constants import ATTACK_REACH
+from utils.constants import ATTACK_REACH, PLACING_REACH
 
 
 class Condition(Behaviour):
@@ -77,7 +77,7 @@ class IsPositionWithinReach(Condition):
 
     def update(self):
         distance = self.agent.observation.get_distance_to_position(self.position)
-        return Status.SUCCESS if has_arrived(distance) else Status.FAILURE
+        return Status.SUCCESS if has_arrived(distance, reach=PLACING_REACH) else Status.FAILURE
 
 
 class IsAnimalWithinReach(Condition):
