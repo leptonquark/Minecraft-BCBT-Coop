@@ -50,6 +50,7 @@ class MissionData:
                 </AgentStart>
                 <AgentHandlers>
                     <ContinuousMovementCommands/>
+                    <DiscreteMovementCommands/>
                     <InventoryCommands />
                     <SimpleCraftCommands/>
                     <MissionQuitCommands/>
@@ -64,6 +65,10 @@ class MissionData:
                         <Grid absoluteCoords="false" name="me">				
                             <min x="{self.grid_obs_range[0][0]}" y="{self.grid_obs_range[1][0]}" z="{self.grid_obs_range[2][0]}"/>                    
                             <max x="{self.grid_obs_range[0][1]}" y="{self.grid_obs_range[1][1]}" z="{self.grid_obs_range[2][1]}"/>				
+                        </Grid>			
+                        <Grid absoluteCoords="true" name="fence">				
+                            <min x="200" y="60" z="220"/>                    
+                            <max x="220" y="70" z="250"/>				
                         </Grid>			
                     </ObservationFromGrid>
                 </AgentHandlers>

@@ -8,8 +8,8 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils.vectors import CIRCLE_DEGREES, center_vector, Direction, directionAngle, directionVector, up_vector \
-    , rad_to_degrees, true_center_vector
+from utils.vectors import CIRCLE_DEGREES, flat_center_vector, Direction, directionAngle, directionVector, up_vector \
+    , rad_to_degrees, center_vector
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -22,7 +22,8 @@ EPSILON_ARRIVED_AT_POSITION = 0.045
 GATHERING_REACH = 3
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.FLOWER_RED, items.WATER]
-
+narrow = [items.WOODEN_FENCE]
+unclimbable = [items.WOODEN_FENCE]
 
 class Observation:
     GRID = "me"
@@ -52,6 +53,7 @@ class Observation:
 
         self.abs_pos = None
         self.abs_pos_inner = None
+        self.abs_pos_floor = None
         self.animals = None
         self.grid = None
         self._inventory = None
@@ -91,7 +93,9 @@ class Observation:
     def setup_absolute_position(self, info):
         if Observation.X in info and Observation.Y in info and Observation.Z in info:
             self.abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
-            self.abs_pos_inner = self.abs_pos % 1 - center_vector
+            self.abs_pos_floor = np.floor(self.abs_pos)
+            self.abs_pos_inner = self.abs_pos % 1 - flat_center_vector
+            print("Current position", self.abs_pos)
 
     def setup_line_of_sight(self, info):
         if Observation.LOS in info:
@@ -198,7 +202,12 @@ class Observation:
         return hits
 
     def is_stuck(self):
-        return self.lower_surroundings is not None and self.lower_surroundings[Direction.Zero] not in traversable
+        if self.lower_surroundings is None:
+            return False
+        position_traversable = self.lower_surroundings[Direction.Zero] in traversable
+        position_narrow = self.lower_surroundings[Direction.Zero] in narrow
+
+        return not position_traversable and not position_narrow
 
     def print(self):
         for key in self.info:
@@ -249,8 +258,9 @@ class Observation:
 
         exact_center_pos = self.abs_pos + distance
         exact_center_pos[1] += 0.5
-        rounded_los_pos = np.around(self.los_abs_pos - true_center_vector) + true_center_vector
-        return np.all(rounded_los_pos == exact_center_pos)
+        rounded_center_pos = np.around(exact_center_pos - center_vector) + center_vector
+        rounded_los_pos = np.around(self.los_abs_pos - center_vector) + center_vector
+        return np.all(rounded_los_pos == rounded_center_pos)
 
     def is_looking_at_type(self, los_type):
         return self.los_type == los_type
@@ -259,8 +269,21 @@ class Observation:
         move = directionVector[direction]
         exact_move = move.astype("float64") - self.abs_pos_inner
         exact_move[1] += deltaHorizontal
-        print(exact_move)
         return exact_move
+
+    def get_rounded_distance_to_position(self, position):
+        return (position-self.abs_pos_floor).astype('int64')
+
+    def get_distance_to_position(self, position):
+        position_center = position + flat_center_vector
+        return position_center-self.abs_pos
+
+    def get_block_at_position(self, position):
+        distance = self.get_rounded_distance_to_position(position)
+        return self.grid[tuple(distance + self.pos)]
+
+    def is_block_at_position(self, position, block):
+        return self.get_block_at_position(position) == block
 
 
 def round_move(move):

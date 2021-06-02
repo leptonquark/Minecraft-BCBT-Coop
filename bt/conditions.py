@@ -68,6 +68,18 @@ class IsBlockObservable(Condition):
         return Status.SUCCESS if self.agent.observation.is_block_observable(self.block) else Status.FAILURE
 
 
+class IsPositionWithinReach(Condition):
+
+    def __init__(self, agent, position):
+        super(IsPositionWithinReach, self).__init__(f"Is Position {position} Within Reach ")
+        self.agent = agent
+        self.position = position
+
+    def update(self):
+        distance = self.agent.observation.get_distance_to_position(self.position)
+        return Status.SUCCESS if has_arrived(distance) else Status.FAILURE
+
+
 class IsAnimalWithinReach(Condition):
     def __init__(self, agent, specie):
         super(IsAnimalWithinReach, self).__init__("Is Animal {0} Within Reach ".format(specie))
@@ -88,3 +100,15 @@ class IsAnimalObservable(Condition):
 
     def update(self):
         return Status.SUCCESS if self.agent.observation.is_animal_observable(self.specie) else Status.FAILURE
+
+
+class IsBlockAtPosition(Condition):
+    def __init__(self, agent, block, position):
+        super(IsBlockAtPosition, self).__init__(f"Is Block {block} at position {position}")
+        self.agent = agent
+        self.block = block
+        self.position = position
+
+    def update(self):
+        is_block_at_position = self.agent.observation.is_block_at_position(self.position, self.block)
+        return Status.SUCCESS if is_block_at_position else Status.FAILURE

@@ -5,6 +5,8 @@ FLOWER_YELLOW = "yellow_flower"
 FLOWER_RED = "red_flower"
 WATER = "water"
 
+DIRT = "dirt"
+
 LOG = "log"
 LOG_2 = "log2"
 COAL = "coal"
@@ -26,6 +28,8 @@ IRON_PICKAXE = "iron_pickaxe"
 DIAMOND_PICKAXE = "diamond_pickaxe"
 
 WOODEN_SWORD = "wooden_sword"
+
+WOODEN_FENCE = "fence"
 
 CRAFTING_TABLE = "crafting_table"
 FURNACE = "furnace"

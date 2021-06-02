@@ -43,7 +43,11 @@ recipes = {
         [Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 2)],
         station=items.CRAFTING_TABLE
     ),
-
+    items.WOODEN_FENCE: Recipe(
+        [Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 4)],
+        output_amount=3,
+        station=items.CRAFTING_TABLE
+    )
 }
 
 

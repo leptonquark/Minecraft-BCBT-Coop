@@ -48,7 +48,6 @@ class Runner:
 
             # DO
             self.tree.root.tick_once()
-            #print(ascii_tree(self.tree.root))
             print(tree_to_string(self.tree.root))
 
             self.check_timeout(self.world, world_state)

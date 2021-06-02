@@ -32,12 +32,16 @@ def condition_to_ppa_tree(agent, condition):
             return HuntPPA(agent, condition.item)
     elif isinstance(condition, conditions.IsBlockWithinReach):
         return GoToBlockPPA(agent, condition.block)
+    elif isinstance(condition, conditions.IsPositionWithinReach):
+        return GoToPositionPPA(agent, condition.position)
     elif isinstance(condition, conditions.IsBlockObservable):
         return ExplorePPA(agent, condition.block)
     elif isinstance(condition, conditions.IsAnimalWithinReach):
         return GoToAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsAnimalObservable):
         return LookForAnimalPPA(agent, condition.specie)
+    elif isinstance(condition, conditions.IsBlockAtPosition):
+        return PlaceBlockPPA(agent, condition.block, condition.position)
     return None
 
 
@@ -183,3 +187,25 @@ class EquipPPA(PPA):
         self.post_condition = conditions.HasItemEquipped(agent, item)
         self.action = actions.Equip(agent, item)
         self.pre_conditions = [conditions.HasItem(agent, item)]
+
+
+class PlaceBlockPPA(PPA):
+    def __init__(self, agent, block, position):
+        super(PlaceBlockPPA, self).__init__()
+        self.name = f"Place Block {block} at position {position}"
+        self.agent = agent
+        self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
+        self.pre_conditions = [
+            conditions.HasItemEquipped(agent, block),
+            conditions.IsPositionWithinReach(agent, position)
+        ]
+        self.action = actions.PlaceBlockAtPosition(agent, block, position)
+
+
+class GoToPositionPPA(PPA):
+    def __init__(self, agent, position):
+        super(GoToPositionPPA, self).__init__()
+        self.name = f"Go to position {position}"
+        self.agent = agent
+        self.post_condition = conditions.IsPositionWithinReach(agent, position)
+        self.action = actions.GoToPosition(agent, position)

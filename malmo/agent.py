@@ -107,3 +107,12 @@ class MinerAgent:
 
     def attack(self, active):
         self.agent_host.sendCommand("attack {0:d}".format(active))
+
+    def place_block(self):
+        self.agent_host.sendCommand("use")
+        time.sleep(0.25)
+#        time.sleep(0.001)
+#        self.agent_host.sendCommand("use 0")
+
+    def use(self, active):
+        self.agent_host.sendCommand("use {0:d}".format(active))
