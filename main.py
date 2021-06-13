@@ -3,15 +3,11 @@ from __future__ import print_function
 import os
 import sys
 
-from bt import actions, conditions
-from items import items
+from goals.blueprint import Blueprint, BlueprintType
 from malmo import malmoutils
 from malmo.agent import MinerAgent
-from malmo.world import World
-from mobs import animals
+from world.world import World
 from runner import Runner
-
-import numpy as np
 
 
 def run(argv=None):
@@ -23,13 +19,14 @@ def run(argv=None):
     malmoutils.fix_print()
 
     agent = MinerAgent()
-    world = World(agent)
-    world.start_world()
+    """
+    goals = [
+        conditions.HasItem(agent, items.BEEF),
+        conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)
+    ]"""
 
-    #goals = [conditions.HasItem(agent, items.BEEF), conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
-    #goals = [conditions.HasItem(agent, items.WOODEN_FENCE, 10)]
-    #goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
-    #goals = [conditions.HasItem(agent, items.LOG, 10)]
+    goals = Blueprint.get_blueprint(BlueprintType.Fence)
+
     """
     goals = [
         conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 238])),
@@ -44,7 +41,7 @@ def run(argv=None):
         conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([212, 65, 238])),
         conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([211, 65, 238])),
         conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([210, 65, 238])),
-    ]
+    ]"""
     """
     goals = [
         conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 241])),
@@ -57,6 +54,11 @@ def run(argv=None):
         conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([216, 65, 241])),
 
     ]
+    """
+
+    world = World(agent, goals)
+    world.start_world()
+
     player = Runner(world, agent, goals)
 
     player.run_mission()

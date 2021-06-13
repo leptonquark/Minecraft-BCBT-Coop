@@ -48,7 +48,7 @@ def parse_command_line(agent_host, argv=None):
     if argv is None:
        argv = sys.argv
     # Add standard options required by test suite:
-    agent_host.addOptionalStringArgument( "recording_dir,r", "Path to location for saving mission recordings", "" )
+    agent_host.addOptionalStringArgument( "recording_dir,r", "Path to location for saving world recordings", "" )
     agent_host.addOptionalFlag( "record_video,v", "Record video stream" )
     # Attempt to parse:
     try:

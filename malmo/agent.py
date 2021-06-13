@@ -1,7 +1,7 @@
 import time
 
 from malmo.MalmoPython import AgentHost
-from observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
+from world.observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
     get_pitch_change
 
 CRAFT_SLEEP = 0.25
@@ -39,7 +39,7 @@ class MinerAgent:
         return self.agent_host.getWorldState()
 
     def restart_minecraft(self, world_state, client_info, message=""):
-        """"Attempt to quit mission if running and kill the client"""
+        """"Attempt to quit world if running and kill the client"""
         if world_state.is_mission_running:
             self.agent_host.sendCommand("quit")
             time.sleep(10)

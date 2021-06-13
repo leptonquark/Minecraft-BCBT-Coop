@@ -3,10 +3,10 @@ from py_trees.common import Status
 
 from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
-from observation import get_horizontal_distance, get_pitch_change, get_wanted_direction, get_wanted_pitch, \
+from world.observation import get_horizontal_distance, get_pitch_change, get_wanted_direction, get_wanted_pitch, \
     get_yaw_from_direction, get_yaw_from_vector, get_turn_direction, has_arrived, narrow, \
     round_move, traversable, unclimbable
-from utils.constants import ATTACK_REACH, PLACING_REACH
+from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector
 
 MAX_DELAY = 60
@@ -14,10 +14,8 @@ YAW_TOLERANCE = 5
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 
-
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
-
 
 
 class Action(Behaviour):
@@ -109,12 +107,10 @@ class GoToObject(Action):
         self.agent = agent
 
     def go_to_position(self, distance):
-        wanted_direction = get_wanted_direction(distance)
-
         current_direction = self.agent.observation.get_current_direction()
 
         lower_free = self.agent.observation.lower_surroundings[current_direction] in traversable or \
-                     self.agent.observation.lower_surroundings[current_direction] in narrow
+            self.agent.observation.lower_surroundings[current_direction] in narrow
         upper_free = self.agent.observation.upper_surroundings[current_direction] in traversable
 
         if lower_free and upper_free:
@@ -137,7 +133,6 @@ class GoToObject(Action):
                     self.jump_forward(wanted_direction)
                 else:
                     self.mine_forward(0, wanted_direction)
-
 
     def mine_forward(self, vertical_distance, wanted_direction):
         exact_move = self.agent.observation.get_exact_move(wanted_direction, vertical_distance)
@@ -166,7 +161,7 @@ class GoToObject(Action):
         free_above = self.agent.observation.upper_upper_surroundings[Direction.Zero] in traversable
         free_above_direction = self.agent.observation.upper_upper_surroundings[current_direction] in traversable
 
-        return climbable_below and  free_above and free_above_direction
+        return climbable_below and free_above and free_above_direction
 
     def jump_forward(self, wanted_direction):
         turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
@@ -178,7 +173,6 @@ class GoToObject(Action):
             self.agent.pitch(0)
             return Status.RUNNING
         self.agent.move(0)
-
 
         self.agent.attack(False)
         self.agent.move(1)
@@ -276,6 +270,7 @@ class GoToPosition(GoToObject):
         else:
             return Status.RUNNING
 
+
 class MineMaterial(Action):
     def __init__(self, agent, material):
         super(MineMaterial, self).__init__("Mine " + str(material))
@@ -310,7 +305,7 @@ class MineMaterial(Action):
 
         self.agent.attack(True)
         target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
-        if self.agent.observation.grid[target_grid_point] != 'air':
+        if self.agent.observation.grid_local[target_grid_point] != 'air':
             return Status.RUNNING
 
         self.agent.attack(False)
@@ -462,7 +457,6 @@ class DigDownwardsToMaterial(Action):
                 return Status.RUNNING
 
             self.agent.move_forward(get_horizontal_distance(digging_direction))
-
 
         self.agent.move(0)
 

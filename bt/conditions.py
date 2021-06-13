@@ -1,4 +1,4 @@
-from observation import has_arrived
+from world.observation import has_arrived
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from utils.constants import ATTACK_REACH, PLACING_REACH

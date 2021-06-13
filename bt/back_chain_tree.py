@@ -2,6 +2,7 @@ from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
 from bt.ppa import PPA, condition_to_ppa_tree
 from bt.sequence import Sequence
+from goals.blueprint import Blueprint
 
 
 class BackChainTree:
@@ -11,6 +12,9 @@ class BackChainTree:
 
     def get_base_back_chain_tree(self, goals):
         children = [JumpIfStuck(self.agent)]
+        if isinstance(goals, Blueprint):
+            goals = goals.as_conditions(self.agent)
+
         for goal in goals:
             if isinstance(goal, Action):
                 children.append(goal)

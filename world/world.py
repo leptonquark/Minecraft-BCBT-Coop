@@ -3,7 +3,7 @@ import uuid
 import time
 
 from malmo.MalmoPython import MissionSpec, ClientInfo, ClientPool
-from malmo.missiondata import MissionData
+from world.missiondata import MissionData
 
 TIME_LIMIT_IN_SECONDS = 1000
 VIDEO_SIZE = (800, 600)
@@ -43,13 +43,13 @@ def setup_experiment_id():
 
 class World:
 
-    def __init__(self, agent):
+    def __init__(self, agent, goals):
 
         self.agent = agent
 
         malmoutils.parse_command_line(agent.agent_host, [''])
 
-        self.mission_data = MissionData()
+        self.mission_data = MissionData(goals)
         self.mission = setup_mission(self.mission_data)
         self.mission_record = setup_mission_record(agent)
 
@@ -65,20 +65,20 @@ class World:
                 break
             except RuntimeError as e:
                 if retry == MAX_RETRIES - 1:
-                    print("Error starting mission:", e)
+                    print("Error starting world:", e)
                     exit(1)
                 else:
                     time.sleep(2)
 
-        print("Waiting for the mission to start", end=' ')
+        print("Waiting for the world to start", end=' ')
         start_time = time.time()
         world_state = self.agent.get_world_state()
         while not world_state.has_mission_begun:
             print(".", end="")
             time.sleep(0.1)
             if time.time() - start_time > MAX_RESPONSE_TIME:
-                print("Max delay exceeded for mission to begin")
-                self.agent.restart_minecraft(world_state, "begin mission")
+                print("Max delay exceeded for world to begin")
+                self.agent.restart_minecraft(world_state, "begin world")
             world_state = self.agent.get_world_state()
             for error in world_state.errors:
                 print("Error:", error.text)
