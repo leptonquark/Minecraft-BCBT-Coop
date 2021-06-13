@@ -34,7 +34,7 @@ class Craft(Action):
         if not self.agent.inventory.has_ingredients(self.item):
             return Status.FAILURE
 
-        for i in range(self.amount):
+        for _ in range(self.amount):
             self.agent.craft(self.item)
         return Status.SUCCESS
 
@@ -57,7 +57,7 @@ class Melt(Action):
         fuel_position = self.agent.observation.inventory.find_item(fuel)
         if fuel_position != FUEL_HOT_BAR_POSITION:
             self.agent.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
-        for i in range(self.amount):
+        for _ in range(self.amount):
             self.agent.craft(self.item)
         return Status.SUCCESS
 
@@ -141,8 +141,8 @@ class GoToObject(Action):
             turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
             self.agent.turn(turn_direction)
 
-            wantedPitch = get_wanted_pitch(1, vertical_distance - 1)
-            pitch_req = get_pitch_change(self.agent.observation.pitch, wantedPitch)
+            wanted_pitch = get_wanted_pitch(1, vertical_distance - 1)
+            pitch_req = get_pitch_change(self.agent.observation.pitch, wanted_pitch)
             self.agent.pitch(pitch_req)
 
             if turn_direction != 0 or pitch_req != 0:

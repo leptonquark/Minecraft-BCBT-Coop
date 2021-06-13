@@ -20,9 +20,7 @@ class BackChainTree:
                 children.append(goal)
             else:
                 goal_ppa = None
-                if isinstance(goal, Condition):
-                    goal_ppa = condition_to_ppa_tree(self.agent, goal)
-                elif isinstance(goal, PPA):
+                if isinstance(goal, Condition) or isinstance(goal, PPA):
                     goal_ppa = condition_to_ppa_tree(self.agent, goal)
                 if goal_ppa is not None:
                     self.back_chain_recursive(goal_ppa)

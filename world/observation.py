@@ -79,12 +79,12 @@ class Observation:
             print("Observations is null or empty")
             return
 
-        infoJSON = observations[-1].text
-        if infoJSON is None:
+        info_json = observations[-1].text
+        if info_json is None:
             print("Info is null")
             return
 
-        self.info = json.loads(infoJSON)
+        self.info = json.loads(info_json)
         self.inventory = Inventory(self.info)
 
         self.setup_absolute_position(self.info)
@@ -162,8 +162,8 @@ class Observation:
 
     def get_current_direction(self):
         for key in directionAngle:
-            checkAngle = directionAngle[key]
-            diff = checkAngle - self.yaw
+            check_angle = directionAngle[key]
+            diff = check_angle - self.yaw
             if diff <= 0:
                 diff += 360
 
@@ -263,10 +263,10 @@ class Observation:
     def is_looking_at_type(self, los_type):
         return self.los_type == los_type
 
-    def get_exact_move(self, direction, deltaHorizontal):
+    def get_exact_move(self, direction, delta_horizontal):
         move = directionVector[direction]
         exact_move = move.astype("float64") - self.abs_pos_inner
-        exact_move[1] += deltaHorizontal
+        exact_move[1] += delta_horizontal
         return exact_move
 
     def get_rounded_distance_to_position(self, position):
@@ -325,15 +325,15 @@ def get_horizontal_distance(distance):
 def get_wanted_direction(move):
     if np.abs(move[2]) >= np.abs(move[0]):
         if move[2] > 0:
-            wantedDirection = Direction.North
+            wanted_direction = Direction.North
         else:
-            wantedDirection = Direction.South
+            wanted_direction = Direction.South
     else:
         if move[0] > 0:
-            wantedDirection = Direction.West
+            wanted_direction = Direction.West
         else:
-            wantedDirection = Direction.East
-    return wantedDirection
+            wanted_direction = Direction.East
+    return wanted_direction
 
 
 def get_yaw_from_direction(direction):
@@ -374,8 +374,8 @@ def get_turn_direction(yaw, wanted_angle):
             return (diff - CIRCLE_DEGREES) / half_circle
 
 
-def get_wanted_pitch(dist_direction, distY):
-    pitch = -np.arctan(distY / dist_direction)
+def get_wanted_pitch(dist_direction, delta_y):
+    pitch = -np.arctan(delta_y / dist_direction)
     return rad_to_degrees(pitch)
 
 
@@ -394,4 +394,4 @@ def has_arrived(distance, reach=GATHERING_REACH):
     mat_horizontal_distance = get_horizontal_distance(distance)
     y_distance = distance[1]
     return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
-           or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION
+        or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION

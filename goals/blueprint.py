@@ -25,8 +25,8 @@ class Blueprint:
         return [IsBlockAtPosition(agent, items.WOODEN_FENCE, position) for position in self.positions]
 
     @staticmethod
-    def get_blueprint(blueprintType):
-        if blueprintType == BlueprintType.Fence:
+    def get_blueprint(blueprint_type):
+        if blueprint_type == BlueprintType.Fence:
             return Blueprint(
                 material=items.WOODEN_FENCE,
                 positions=np.array([
@@ -44,7 +44,7 @@ class Blueprint:
                     [210, 65, 238],
                 ])
             )
-        elif blueprintType == BlueprintType.StraightFence:
+        elif blueprint_type == BlueprintType.StraightFence:
             return Blueprint(
                 material=items.WOODEN_FENCE,
                 positions=np.array([

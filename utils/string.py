@@ -7,7 +7,7 @@ from bt.sequence import Sequence
 
 
 def tree_to_string(tree, depth=0):
-    isRunning = False
+    is_running = False
     symbol = "[B]"
     if isinstance(tree, Sequence):
         symbol = "[>]"
@@ -18,11 +18,11 @@ def tree_to_string(tree, depth=0):
     elif isinstance(tree, Action):
         if tree.status != Status.INVALID:
             symbol = "[A]"
-            isRunning = True
+            is_running = True
         else:
             symbol = "[a]"
     indent = "    " * (depth-1)
-    if isRunning:
+    if is_running:
         indent = "----" * (depth-1)
     arrow = "--> " if depth > 0 else ""
     output = f"{indent}{arrow}{symbol} {tree.name} \n"

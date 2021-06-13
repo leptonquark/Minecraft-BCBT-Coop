@@ -19,42 +19,10 @@ def run(argv=None):
     malmoutils.fix_print()
 
     agent = MinerAgent()
-    """
-    goals = [
-        conditions.HasItem(agent, items.BEEF),
-        conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)
-    ]"""
+
+    # goals = [conditions.HasItem(agent, items.BEEF), conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
 
     goals = Blueprint.get_blueprint(BlueprintType.Fence)
-
-    """
-    goals = [
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 238])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 239])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 240])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([210, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([211, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([212, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([212, 65, 240])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([212, 65, 239])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([212, 65, 238])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([211, 65, 238])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([210, 65, 238])),
-    ]"""
-    """
-    goals = [
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([209, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([210, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([211, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([212, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([213, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([214, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([215, 65, 241])),
-        conditions.IsBlockAtPosition(agent, items.WOODEN_FENCE, np.array([216, 65, 241])),
-
-    ]
-    """
 
     world = World(agent, goals)
     world.start_world()
