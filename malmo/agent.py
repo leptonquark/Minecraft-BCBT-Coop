@@ -19,7 +19,7 @@ def get_move_speed(horizontal_distance, turn_direction):
 class MinerAgent:
 
     def __init__(self):
-        self.interface = MalmoInterface()
+        self.interface = CommandInterface()
         self.observation = None
         self.inventory = None
 
@@ -64,7 +64,7 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
-    #TODO Jump, Attack, Move, Turn and Pitch should probably be removed
+    #TODO Jump, Attack, Move, Turn, Select on Hotbar, Swap Items and Pitch should probably be removed
     def jump(self, active):
         self.interface.jump(active)
 
@@ -85,9 +85,10 @@ class MinerAgent:
             self.interface.craft(item)
 
     def select_on_hotbar(self, position):
-        self.agent_host.sendCommand(f"hotbar.{position + 1} 1")  # press
-        self.agent_host.sendCommand(f"hotbar.{position + 1} 0")  # release
-        time.sleep(HOT_BAR_SLEEP)
+        self.interface.select_on_hotbar(position)
+
+    def swap_items(self, position1, position2):
+        self.interface.swap_items(position1, position2)
 
     def place_block(self):
         self.interface.discrete_use()

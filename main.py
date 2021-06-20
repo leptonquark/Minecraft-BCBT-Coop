@@ -23,9 +23,9 @@ def run(argv=None):
     agent = MinerAgent()
     #goals = [conditions.HasItemEquipped(agent, items.BEEF)]
 
-    #goals = [conditions.HasItem(agent, items.BEEF), conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+    goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
 
-    goals = Blueprint.get_blueprint(BlueprintType.Fence)
+    #goals = Blueprint.get_blueprint(BlueprintType.Fence)
 
     world = World(agent, goals)
     world.start_world()

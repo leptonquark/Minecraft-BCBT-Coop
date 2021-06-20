@@ -46,7 +46,9 @@ class CommandInterface:
     def craft(self, item):
         self.agent_host.sendCommand(f"craft {item}")
         time.sleep(CRAFT_SLEEP)
-        return True
+
+    def swap_items(self, position1, position2):
+        self.agent_host.sendCommand("swapInventoryItems {0} {1}".format(position1, position2))
 
     def activate_effect(self, effect, effect_time, amplifier):
         self.agent_host.sendCommand(f"chat /effect @p {effect} {effect_time} {amplifier}")
