@@ -4,6 +4,7 @@ from malmo.MalmoPython import AgentHost
 
 CRAFT_SLEEP = 0.25
 SWAP_SLEEP = 0.25
+DISCRETE_USE_SLEEP = 0.25
 HOT_BAR_SLEEP = 0.1
 
 
@@ -11,7 +12,7 @@ class MissionTimeoutException(Exception):
     pass
 
 
-class MalmoInterface:
+class CommandInterface:
     def __init__(self):
         self.agent_host = AgentHost()
 
@@ -33,9 +34,9 @@ class MalmoInterface:
     def attack(self, active):
         self.agent_host.sendCommand(f"attack {active:d}")
 
-    def place_block(self):
+    def discrete_use(self):
         self.agent_host.sendCommand("use")
-        time.sleep(0.25)
+        time.sleep(DISCRETE_USE_SLEEP)
 
     def select_on_hotbar(self, position):
         self.agent_host.sendCommand(f"hotbar.{position + 1} 1")  # press

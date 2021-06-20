@@ -1,6 +1,6 @@
 import numpy as np
 
-from malmo.service import MalmoInterface
+from malmo.commands import CommandInterface
 from items import effects
 from world.observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
     get_pitch_change
@@ -64,11 +64,40 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
+    #TODO Jump, Attack, Move, Turn and Pitch should probably be removed
+    def jump(self, active):
+        self.interface.jump(active)
+
+    def attack(self, active):
+        self.interface.attack(active)
+
+    def move(self, intensity):
+        self.interface.move(intensity)
+
+    def pitch(self, intensity):
+        self.interface.pitch(intensity)
+
+    def turn(self, intensity):
+        self.interface.turn(intensity)
+
     def craft(self, item, amount=1):
         for _ in range(amount):
             self.interface.craft(item)
 
-    def stop(self, ):
+    def select_on_hotbar(self, position):
+        self.agent_host.sendCommand(f"hotbar.{position + 1} 1")  # press
+        self.agent_host.sendCommand(f"hotbar.{position + 1} 0")  # release
+        time.sleep(HOT_BAR_SLEEP)
+
+    def place_block(self):
+        self.interface.discrete_use()
+
+    def stop(self):
+        self.interface.attack(False)
+        self.interface.jump(False)
+        self.interface.move(0)
+        self.interface.pitch(0)
+        self.interface.turn(0)
 
     def start_mission(self, mission, pool, mission_record, experiment_id):
         self.interface.start_mission(mission, pool, mission_record, experiment_id)

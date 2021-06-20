@@ -183,11 +183,7 @@ class GoToObject(Action):
         self.agent.jump(True)
 
     def terminate(self, new_status):
-        self.agent.attack(False)
-        self.agent.jump(False)
-        self.agent.move(0)
-        self.agent.pitch(0)
-        self.agent.turn(0)
+        self.agent.stop()
 
 
 class PickupItem(GoToObject):
@@ -316,11 +312,7 @@ class MineMaterial(Action):
         return Status.SUCCESS
 
     def terminate(self, new_status):
-        self.agent.attack(False)
-        self.agent.jump(False)
-        self.agent.move(0)
-        self.agent.pitch(0)
-        self.agent.turn(0)
+        self.agent.stop()
 
 
 class AttackAnimal(Action):
@@ -355,11 +347,7 @@ class AttackAnimal(Action):
         return Status.SUCCESS
 
     def terminate(self, new_status):
-        self.agent.attack(False)
-        self.agent.jump(False)
-        self.agent.move(0)
-        self.agent.pitch(0)
-        self.agent.turn(0)
+        self.agent.stop()
 
 
 class PlaceBlockAtPosition(Action):
@@ -462,11 +450,7 @@ class DigDownwardsToMaterial(Action):
         return Status.RUNNING
 
     def terminate(self, new_status):
-        self.agent.attack(False)
-        self.agent.jump(False)
-        self.agent.move(0)
-        self.agent.pitch(0)
-        self.agent.turn(0)
+        self.agent.stop()
 
 
 # TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for materials
@@ -488,8 +472,4 @@ class RunForwardTowardsAnimal(GoToObject):
         return Status.RUNNING
 
     def terminate(self, new_status):
-        self.agent.attack(False)
-        self.agent.jump(False)
-        self.agent.move(0)
-        self.agent.pitch(0)
-        self.agent.turn(0)
+        self.agent.stop()
