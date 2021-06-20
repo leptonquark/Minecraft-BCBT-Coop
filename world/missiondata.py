@@ -51,8 +51,6 @@ class MissionData:
         if isinstance(goals, Blueprint):
             self.grids_global.append(goals.get_required_grid("global"))
 
-        self.grid_global = GridSpecification("global", np.array([[200, 220], [60, 70], [220, 250]]), True)
-
     def get_xml(self):
         mission = Et.Element(xmlconstants.ELEMENT_MISSION)
         mission.set(xmlconstants.ATTRIBUTE_XMLNS, xmlconstants.XMLNS_MALMO)

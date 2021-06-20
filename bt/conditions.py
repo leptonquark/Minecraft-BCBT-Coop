@@ -11,7 +11,7 @@ class Condition(Behaviour):
 
 class HasItem(Condition):
     def __init__(self, agent, item, amount=1):
-        super(HasItem, self).__init__("Has Item {0}x {1}".format(amount, item))
+        super(HasItem, self).__init__(f"Has Item {amount}x {item}")
         self.agent = agent
         self.item = item
         self.amount = amount
@@ -25,7 +25,7 @@ class HasItem(Condition):
 
 class HasItemEquipped(Condition):
     def __init__(self, agent, item):
-        super(HasItemEquipped, self).__init__("Has Item Equipped {0}".format(item))
+        super(HasItemEquipped, self).__init__(f"Has Item Equipped {item}")
         self.agent = agent
         self.item = item
 
@@ -38,7 +38,7 @@ class HasItemEquipped(Condition):
 
 class HasPickupNearby(Condition):
     def __init__(self, agent, item):
-        super(HasPickupNearby, self).__init__("Has Pickup Nearby {0}".format(item))
+        super(HasPickupNearby, self).__init__(f"Has Pickup Nearby {item}")
         self.agent = agent
         self.item = item
 
@@ -49,7 +49,7 @@ class HasPickupNearby(Condition):
 class IsBlockWithinReach(Condition):
 
     def __init__(self, agent, block):
-        super(IsBlockWithinReach, self).__init__("Is Block {0} Within Reach ".format(block))
+        super(IsBlockWithinReach, self).__init__(f"Is Block Within Reach {block}")
         self.agent = agent
         self.block = block
 
@@ -60,7 +60,7 @@ class IsBlockWithinReach(Condition):
 
 class IsBlockObservable(Condition):
     def __init__(self, agent, block):
-        super(IsBlockObservable, self).__init__("Is Block {0} Observable ".format(block))
+        super(IsBlockObservable, self).__init__(f"Is Block Observable {block}")
         self.agent = agent
         self.block = block
 
@@ -71,7 +71,7 @@ class IsBlockObservable(Condition):
 class IsPositionWithinReach(Condition):
 
     def __init__(self, agent, position):
-        super(IsPositionWithinReach, self).__init__(f"Is Position {position} Within Reach ")
+        super(IsPositionWithinReach, self).__init__(f"Is Position Within Reach {position}")
         self.agent = agent
         self.position = position
 
@@ -82,7 +82,7 @@ class IsPositionWithinReach(Condition):
 
 class IsAnimalWithinReach(Condition):
     def __init__(self, agent, specie):
-        super(IsAnimalWithinReach, self).__init__("Is Animal {0} Within Reach ".format(specie))
+        super(IsAnimalWithinReach, self).__init__(f"Is Animal Within Reach {specie}")
         self.agent = agent
         self.specie = specie
 
@@ -94,7 +94,7 @@ class IsAnimalWithinReach(Condition):
 
 class IsAnimalObservable(Condition):
     def __init__(self, agent, specie):
-        super(IsAnimalObservable, self).__init__("Is Animal {0} Observable ".format(specie))
+        super(IsAnimalObservable, self).__init__(f"Is Animal Observable {specie}")
         self.agent = agent
         self.specie = specie
 

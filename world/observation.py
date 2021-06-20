@@ -94,12 +94,33 @@ class Observation:
         self.setup_local_grid(self.info)
         self.setup_entities(self.info)
 
+    def get_closest_block(self, block_type):
+        if self.grid_local is not None:
+            hits = self.get_hits(block_type)
+            positions = np.argwhere(hits)
+            if len(positions) > 0:
+                distances = positions - self.pos
+                distances = np.linalg.norm(distances, axis=1)
+                min_dist_arg = np.argmin(distances)
+
+                move = positions[min_dist_arg] - self.pos
+                exact_move = move.astype("float64") - self.abs_pos_inner
+
+                return exact_move
+        return None
+
+    def get_grid_local(self):
+        if self.grid_local is not None:
+            return self.grid_local
+        grid_local_spec = self.mission_data.grid_local
+        grid_local = grid_observation_from_list(self.info[grid_local_spec.name], grid_local_spec.get_grid_size())
+        self.grid_local = grid_local
+
     def setup_absolute_position(self, info):
         if Observation.X in info and Observation.Y in info and Observation.Z in info:
             self.abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
             self.abs_pos_floor = np.floor(self.abs_pos)
             self.abs_pos_inner = self.abs_pos % 1 - flat_center_vector
-            print("Current position", self.abs_pos)
 
     def setup_line_of_sight(self, info):
         if Observation.LOS in info:
@@ -123,7 +144,8 @@ class Observation:
 
     def setup_local_grid(self, info):
         if Observation.GRID_LOCAL in info:
-            self.grid_local = self.grid_observation_from_list(info[Observation.GRID_LOCAL])
+            grid_local_spec = self.mission_data.grid_local
+            self.grid_local = grid_observation_from_list(info[grid_local_spec.name], self.grid_size_local)
             self.pos = np.array([int(axis / 2) for axis in self.grid_size_local])
 
             self.upper_upper_surroundings = {
@@ -154,10 +176,12 @@ class Observation:
                         animal_life = entity.get(Observation.ENTITY_LIFE, None)
                         self.animals.append(Animal(entity_name, entity_x, entity_y, entity_z, animal_life))
 
-    def grid_observation_from_list(self, grid_observation_list):
-        grid = np.array(grid_observation_list).reshape(
-            (self.grid_size_local[1], self.grid_size_local[2], self.grid_size_local[0]))
-        grid = np.transpose(grid, (2, 0, 1))
+    def get_grid_global(self, grid_spec):
+        if grid_spec.name in self.grids_global:
+            return self.grids_global[grid_spec.name]
+
+        grid = grid_observation_from_list(self.info[grid_spec.name], grid_spec.get_grid_size())
+        self.grids_global[grid_spec.name] = grid
         return grid
 
     def get_current_direction(self):
@@ -182,21 +206,6 @@ class Observation:
             return False
         return any(animal.specie == specie for animal in self.animals)
 
-    def get_closest_block(self, block_type):
-        if self.grid_local is not None:
-            hits = self.get_hits(block_type)
-            positions = np.argwhere(hits)
-            if len(positions) > 0:
-                distances = positions - self.pos
-                distances = np.sum(np.abs(distances), axis=1)
-                min_dist_arg = np.argmin(distances)
-                move = positions[min_dist_arg] - self.pos
-
-                exact_move = move.astype("float64") - self.abs_pos_inner
-
-                return exact_move
-        return None
-
     def get_hits(self, material):
         if material in self.hits:
             return self.hits[material]
@@ -215,11 +224,6 @@ class Observation:
         position_narrow = self.lower_surroundings[Direction.Zero] in narrow
 
         return not position_traversable and not position_narrow
-
-    def print(self):
-        for key in self.info:
-            if key != Observation.GRID_LOCAL:
-                print(key, self.info[key])
 
     def get_pickup_position(self, wanted):
         for pickup in self.pickups:
@@ -301,17 +305,16 @@ class Observation:
 
         return None
 
-    def get_grid_global(self, grid_spec):
-        if grid_spec.name in self.grids_global:
-            return self.grids_global[grid_spec.name]
+    def print(self):
+        for key in self.info:
+            if key != Observation.GRID_LOCAL:
+                print(key, self.info[key])
 
-        grid_size = grid_spec.get_grid_size()
-        grid_observation_list = self.info[grid_spec.name]
-        grid = np.array(grid_observation_list).reshape((grid_size[1], grid_size[2], grid_size[0]))
-        grid = np.transpose(grid, (2, 0, 1))
 
-        self.grids_global[grid_spec.name] = grid
-        return grid
+def grid_observation_from_list(grid_observation_list, grid_size):
+    grid = np.array(grid_observation_list).reshape((grid_size[1], grid_size[2], grid_size[0]))
+    grid = np.transpose(grid, (2, 0, 1))
+    return grid
 
 
 def round_move(move):

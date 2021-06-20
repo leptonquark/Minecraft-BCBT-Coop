@@ -4,6 +4,8 @@ import os
 import sys
 
 from goals.blueprint import Blueprint, BlueprintType
+from bt import conditions
+from items import items
 from malmo import malmoutils
 from malmo.agent import MinerAgent
 from world.world import World
@@ -19,8 +21,9 @@ def run(argv=None):
     malmoutils.fix_print()
 
     agent = MinerAgent()
+    #goals = [conditions.HasItemEquipped(agent, items.BEEF)]
 
-    # goals = [conditions.HasItem(agent, items.BEEF), conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+    #goals = [conditions.HasItem(agent, items.BEEF), conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
 
     goals = Blueprint.get_blueprint(BlueprintType.Fence)
 

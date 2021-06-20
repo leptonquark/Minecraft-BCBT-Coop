@@ -1,6 +1,9 @@
+import numpy as np
+
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
+from items import items
 from items.gathering import get_gathering_tool
 from items.inventory import HOTBAR_SIZE
 from world.observation import get_horizontal_distance, get_pitch_change, get_wanted_direction, get_wanted_pitch, \
@@ -10,7 +13,7 @@ from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector
 
 MAX_DELAY = 60
-YAW_TOLERANCE = 5
+STOP_YAW_TOLERANCE = 15
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 
@@ -25,7 +28,7 @@ class Action(Behaviour):
 
 class Craft(Action):
     def __init__(self, agent, item, amount=1):
-        super(Craft, self).__init__("Craft {0}".format(item))
+        super(Craft, self).__init__(f"Craft {item}")
         self.agent = agent
         self.amount = amount
         self.item = item
@@ -34,21 +37,20 @@ class Craft(Action):
         if not self.agent.inventory.has_ingredients(self.item):
             return Status.FAILURE
 
-        for _ in range(self.amount):
-            self.agent.craft(self.item)
+        self.agent.craft(self.item, self.amount)
         return Status.SUCCESS
 
 
 class Melt(Action):
     def __init__(self, agent, item, amount=1):
-        super(Melt, self).__init__("Melt {0}x {1}".format(amount, item))
+        super(Melt, self).__init__(f"Melt {amount}x {item}")
         self.agent = agent
         self.item = item
         self.amount = amount
 
     def update(self):
         fuel = self.agent.inventory.get_fuel()
-        if not fuel:
+        if fuel is None:
             return Status.FAILURE
 
         if not self.agent.inventory.has_ingredients(self.item):
@@ -57,14 +59,14 @@ class Melt(Action):
         fuel_position = self.agent.observation.inventory.find_item(fuel)
         if fuel_position != FUEL_HOT_BAR_POSITION:
             self.agent.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
-        for _ in range(self.amount):
-            self.agent.craft(self.item)
+
+        self.agent.craft(self.item, self.amount)
         return Status.SUCCESS
 
 
 class Equip(Action):
     def __init__(self, agent, item):
-        super(Equip, self).__init__("Equip " + item)
+        super(Equip, self).__init__(f"Equip {item}")
         self.agent = agent
         self.item = item
 
@@ -107,29 +109,31 @@ class GoToObject(Action):
         self.agent = agent
 
     def go_to_position(self, distance):
+        self.agent.turn_towards(distance)
+
+        turn_direction = self.agent.get_turn_direction(distance)
+
+        if np.abs(turn_direction) > STOP_YAW_TOLERANCE:
+            self.agent.attack(False)
+            self.agent.move(0)
+            self.agent.pitch(0)
+            return Status.RUNNING
+
         current_direction = self.agent.observation.get_current_direction()
 
         lower_free = self.agent.observation.lower_surroundings[current_direction] in traversable or \
-            self.agent.observation.lower_surroundings[current_direction] in narrow
+                     self.agent.observation.lower_surroundings[current_direction] in narrow
         upper_free = self.agent.observation.upper_surroundings[current_direction] in traversable
 
         if lower_free and upper_free:
-            turning = self.agent.turn_towards(distance)
-
-            if turning:
-                self.agent.attack(False)
-                self.agent.move(0)
-                self.agent.pitch(0)
-                return Status.RUNNING
-
-            self.agent.move_forward(get_horizontal_distance(distance))
+            self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
 
         else:
             wanted_direction = get_wanted_direction(distance)
             if not upper_free:
                 self.mine_forward(1, wanted_direction)
             elif not lower_free:
-                if self.can_jump(current_direction):
+                if self.can_jump(wanted_direction):
                     self.jump_forward(wanted_direction)
                 else:
                     self.mine_forward(0, wanted_direction)
@@ -188,7 +192,7 @@ class GoToObject(Action):
 
 class PickupItem(GoToObject):
     def __init__(self, agent, item):
-        super(PickupItem, self).__init__(agent, "Pick up " + str(item))
+        super(PickupItem, self).__init__(agent, f"Pick up {item}")
         self.item = item
 
     def update(self):
@@ -228,7 +232,7 @@ class GoToAnimal(GoToObject):
 
 class GoToBlock(GoToObject):
     def __init__(self, agent, block):
-        super(GoToBlock, self).__init__(agent, "Go to " + str(block))
+        super(GoToBlock, self).__init__(agent, f"Go to {block}")
         self.agent = agent
         self.block = block
         self.tool = get_gathering_tool(block)
@@ -253,7 +257,7 @@ class GoToBlock(GoToObject):
 
 class GoToPosition(GoToObject):
     def __init__(self, agent, position):
-        super(GoToPosition, self).__init__(agent, "Go to " + str(position))
+        super(GoToPosition, self).__init__(agent, f"Go to {position}")
         self.agent = agent
         self.position = position
 
@@ -273,7 +277,7 @@ class GoToPosition(GoToObject):
 
 class MineMaterial(Action):
     def __init__(self, agent, material):
-        super(MineMaterial, self).__init__("Mine " + str(material))
+        super(MineMaterial, self).__init__(f"Mine {material}")
         self.agent = agent
         self.material = material
         self.tool = get_gathering_tool(material)
@@ -305,7 +309,7 @@ class MineMaterial(Action):
 
         self.agent.attack(True)
         target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
-        if self.agent.observation.grid_local[target_grid_point] != 'air':
+        if self.agent.observation.grid_local[target_grid_point] != items.AIR:
             return Status.RUNNING
 
         self.agent.attack(False)
@@ -336,8 +340,8 @@ class AttackAnimal(Action):
         self.agent.move(0)
 
         if not self.agent.observation.is_looking_at_type(self.specie):
-            pitching = self.pitch_towards(distance)
-            turning = self.turn_towards(distance)
+            pitching = self.agent.pitch_towards(distance)
+            turning = self.agent.turn_towards(distance)
 
             if pitching or turning:
                 self.agent.attack(False)
@@ -349,21 +353,6 @@ class AttackAnimal(Action):
 
         self.agent.attack(False)
         return Status.SUCCESS
-
-    def pitch_towards(self, distance):
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
-        current_pitch = self.agent.observation.pitch
-        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
-        self.agent.pitch(pitch_req)
-        return pitch_req != 0
-
-    def turn_towards(self, distance):
-        wanted_yaw = get_yaw_from_vector(distance)
-        current_yaw = self.agent.observation.yaw
-        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
-        self.agent.turn(turn_direction)
-        return turn_direction != 0
 
     def terminate(self, new_status):
         self.agent.attack(False)
@@ -430,7 +419,7 @@ class DigDownwardsToMaterial(Action):
     PITCH_DOWNWARDS = 90
 
     def __init__(self, agent, material):
-        super(DigDownwardsToMaterial, self).__init__("Dig downwards to " + str(material))
+        super(DigDownwardsToMaterial, self).__init__(f"Dig downwards to {material}")
         self.agent = agent
         self.material = material
         self.tool = get_gathering_tool(material)

@@ -2,9 +2,11 @@ import time
 
 from bt.back_chain_tree import BackChainTree
 from world.observation import Observation
+from utils.string import tree_to_string
 
 MAX_DELAY = 60
 EXTRA_SLEEP_TIME = 0.1
+TREE_LOG_FILE_NAME = "log/tree.txt"
 
 
 class Runner:
@@ -19,6 +21,8 @@ class Runner:
         self.night_vision = world.mission_data.night_vision
 
         self.tree = BackChainTree(agent, goals)
+        with open(TREE_LOG_FILE_NAME, "w") as file:
+            file.write(tree_to_string(self.tree.root))
 
     def run_mission(self):
         world_state = self.agent.get_world_state()

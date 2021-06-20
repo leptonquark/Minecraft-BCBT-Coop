@@ -25,7 +25,7 @@ def setup_mission(mission_data):
 
 
 def setup_mission_record(agent):
-    mission_record = malmoutils.get_default_recording_object(agent.agent_host, RECORDING_NAME)
+    mission_record = malmoutils.get_default_recording_object(agent.get_agent_host(), RECORDING_NAME)
     return mission_record
 
 
@@ -37,7 +37,7 @@ def setup_pool(client_info):
 
 def setup_experiment_id():
     experiment_id = str(uuid.uuid1())
-    print("experiment id " + experiment_id)
+    print(f"experiment id {experiment_id}")
     return experiment_id
 
 
@@ -47,7 +47,7 @@ class World:
 
         self.agent = agent
 
-        malmoutils.parse_command_line(agent.agent_host, [''])
+        malmoutils.parse_command_line(agent.get_agent_host(), [''])
 
         self.mission_data = MissionData(goals)
         self.mission = setup_mission(self.mission_data)

@@ -114,7 +114,7 @@ class MeltPPA(PPA):
 class PickupPPA(PPA):
     def __init__(self, agent, material, amount):
         super(PickupPPA, self).__init__()
-        self.name = "Pick up {0}".format(material)
+        self.name = f"Pick up {material}"
         self.post_condition = conditions.HasItem(agent, material, amount)
         self.pre_conditions = [conditions.HasPickupNearby(agent, material)]
         self.action = actions.PickupItem(agent, material)
@@ -123,7 +123,7 @@ class PickupPPA(PPA):
 class ExplorePPA(PPA):
     def __init__(self, agent, material):
         super(ExplorePPA, self).__init__()
-        self.name = "Look for {0}".format(material)
+        self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
         self.action = actions.DigDownwardsToMaterial(agent, material)
 
@@ -131,7 +131,7 @@ class ExplorePPA(PPA):
 class GoToBlockPPA(PPA):
     def __init__(self, agent, material):
         super(GoToBlockPPA, self).__init__()
-        self.name = "Go to {0}".format(material)
+        self.name = f"Go to {material}"
         self.post_condition = conditions.IsBlockWithinReach(agent, material)
         self.pre_conditions = [conditions.IsBlockObservable(agent, material)]
         self.action = actions.GoToBlock(agent, material)
@@ -140,7 +140,7 @@ class GoToBlockPPA(PPA):
 class MinePPA(PPA):
     def __init__(self, agent, material):
         super(MinePPA, self).__init__()
-        self.name = "Mine {0}".format(material)
+        self.name = f"Mine {material}"
         self.post_condition = conditions.HasPickupNearby(agent, material)
         self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
         tool = get_gathering_tool(material)
@@ -182,7 +182,7 @@ class LookForAnimalPPA(PPA):
 class EquipPPA(PPA):
     def __init__(self, agent, item):
         super(EquipPPA, self).__init__()
-        self.name = "Equip {0}".format(item)
+        self.name = f"Equip {item}"
         self.agent = agent
         self.post_condition = conditions.HasItemEquipped(agent, item)
         self.action = actions.Equip(agent, item)
