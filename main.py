@@ -1,11 +1,15 @@
 from __future__ import print_function
 
-import malmoutils
 import os
 import sys
-from agent import MinerAgent
+
+from goals.blueprint import Blueprint, BlueprintType
+from bt import conditions
+from items import items
+from malmo import malmoutils
+from malmo.agent import MinerAgent
+from world.world import World
 from runner import Runner
-from world import World
 
 
 def run(argv=None):
@@ -17,10 +21,14 @@ def run(argv=None):
     malmoutils.fix_print()
 
     agent = MinerAgent()
-    world = World(agent)
-    world.start_world()
+    #goals = [conditions.HasItemEquipped(agent, items.BEEF)]
 
-    goals = ["stone_pickaxe"]
+    goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+
+    #goals = Blueprint.get_blueprint(BlueprintType.Fence)
+
+    world = World(agent, goals)
+    world.start_world()
 
     player = Runner(world, agent, goals)
 

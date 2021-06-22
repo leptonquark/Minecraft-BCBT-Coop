@@ -1,5 +1,8 @@
-import numpy as np
 from enum import Enum
+
+import numpy as np
+
+CIRCLE_DEGREES = 360
 
 
 class Direction(Enum):
@@ -16,7 +19,6 @@ directionAngle = {
     Direction.South: 180,
     Direction.West: 270
 }
-
 directionVector = {
     Direction.Zero: np.array([0, 0, 0]),
     Direction.North: np.array([0, 0, 1]),
@@ -24,17 +26,10 @@ directionVector = {
     Direction.South: np.array([0, 0, -1]),
     Direction.West: np.array([1, 0, 0])
 }
-
 up_vector = np.array([0, 1, 0])
 down_vector = np.array([0, -1, 0])
-center_vector = np.array([0.5, 0, 0.5])
-
-SECOND_PER_MS = 0.001
-CIRCLE_DEGREES = 360
-
-
-def ms_to_seconds(ms):
-    return SECOND_PER_MS * ms
+flat_center_vector = np.array([0.5, 0, 0.5])
+center_vector = np.array([0.5, 0.5, 0.5])
 
 
 def rad_to_degrees(rad):

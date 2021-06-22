@@ -1,12 +1,12 @@
 import time
 
-from py_trees.display import ascii_tree
-from observation import Observation
-from tree import BehaviourTree
-from utils import ms_to_seconds
+from bt.back_chain_tree import BackChainTree
+from world.observation import Observation
+from utils.string import tree_to_string
 
 MAX_DELAY = 60
 EXTRA_SLEEP_TIME = 0.1
+TREE_LOG_FILE_NAME = "log/tree.txt"
 
 
 class Runner:
@@ -18,11 +18,11 @@ class Runner:
         self.agent = agent
         self.last_delta = time.time()
 
-        self.grid_size = world.mission_data.get_grid_size()
         self.night_vision = world.mission_data.night_vision
-        self.sleep_time = ms_to_seconds(world.mission_data.ms_per_tick)
 
-        self.tree = BehaviourTree(agent)
+        self.tree = BackChainTree(agent, goals)
+        with open(TREE_LOG_FILE_NAME, "w") as file:
+            file.write(tree_to_string(self.tree.root))
 
     def run_mission(self):
         world_state = self.agent.get_world_state()
@@ -34,20 +34,18 @@ class Runner:
         if self.night_vision:
             self.agent.activate_night_vision()
 
-        # main loop:
         while world_state.is_mission_running:
-            # SLEEP
-            time.sleep(self.sleep_time + EXTRA_SLEEP_TIME)
+            observations = None
+            while observations is None or len(observations) == 0:
+                world_state = self.agent.get_world_state()
+                observations = world_state.observations
 
-            # SEE
-            world_state = self.agent.get_world_state()
-            observation = Observation(world_state.observations, self.grid_size)
+            observation = Observation(observations, self.world.mission_data)
             self.agent.set_observation(observation)
-            #observation.print()
+            # observation.print()
 
-            # DO
             self.tree.root.tick_once()
-            print(ascii_tree(self.tree.root))
+            # print(tree_to_string(self.tree.root))
 
             self.check_timeout(self.world, world_state)
 

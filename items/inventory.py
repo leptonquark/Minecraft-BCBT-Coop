@@ -1,6 +1,6 @@
-import items
+from items import items
 
-from recipes import RecipeBook
+from items.recipes import get_ingredients
 
 NO_SELECTION = -1
 HOTBAR_SIZE = 9
@@ -27,13 +27,11 @@ def fill_inventory(info, size):
 
 
 def get_selection_from_info(info):
-    if Inventory.CURRENT_SELECTION in info:
-        return info[Inventory.CURRENT_SELECTION]
-    return 0
+    return info.get(Inventory.KEY_CURRENT_SELECTION, 0)
 
 
 class Inventory:
-    CURRENT_SELECTION = "currentItemIndex"
+    KEY_CURRENT_SELECTION = "currentItemIndex"
 
     def __init__(self, info):
         if "inventoriesAvailable" not in info:
@@ -47,30 +45,25 @@ class Inventory:
 
         self.inventory = fill_inventory(info, size)
         self.current_selection = get_selection_from_info(info)
-        self.recipes = RecipeBook()
-        self.currentItem = info["currentItemIndex"]
 
     def __str__(self):
         return str(self.inventory)
 
     def has_item(self, item, amount=1):
-        found = 0
-        for inventorySlot in self.inventory:
-            if inventorySlot.item == item:
-                found += inventorySlot.amount
+        found = sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item == item)
         return found >= amount
 
     def has_item_equipped(self, item):
         return self.inventory[self.current_selection].item == item
 
     def find_item(self, item):
-        for i, inventorySlot in enumerate(self.inventory):
-            if inventorySlot.item == item:
+        for i, inventory_slot in enumerate(self.inventory):
+            if inventory_slot.item == item:
                 return i
         return -1
 
     def has_ingredients(self, item):
-        ingredients = self.recipes.get_ingredients(item)
+        ingredients = get_ingredients(item)
 
         for ingredient in ingredients:
             if not self.has_item(ingredient.item, ingredient.amount):
