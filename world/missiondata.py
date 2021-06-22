@@ -34,7 +34,7 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.start_position = (247.5, 68, 232.5)
+        self.start_position = None  # (247.5, 68, 232.5)
         self.start_pitch = 18
 
         self.start_time = 6000
@@ -105,11 +105,12 @@ class MissionData:
 
     def initialize_agent_start(self, agent_section):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
-        placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
-        placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_position[0]))
-        placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_position[1]))
-        placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_position[2]))
-        placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
+        if self.start_position is not None:
+            placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
+            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_position[0]))
+            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_position[1]))
+            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_position[2]))
+            placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
 
     def initialize_agent_handlers(self, agent_section):
         agent_handlers = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_HANDLERS)
@@ -145,5 +146,3 @@ def et_to_xml(root):
     rough_string = Et.tostring(root, 'utf-8')
     reparsed = dom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
-
-

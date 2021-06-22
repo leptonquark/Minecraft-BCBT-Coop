@@ -18,7 +18,7 @@ LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.5
 PITCH_TOLERANCE = 3
 SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.045
+EPSILON_ARRIVED_AT_POSITION = 0.9
 GATHERING_REACH = 3
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.FLOWER_RED, items.WATER]
@@ -258,11 +258,10 @@ class Observation:
         if self.los_abs_pos is None:
             return False
 
-        exact_center_pos = self.abs_pos + distance
-        exact_center_pos[1] += 0.5
-        rounded_center_pos = np.around(exact_center_pos - center_vector) + center_vector
-        rounded_los_pos = np.around(self.los_abs_pos - center_vector) + center_vector
-        return np.all(rounded_los_pos == rounded_center_pos)
+        rounded_global_pos = get_block_center(self.abs_pos)
+        wanted_pos = rounded_global_pos + round_move(distance)
+        rounded_los_pos = get_block_center(self.los_abs_pos)
+        return np.all(wanted_pos == rounded_los_pos)
 
     def is_looking_at_type(self, los_type):
         return self.los_type == los_type
@@ -309,6 +308,11 @@ class Observation:
         for key in self.info:
             if key != Observation.GRID_LOCAL:
                 print(key, self.info[key])
+
+
+
+def get_block_center(block_position):
+    return np.around(block_position + center_vector) - center_vector
 
 
 def grid_observation_from_list(grid_observation_list, grid_size):

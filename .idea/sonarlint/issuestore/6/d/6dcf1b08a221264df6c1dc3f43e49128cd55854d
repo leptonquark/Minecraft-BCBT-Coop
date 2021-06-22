@@ -1,9 +1,0 @@
-
-Xpython:S1131"@Remove the useless trailing whitespaces at the end of this line.(ÆÔœ¦
-Xpython:S1131	"@Remove the useless trailing whitespaces at the end of this line.(ÆÔœ¦
-Xpython:S1131"@Remove the useless trailing whitespaces at the end of this line.(ÆÔœ¦
-]python:S1131"@Remove the useless trailing whitespaces at the end of this line.(¤‰Íóýÿÿÿÿ
-cpython:LineLengthB"FThe line contains 137 characters which is greater than 120 authorized.(‰ãòÃ
-€python:S117I"dRename this local variable "recordingsDirectory" to match the regular expression ^[_a-z][a-z0-9_]*$.(³¾À¼øÿÿÿÿ
-zpython:S117U"dRename this local variable "recordingsDirectory" to match the regular expression ^[_a-z][a-z0-9_]*$.(¥…–
-Tpython:S5754^"<Specify an exception class to catch or reraise the exception(ˆÊÉ·
