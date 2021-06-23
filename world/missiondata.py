@@ -1,8 +1,8 @@
-import numpy as np
 import xml.etree.ElementTree as Et
-import xml.dom.minidom as dom
+import numpy as np
 
 from goals.blueprint import Blueprint
+from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
 
@@ -144,5 +144,4 @@ class MissionData:
 
 def et_to_xml(root):
     rough_string = Et.tostring(root, 'utf-8')
-    reparsed = dom.parseString(rough_string)
-    return reparsed.toprettyxml(indent="  ")
+    return prettify_xml(rough_string)

@@ -26,6 +26,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.pdf
+*.png
+*.gv
 
 .idea/sonarlint/
 # PyInstaller

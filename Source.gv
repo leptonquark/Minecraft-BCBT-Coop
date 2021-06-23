@@ -1,0 +1,12 @@
+digraph BaseTree {
+ordering=out;
+"854a9500-2331-4bed-9eb4-dad4c06f61b5" [fontsize=32, label="→", labelfontsize=32, shape=box];
+"579cdf0d-75e7-40fe-bc74-7eddb807d801" [fontsize=11, label=JumpIfStuck, labelfontsize=11, shape=box];
+"854a9500-2331-4bed-9eb4-dad4c06f61b5" -> "579cdf0d-75e7-40fe-bc74-7eddb807d801";
+"0e7087f0-0f77-4464-98d7-4b7dd9887fd8" [fontsize=32, label="?", labelfontsize=32, shape=box];
+"ce047edf-6be4-4a9c-a33e-00c4ddcbd874" [fontsize=11, label="Is Block Observable stone_pickaxe", labelfontsize=11, shape=oval];
+"0e7087f0-0f77-4464-98d7-4b7dd9887fd8" -> "ce047edf-6be4-4a9c-a33e-00c4ddcbd874";
+"f07a050f-e5e4-4411-9f42-e1dda8e88894" [fontsize=11, label="Dig downwards to stone_pickaxe", labelfontsize=11, shape=box];
+"0e7087f0-0f77-4464-98d7-4b7dd9887fd8" -> "f07a050f-e5e4-4411-9f42-e1dda8e88894";
+"854a9500-2331-4bed-9eb4-dad4c06f61b5" -> "0e7087f0-0f77-4464-98d7-4b7dd9887fd8";
+}
