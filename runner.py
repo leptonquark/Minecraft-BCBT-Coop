@@ -1,7 +1,7 @@
 import time
 
 from bt.back_chain_tree import BackChainTree
-from visualisation.drawio import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
+from utils.visualisation import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
 from world.observation import Observation
 
 MAX_DELAY = 60
