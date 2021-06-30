@@ -1,7 +1,7 @@
 import time
 
 from bt.back_chain_tree import BackChainTree
-from visualisation.drawio import tree_to_drawio_xml
+from visualisation.drawio import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
 from world.observation import Observation
 
 MAX_DELAY = 60
@@ -21,8 +21,9 @@ class Runner:
         self.night_vision = world.mission_data.night_vision
 
         self.tree = BackChainTree(agent, goals)
-        with open(TREE_LOG_FILE_NAME, "w") as file:
-            file.write(tree_to_drawio_xml(self.tree.root))
+
+        #with open(TREE_LOG_FILE_NAME, "w") as file:
+        #    file.write(tree_to_drawio_csv(self.tree.root))
 
         world.start_world()
 

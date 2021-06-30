@@ -4,12 +4,10 @@ import os
 import sys
 
 from goals.blueprint import Blueprint, BlueprintType
-from bt import conditions
-from items import items
 from malmo import malmoutils
 from malmo.agent import MinerAgent
-from world.world import World
 from runner import Runner
+from world.world import World
 
 
 def run(argv=None):
@@ -21,11 +19,11 @@ def run(argv=None):
     malmoutils.fix_print()
 
     agent = MinerAgent()
-    goals = [conditions.IsBlockObservable(agent, items.STONE_PICKAXE)]
+    #goals = [conditions.HasItemEquipped(agent, items.STONE_PICKAXE)]
 
-    #goals = [conditions.HasItemEquipped(agent, items.WOODEN_PICKAXE)]
+    #goals = [conditions.HasItem(agent, items.BEEF)]
 
-    #goals = Blueprint.get_blueprint(BlueprintType.Fence)
+    goals = Blueprint.get_blueprint(BlueprintType.Fence)
 
     world = World(agent, goals)
 
