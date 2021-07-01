@@ -1,9 +1,9 @@
-from py_trees.composites import Selector
-from py_trees.composites import Status
+import xml.dom.minidom as dom
 
 from bt.actions import Action
 from bt.conditions import Condition
 from bt.sequence import Sequence
+from py_trees.composites import Selector, Status
 
 
 def tree_to_string(tree, depth=0):
@@ -21,11 +21,16 @@ def tree_to_string(tree, depth=0):
             is_running = True
         else:
             symbol = "[a]"
-    indent = "    " * (depth-1)
+    indent = "    " * (depth - 1)
     if is_running:
-        indent = "----" * (depth-1)
+        indent = "----" * (depth - 1)
     arrow = "--> " if depth > 0 else ""
     output = f"{indent}{arrow}{symbol} {tree.name} \n"
     for child in tree.children:
-        output += tree_to_string(child, depth+1)
+        output += tree_to_string(child, depth + 1)
     return output
+
+
+def prettify_xml(rough_string):
+    reparsed = dom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
