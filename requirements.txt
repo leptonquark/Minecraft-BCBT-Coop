@@ -1,9 +1,4 @@
-numpy
-matplotlib
-pandas
-seaborn
-networkx
-setuptools
-gym
+malmo
 py-trees
 graphviz
+numpy
