@@ -1,6 +1,6 @@
 import time
 
-from malmo.MalmoPython import AgentHost
+from MalmoPython import AgentHost
 
 CRAFT_SLEEP = 0.25
 SWAP_SLEEP = 0.25

@@ -2,7 +2,7 @@ import malmo.malmoutils as malmoutils
 import uuid
 import time
 
-from malmo.MalmoPython import MissionSpec, ClientInfo, ClientPool
+from MalmoPython import MissionSpec, ClientInfo, ClientPool
 from world.missiondata import MissionData
 
 TIME_LIMIT_IN_SECONDS = 1000

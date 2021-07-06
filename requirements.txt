@@ -1,0 +1,9 @@
+numpy
+matplotlib
+pandas
+seaborn
+networkx
+setuptools
+gym
+py-trees
+graphviz
