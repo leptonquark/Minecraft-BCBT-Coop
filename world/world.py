@@ -1,4 +1,4 @@
-import malmo.malmoutils as malmoutils
+import malmoutils.malmoutils as malmoutils
 import uuid
 import time
 

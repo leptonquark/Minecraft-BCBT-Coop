@@ -4,8 +4,8 @@ import os
 import sys
 
 from goals.blueprint import Blueprint, BlueprintType
-from malmo import malmoutils
-from malmo.agent import MinerAgent
+from malmoutils import malmoutils
+from malmoutils.agent import MinerAgent
 from runner import Runner
 from world.world import World
 
