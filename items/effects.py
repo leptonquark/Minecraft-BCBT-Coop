@@ -1,3 +1,0 @@
-NIGHT_VISION = "night_vision"
-MAX_TIME = 99999
-MAX_AMPLIFIER = 255
