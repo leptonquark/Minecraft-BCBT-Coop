@@ -3,7 +3,8 @@ import xml.dom.minidom as dom
 from bt.actions import Action
 from bt.conditions import Condition
 from bt.sequence import Sequence
-from py_trees.composites import Selector, Status
+from py_trees.composites import Selector
+from py_trees.common import Status
 
 
 def tree_to_string(tree, depth=0):

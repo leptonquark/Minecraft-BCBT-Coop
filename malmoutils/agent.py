@@ -1,6 +1,6 @@
 import numpy as np
 
-from malmo.commands import CommandInterface
+from malmoutils.commands import CommandInterface
 from items import effects
 from world.observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
     get_pitch_change

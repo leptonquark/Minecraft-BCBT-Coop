@@ -2,7 +2,7 @@ import graphviz
 import pydot
 import textwrap
 
-from graphviz2drawio import graphviz2drawio
+#from graphviz2drawio import graphviz2drawio
 from py_trees.composites import Selector
 
 from bt.actions import Action
@@ -18,9 +18,10 @@ def render_tree(root):
 
 
 def tree_to_drawio_xml(root):
-    tree_dot = tree_to_dot(root)
-    rough_drawio = graphviz2drawio.convert(tree_dot)
-    return prettify_xml(rough_drawio)
+   # tree_dot = tree_to_dot(root)
+   # rough_drawio = graphviz2drawio.convert(tree_dot)
+   # return prettify_xml(rough_drawio)
+   pass
 
 
 def tree_to_dot(root):
