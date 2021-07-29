@@ -1,3 +1,4 @@
+import codecs
 import time
 
 from bt.back_chain_tree import BackChainTree
@@ -22,8 +23,8 @@ class Runner:
 
         self.tree = BackChainTree(agent, goals)
 
-        #with open(TREE_LOG_FILE_NAME, "w") as file:
-        #    file.write(tree_to_drawio_csv(self.tree.root))
+        with codecs.open(TREE_LOG_FILE_NAME, "w", "utf-8") as file:
+            file.write(tree_to_drawio_csv(self.tree.root))
 
         world.start_world()
 
