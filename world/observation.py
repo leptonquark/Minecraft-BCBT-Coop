@@ -18,7 +18,7 @@ LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.5
 PITCH_TOLERANCE = 3
 SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.9
+EPSILON_ARRIVED_AT_POSITION = 0.045
 GATHERING_REACH = 3
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.FLOWER_RED, items.WATER]
@@ -308,7 +308,6 @@ class Observation:
         for key in self.info:
             if key != Observation.GRID_LOCAL:
                 print(key, self.info[key])
-
 
 
 def get_block_center(block_position):

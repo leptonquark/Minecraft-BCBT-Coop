@@ -2,6 +2,7 @@ import codecs
 import time
 
 from bt.back_chain_tree import BackChainTree
+from utils.string import tree_to_string
 from utils.visualisation import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
 from world.observation import Observation
 
@@ -49,7 +50,8 @@ class Runner:
             # observation.print()
 
             self.tree.root.tick_once()
-            # print(tree_to_string(self.tree.root))
+
+            print(tree_to_string(self.tree.root))
 
             self.check_timeout(self.world, world_state)
 

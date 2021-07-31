@@ -410,6 +410,7 @@ class DigDownwardsToMaterial(Action):
         super(DigDownwardsToMaterial, self).__init__(f"Dig downwards to {material}")
         self.agent = agent
         self.material = material
+
         self.tool = get_gathering_tool(material)
 
     def update(self):
@@ -422,7 +423,6 @@ class DigDownwardsToMaterial(Action):
             return Status.SUCCESS
 
         digging_direction = down_vector
-        print(has_arrived(digging_direction))
 
         if not has_arrived(digging_direction):
             turning = self.agent.turn_towards(digging_direction)
