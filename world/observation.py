@@ -276,7 +276,7 @@ class Observation:
         return (position - self.abs_pos_floor).astype('int64')
 
     def get_distance_to_position(self, position):
-        position_center = position + flat_center_vector
+        position_center = position + center_vector
         return position_center - self.abs_pos
 
     def is_block_at_position(self, position, block):
