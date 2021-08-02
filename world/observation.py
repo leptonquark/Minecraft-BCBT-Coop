@@ -12,13 +12,13 @@ from utils.vectors import CIRCLE_DEGREES, flat_center_vector, Direction, directi
     , rad_to_degrees, center_vector, BlockFace
 
 MAX_DELAY = 60
-YAW_TOLERANCE = 5
+YAW_TOLERANCE = 15
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 MAX_PITCH = 0.5
 PITCH_TOLERANCE = 3
 SAME_SPOT_Y_THRESHOLD = 2
-EPSILON_ARRIVED_AT_POSITION = 0.045
+EPSILON_ARRIVED_AT_POSITION = 0.09
 GATHERING_REACH = 3
 
 traversable = [items.AIR, items.PLANT, items.TALL_GRASS, items.FLOWER_YELLOW, items.FLOWER_RED, items.WATER]
