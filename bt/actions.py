@@ -132,9 +132,9 @@ class GoToObject(Action):
                     self.mine_forward(0, wanted_direction)
 
     def mine_forward(self, vertical_distance, wanted_direction):
-        exact_move = self.agent.observation.get_exact_move(wanted_direction, vertical_distance)
+        block_position = self.agent.observation.get_discrete_position(wanted_direction, vertical_distance)
 
-        if not self.agent.observation.is_looking_at_distance(exact_move):
+        if not self.agent.observation.is_looking_at(block_position):
             turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
             self.agent.turn(turn_direction)
 
@@ -231,7 +231,7 @@ class GoToBlock(GoToObject):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest_block(self.block)
+        distance = self.agent.observation.get_closest_block_distance(self.block)
 
         if distance is None:
             return Status.FAILURE
@@ -275,8 +275,10 @@ class MineMaterial(Action):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest_block(self.material)
-        if distance is None:
+        discrete_position = self.agent.observation.get_closest_block(self.material)
+        distance = self.agent.observation.get_distance_to_position(discrete_position)
+
+        if discrete_position is None:
             return Status.FAILURE
 
         if not has_arrived(distance):
@@ -285,8 +287,7 @@ class MineMaterial(Action):
         # Look at
         self.agent.jump(False)
         self.agent.move(0)
-
-        if not self.agent.observation.is_looking_at_distance(distance):
+        if not self.agent.observation.is_looking_at(discrete_position):
             pitching = self.agent.pitch_towards(distance)
             turning = self.agent.turn_towards(distance)
 
@@ -410,7 +411,7 @@ class DigDownwardsToMaterial(Action):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_closest_block(self.material)
+        distance = self.agent.observation.get_closest_block_distance(self.material)
 
         if distance is not None:
             return Status.SUCCESS

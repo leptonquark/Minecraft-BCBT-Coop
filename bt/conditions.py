@@ -54,7 +54,7 @@ class IsBlockWithinReach(Condition):
         self.block = block
 
     def update(self):
-        distance = self.agent.observation.get_closest_block(self.block)
+        distance = self.agent.observation.get_closest_block_distance(self.block)
         return Status.SUCCESS if has_arrived(distance) else Status.FAILURE
 
 

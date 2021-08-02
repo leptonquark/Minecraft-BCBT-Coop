@@ -100,6 +100,18 @@ class Observation:
             hits = self.get_hits(block_type)
             positions = np.argwhere(hits)
             if len(positions) > 0:
+                distances_vector = positions - self.pos
+                distances = np.linalg.norm(distances_vector, axis=1)
+                min_dist_arg = np.argmin(distances)
+
+                return self.abs_pos_discrete + distances_vector[min_dist_arg]
+        return None
+
+    def get_closest_block_distance(self, block_type):
+        if self.grid_local is not None:
+            hits = self.get_hits(block_type)
+            positions = np.argwhere(hits)
+            if len(positions) > 0:
                 distances = positions - self.pos
                 distances = np.linalg.norm(distances, axis=1)
                 min_dist_arg = np.argmin(distances)
@@ -283,25 +295,14 @@ class Observation:
         else:
             return None
 
-    # @Deprecated use is_looking_at instead...
-    def is_looking_at_distance(self, distance):
-        if self.los_abs_pos is None:
-            return False
-
-        wanted_pos = self.abs_pos_discrete + round_move(distance)
-        return np.all(wanted_pos == self.los_pos_discrete)
-
     def is_looking_at(self, discrete_position):
         return np.all(discrete_position == self.los_pos_discrete)
 
     def is_looking_at_type(self, los_type):
         return self.los_type == los_type
 
-    def get_exact_move(self, direction, delta_horizontal):
-        move = directionVector[direction]
-        exact_move = move.astype("float64") - self.abs_pos_inner
-        exact_move[1] += delta_horizontal
-        return exact_move
+    def get_discrete_position(self, direction, delta_vertical):
+        return self.abs_pos_discrete + directionVector[direction] + delta_vertical * up_vector
 
     def get_rounded_distance_to_position(self, position):
         return (position - self.abs_pos_discrete).astype('int64')
