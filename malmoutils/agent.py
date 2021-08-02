@@ -7,12 +7,16 @@ from world.observation import get_horizontal_distance, get_turn_direction, get_w
 
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
+NO_MOVE_SPEED_DISTANCE_EPSILON = 1
+NO_MOVE_SPEED_TURN_DIRECTION_EPSILON = 0.1
 
 
 def get_move_speed(horizontal_distance, turn_direction):
     move_speed = horizontal_distance / MOVE_THRESHOLD if horizontal_distance < MOVE_THRESHOLD else 1
     move_speed *= (1 - np.abs(turn_direction)) ** 2
     move_speed = max(move_speed, MIN_MOVE_SPEED)
+    if np.abs(turn_direction) > NO_MOVE_SPEED_TURN_DIRECTION_EPSILON and horizontal_distance < NO_MOVE_SPEED_DISTANCE_EPSILON:
+        move_speed = 0
     return move_speed
 
 
