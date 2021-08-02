@@ -13,7 +13,8 @@ from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector
 
 MAX_DELAY = 60
-STOP_YAW_TOLERANCE = 15
+STOP_TURN_DIRECTION_TOLERANCE = 0.1
+
 DELTA_ANGLES = 45
 LOS_TOLERANCE = 0.5
 
@@ -112,17 +113,9 @@ class GoToObject(Action):
         self.agent.turn_towards(distance)
 
         turn_direction = self.agent.get_turn_direction(distance)
-
-        if np.abs(turn_direction) > STOP_YAW_TOLERANCE:
-            self.agent.attack(False)
-            self.agent.move(0)
-            self.agent.pitch(0)
-            return Status.RUNNING
-
         current_direction = self.agent.observation.get_current_direction()
 
-        lower_free = self.agent.observation.lower_surroundings[current_direction] in traversable or \
-                     self.agent.observation.lower_surroundings[current_direction] in narrow
+        lower_free = self.agent.observation.lower_surroundings[current_direction] in traversable + narrow
         upper_free = self.agent.observation.upper_surroundings[current_direction] in traversable
 
         if lower_free and upper_free:
@@ -141,7 +134,7 @@ class GoToObject(Action):
     def mine_forward(self, vertical_distance, wanted_direction):
         exact_move = self.agent.observation.get_exact_move(wanted_direction, vertical_distance)
 
-        if not self.agent.observation.is_looking_at(exact_move):
+        if not self.agent.observation.is_looking_at_distance(exact_move):
             turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
             self.agent.turn(turn_direction)
 
@@ -293,7 +286,7 @@ class MineMaterial(Action):
         self.agent.jump(False)
         self.agent.move(0)
 
-        if not self.agent.observation.is_looking_at(distance):
+        if not self.agent.observation.is_looking_at_distance(distance):
             pitching = self.agent.pitch_towards(distance)
             turning = self.agent.turn_towards(distance)
 
@@ -374,7 +367,7 @@ class PlaceBlockAtPosition(Action):
         if pitching or turning:
             return Status.RUNNING
 
-        if not self.agent.observation.is_looking_at(distance):
+        if not self.agent.observation.is_looking_at(self.position_below):
             self.agent.attack(True)
             return Status.RUNNING
 
@@ -453,8 +446,7 @@ class DigDownwardsToMaterial(Action):
         self.agent.stop()
 
 
-# TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for materials
-# First it will dig down to a correct height then start digging sideways.
+# TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for animals
 class RunForwardTowardsAnimal(GoToObject):
     def __init__(self, agent, specie=None):
         super(RunForwardTowardsAnimal, self).__init__(agent, f"Look for {specie}")

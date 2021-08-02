@@ -9,7 +9,7 @@ from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
 from utils.vectors import CIRCLE_DEGREES, flat_center_vector, Direction, directionAngle, directionVector, up_vector \
-    , rad_to_degrees, center_vector
+    , rad_to_degrees, center_vector, BlockFace
 
 MAX_DELAY = 60
 YAW_TOLERANCE = 5
@@ -56,13 +56,14 @@ class Observation:
 
         self.abs_pos = None
         self.abs_pos_inner = None
-        self.abs_pos_floor = None
+        self.abs_pos_discrete = None
         self.animals = None
         self.grid_local = None
         self.grids_global = {}
         self._inventory = None
         self.lower_surroundings = None
         self.los_abs_pos = None
+        self.los_pos_discrete = None
         self.los_pos = None
         self.los_type = None
 
@@ -88,9 +89,9 @@ class Observation:
         self.inventory = Inventory(self.info)
 
         self.setup_absolute_position(self.info)
-        self.setup_line_of_sight(self.info)
         self.setup_yaw(self.info)
         self.setup_pitch(self.info)
+        self.setup_line_of_sight(self.info)
         self.setup_local_grid(self.info)
         self.setup_entities(self.info)
 
@@ -119,18 +120,46 @@ class Observation:
     def setup_absolute_position(self, info):
         if Observation.X in info and Observation.Y in info and Observation.Z in info:
             self.abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
-            self.abs_pos_floor = np.floor(self.abs_pos)
+            self.abs_pos_discrete = np.floor(self.abs_pos)
             self.abs_pos_inner = self.abs_pos % 1 - flat_center_vector
 
     def setup_line_of_sight(self, info):
         if Observation.LOS in info:
-            print(info[Observation.LOS])
             los = info[Observation.LOS]
             if Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
                 self.los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
                 self.los_pos = self.los_abs_pos - self.abs_pos
+                self.setup_los_discrete_pos()
             if Observation.LOS_TYPE in los:
                 self.los_type = los[Observation.LOS_TYPE]
+
+    def setup_los_discrete_pos(self):
+        # Calculate which face of the cube we are looking at. In case of corners it will be prioritized by x, y then z.
+        # TODO: Make this work for non-full-size-blocks.
+        los_face = BlockFace.NoFace
+        if self.los_abs_pos[0] == int(self.los_abs_pos[0]):
+            if 0 <= self.yaw <= 180:
+                los_face = BlockFace.East
+            else:
+                los_face = BlockFace.West
+        elif self.los_abs_pos[1] == int(self.los_abs_pos[1]):
+            if self.pitch > 0:
+                los_face = BlockFace.Up
+            else:
+                los_face = BlockFace.Down
+        elif self.los_abs_pos[2] == int(self.los_abs_pos[2]):
+            if 90 <= self.yaw <= 270:
+                los_face = BlockFace.South
+            else:
+                los_face = BlockFace.North
+
+        self.los_pos_discrete = np.floor(self.los_abs_pos)
+        if los_face == BlockFace.East:
+            self.los_pos_discrete[0] -= 1
+        elif los_face == BlockFace.Up:
+            self.los_pos_discrete[1] -= 1
+        elif los_face == BlockFace.South:
+            self.los_pos_discrete[2] -= 1
 
     def setup_yaw(self, info):
         if Observation.YAW in info:
@@ -154,11 +183,11 @@ class Observation:
             self.upper_surroundings = {
                 direction: self.grid_local[tuple(self.pos + directionVector[direction] + up_vector)]
                 for direction in Direction}
-            print("Upper Surroundings", self.upper_surroundings)
+            # print("Upper Surroundings", self.upper_surroundings)
             self.lower_surroundings = {direction: self.grid_local[tuple(self.pos + directionVector[direction])] for
                                        direction
                                        in Direction}
-            print("Lower Surroundings", self.lower_surroundings)
+            #print("Lower Surroundings", self.lower_surroundings)
 
     def setup_entities(self, info):
         if Observation.ENTITIES in info:
@@ -193,7 +222,7 @@ class Observation:
 
             if diff <= DELTA_ANGLES or diff >= CIRCLE_DEGREES - DELTA_ANGLES:
                 return key
-        return Direction.North
+        return Direction.South
 
     def is_block_observable(self, block_type):
         hits = None
@@ -254,14 +283,16 @@ class Observation:
         else:
             return None
 
-    def is_looking_at(self, distance):
+    # @Deprecated use is_looking_at instead...
+    def is_looking_at_distance(self, distance):
         if self.los_abs_pos is None:
             return False
 
-        rounded_global_pos = get_block_center(self.abs_pos)
-        wanted_pos = rounded_global_pos + round_move(distance)
-        rounded_los_pos = get_block_center(self.los_abs_pos)
-        return np.all(wanted_pos == rounded_los_pos)
+        wanted_pos = self.abs_pos_discrete + round_move(distance)
+        return np.all(wanted_pos == self.los_pos_discrete)
+
+    def is_looking_at(self, discrete_position):
+        return np.all(discrete_position == self.los_pos_discrete)
 
     def is_looking_at_type(self, los_type):
         return self.los_type == los_type
@@ -273,10 +304,10 @@ class Observation:
         return exact_move
 
     def get_rounded_distance_to_position(self, position):
-        return (position - self.abs_pos_floor).astype('int64')
+        return (position - self.abs_pos_discrete).astype('int64')
 
     def get_distance_to_position(self, position):
-        position_center = position + center_vector
+        position_center = position + flat_center_vector
         return position_center - self.abs_pos
 
     def is_block_at_position(self, position, block):
@@ -331,14 +362,14 @@ def get_horizontal_distance(distance):
 def get_wanted_direction(move):
     if np.abs(move[2]) >= np.abs(move[0]):
         if move[2] > 0:
-            wanted_direction = Direction.North
-        else:
             wanted_direction = Direction.South
+        else:
+            wanted_direction = Direction.North
     else:
         if move[0] > 0:
-            wanted_direction = Direction.West
-        else:
             wanted_direction = Direction.East
+        else:
+            wanted_direction = Direction.West
     return wanted_direction
 
 
@@ -351,16 +382,16 @@ def get_yaw_from_vector(move):
     flat_move[1] = 0.0
     normalized_move = flat_move / np.linalg.norm(flat_move)
 
-    north_angle = directionVector[Direction.North]
-    dot_product_north = np.dot(normalized_move, north_angle)
+    south_angle = directionVector[Direction.South]
+    dot_product_south = np.dot(normalized_move, south_angle)
 
-    west_angle = directionVector[Direction.West]
-    dot_product_west = np.dot(normalized_move, west_angle)
+    east_angle = directionVector[Direction.East]
+    dot_product_east = np.dot(normalized_move, east_angle)
 
-    cos_angle = np.clip(dot_product_north, -1.0, 1.0)
+    cos_angle = np.clip(dot_product_south, -1.0, 1.0)
     angle = np.arccos(cos_angle)
     angle = rad_to_degrees(angle)
-    if dot_product_west > 0:
+    if dot_product_east > 0:
         angle = CIRCLE_DEGREES - angle
     return angle
 

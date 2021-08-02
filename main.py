@@ -21,11 +21,11 @@ def run(argv=None):
     malmoutils.fix_print()
 
     agent = MinerAgent()
-    #goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+    goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
 
     #goals = [conditions.HasItem(agent, items.BEEF)]
 
-    goals = Blueprint.get_blueprint(BlueprintType.Fence)
+    #goals = Blueprint.get_blueprint(BlueprintType.Fence)
 
     world = World(agent, goals)
 
