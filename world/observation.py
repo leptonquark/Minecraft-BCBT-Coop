@@ -107,21 +107,6 @@ class Observation:
                 return self.abs_pos_discrete + distances_vector[min_dist_arg]
         return None
 
-    def get_closest_block_distance(self, block_type):
-        if self.grid_local is not None:
-            hits = self.get_hits(block_type)
-            positions = np.argwhere(hits)
-            if len(positions) > 0:
-                distances = positions - self.pos
-                distances = np.linalg.norm(distances, axis=1)
-                min_dist_arg = np.argmin(distances)
-
-                move = positions[min_dist_arg] - self.pos
-                exact_move = move.astype("float64") - self.abs_pos_inner
-
-                return exact_move
-        return None
-
     def get_grid_local(self):
         if self.grid_local is not None:
             return self.grid_local
@@ -199,7 +184,7 @@ class Observation:
             self.lower_surroundings = {direction: self.grid_local[tuple(self.pos + directionVector[direction])] for
                                        direction
                                        in Direction}
-            #print("Lower Surroundings", self.lower_surroundings)
+            # print("Lower Surroundings", self.lower_surroundings)
 
     def setup_entities(self, info):
         if Observation.ENTITIES in info:
@@ -275,7 +260,7 @@ class Observation:
     def has_pickup_nearby(self, wanted):
         return any(pickup.name == wanted for pickup in self.pickups)
 
-    def get_weakest_animal(self, specie=None):
+    def get_weakest_animal_position(self, specie=None):
         # Get the weakest animal. If there are several, take the closest of them.
         weakest_animal = None
         for animal in self.animals:
@@ -291,11 +276,11 @@ class Observation:
                         weakest_animal = animal
 
         if weakest_animal is not None:
-            return weakest_animal.position - self.abs_pos
+            return weakest_animal.position
         else:
             return None
 
-    def is_looking_at(self, discrete_position):
+    def is_looking_at_discrete_position(self, discrete_position):
         return np.all(discrete_position == self.los_pos_discrete)
 
     def is_looking_at_type(self, los_type):
@@ -308,6 +293,9 @@ class Observation:
         return (position - self.abs_pos_discrete).astype('int64')
 
     def get_distance_to_position(self, position):
+        return position - self.abs_pos
+
+    def get_distance_to_discrete_position(self, position):
         position_center = position + flat_center_vector
         return position_center - self.abs_pos
 
@@ -317,8 +305,7 @@ class Observation:
         return self.get_block_at_position_from_global(position) == block
 
     def is_position_local(self, position):
-        distance = self.get_rounded_distance_to_position(position)
-        grid_pos = self.pos + distance
+        grid_pos = self.pos + self.get_rounded_distance_to_position(position)
         return np.all(grid_pos >= 0) and np.all(grid_pos < self.grid_size_local)
 
     def get_block_at_position_from_local(self, position):
@@ -341,8 +328,13 @@ class Observation:
             if key != Observation.GRID_LOCAL:
                 print(key, self.info[key])
 
+    def is_position_within_reach(self, position, reach=GATHERING_REACH):
+        if position is None:
+            return False
+        return np.linalg.norm(self.get_distance_to_discrete_position(position)) <= reach
 
-def get_block_center(block_position):
+
+def get_position_center(block_position):
     return np.around(block_position + center_vector) - center_vector
 
 
@@ -424,12 +416,3 @@ def get_pitch_change(pitch, wanted_pitch):
         return 0
     else:
         return -MAX_PITCH * diff / quarter_circle
-
-
-def has_arrived(distance, reach=GATHERING_REACH):
-    if distance is None:
-        return False
-    mat_horizontal_distance = get_horizontal_distance(distance)
-    y_distance = distance[1]
-    return (np.abs(y_distance) <= SAME_SPOT_Y_THRESHOLD and mat_horizontal_distance <= reach) \
-        or mat_horizontal_distance <= EPSILON_ARRIVED_AT_POSITION

@@ -31,7 +31,7 @@ def condition_to_ppa_tree(agent, condition):
         else:
             return HuntPPA(agent, condition.item)
     elif isinstance(condition, conditions.IsBlockWithinReach):
-        return GoToBlockPPA(agent, condition.block)
+        return GoToBlockPPA(agent, condition.block_type)
     elif isinstance(condition, conditions.IsPositionWithinReach):
         return GoToPositionPPA(agent, condition.position)
     elif isinstance(condition, conditions.IsBlockObservable):

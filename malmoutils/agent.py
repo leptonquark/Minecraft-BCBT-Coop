@@ -5,6 +5,7 @@ from items import effects
 from world.observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
     get_pitch_change
 
+PITCH_DOWNWARDS = 90
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
 NO_MOVE_SPEED_DISTANCE_EPSILON = 1
@@ -64,6 +65,13 @@ class MinerAgent:
         pitch_req = get_pitch_change(current_pitch, wanted_pitch)
         self.interface.pitch(pitch_req)
         return pitch_req != 0
+
+    def pitch_downwards(self):
+        wanted_pitch = PITCH_DOWNWARDS
+        current_pitch = self.observation.pitch
+        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
+        self.interface.pitch(pitch_req)
+        return pitch_req == 0
 
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
