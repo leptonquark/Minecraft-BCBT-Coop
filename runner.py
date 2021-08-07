@@ -3,9 +3,11 @@ import pathlib
 import time
 
 from bt.back_chain_tree import BackChainTree
+from malmoutils.agent import MinerAgent
 from utils.string import tree_to_string
 from utils.visualisation import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
 from world.observation import Observation
+from world.world import World
 
 MAX_DELAY = 60
 EXTRA_SLEEP_TIME = 0.1
@@ -16,20 +18,19 @@ TREE_LOG_FILE_NAME = f"{TREE_LOG_FOLDER_NAME}/tree.txt"
 
 class Runner:
 
-    def __init__(self, world, agent, goals=None):
+    def __init__(self, agent, goals=None):
         if goals is None:
             goals = []
-        self.world = world
+
         self.agent = agent
-        self.last_delta = time.time()
+        self.world = World(self.agent, goals)
 
-        self.night_vision = world.mission_data.night_vision
+        self.night_vision = self.world.mission_data.night_vision
 
-        self.tree = BackChainTree(agent, goals)
-
+        self.tree = BackChainTree(self.agent, goals)
         save_tree_to_log(self.tree)
 
-        world.start_world()
+        self.world.start_world()
 
     def run_mission(self):
         world_state = self.agent.get_world_state()
