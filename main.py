@@ -23,7 +23,7 @@ def run():
 
     #goals = [conditions.HasItem(agent, items.BEEF)]
 
-    goals = Blueprint.get_blueprint(BlueprintType.Fence)
+    goals = Blueprint.get_blueprint(BlueprintType.StraightFence)
 
     world = World(agent, goals)
 
