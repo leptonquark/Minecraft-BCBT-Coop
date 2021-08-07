@@ -1,4 +1,4 @@
-from world.observation import has_arrived
+from world.observation import get_position_center
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from utils.constants import ATTACK_REACH, PLACING_REACH
@@ -48,14 +48,18 @@ class HasPickupNearby(Condition):
 
 class IsBlockWithinReach(Condition):
 
-    def __init__(self, agent, block):
-        super(IsBlockWithinReach, self).__init__(f"Is Block Within Reach {block}")
+    def __init__(self, agent, block_type):
+        super(IsBlockWithinReach, self).__init__(f"Is Block Within Reach {block_type}")
         self.agent = agent
-        self.block = block
+        self.block_type = block_type
 
     def update(self):
-        distance = self.agent.observation.get_closest_block(self.block)
-        return Status.SUCCESS if has_arrived(distance) else Status.FAILURE
+        discrete_position = self.agent.observation.get_closest_block(self.block_type)
+        if discrete_position is None:
+            return Status.FAILURE
+
+        position_center = get_position_center(discrete_position)
+        return Status.SUCCESS if self.agent.observation.is_position_within_reach(position_center) else Status.FAILURE
 
 
 class IsBlockObservable(Condition):
@@ -76,8 +80,9 @@ class IsPositionWithinReach(Condition):
         self.position = position
 
     def update(self):
-        distance = self.agent.observation.get_distance_to_position(self.position)
-        return Status.SUCCESS if has_arrived(distance, reach=PLACING_REACH) else Status.FAILURE
+        position_center = get_position_center(self.position)
+        has_arrived = self.agent.observation.is_position_within_reach(position_center, reach=PLACING_REACH)
+        return Status.SUCCESS if has_arrived else Status.FAILURE
 
 
 class IsAnimalWithinReach(Condition):
@@ -87,8 +92,8 @@ class IsAnimalWithinReach(Condition):
         self.specie = specie
 
     def update(self):
-        distance = self.agent.observation.get_weakest_animal(self.specie)
-        within_reach = has_arrived(distance, ATTACK_REACH)
+        position = self.agent.observation.get_weakest_animal_position(self.specie)
+        within_reach = self.agent.observation.is_position_within_reach(position, ATTACK_REACH)
         return Status.SUCCESS if within_reach else Status.FAILURE
 
 
