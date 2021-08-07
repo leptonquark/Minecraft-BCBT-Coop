@@ -20,6 +20,8 @@ LOS_TOLERANCE = 0.5
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
+HAS_ARRIVED_HORIZONTAL_TOLERANCE = 0.2
+
 
 class Action(Behaviour):
     def __init__(self, name):
@@ -112,10 +114,9 @@ class GoToObject(Action):
         flat_distance = np.copy(distance)
         flat_distance[1] = 0
 
-        if np.linalg.norm(flat_distance) <= 1:
+        if np.linalg.norm(flat_distance) <= HAS_ARRIVED_HORIZONTAL_TOLERANCE:
             self.mine_downwards()
             return Status.RUNNING
-
 
         self.agent.turn_towards(distance)
 
@@ -127,6 +128,7 @@ class GoToObject(Action):
 
         if lower_free and upper_free:
             self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
+            return Status.RUNNING
 
         else:
             wanted_direction = get_wanted_direction(distance)
@@ -139,6 +141,8 @@ class GoToObject(Action):
                     self.mine_forward(0, wanted_direction)
 
     def mine_downwards(self):
+        self.agent.move(0)
+
         looking_downwards = self.agent.pitch_downwards()
         if not looking_downwards:
             self.agent.attack(False)
@@ -412,14 +416,32 @@ class DigDownwardsToMaterial(Action):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        position = self.agent.observation.get_closest_block(self.material)
+        position_block = self.agent.observation.get_closest_block(self.material)
 
-        if position is not None:
+        if position_block is not None:
             return Status.SUCCESS
 
-        looking_downwards = self.agent.pitch_downwards()
-        if not looking_downwards:
+        position_downwards = self.agent.observation.get_first_block_downwards()
+        distance = self.agent.observation.get_distance_to_discrete_position(position_downwards)
+
+        position_center = get_position_center(position_downwards)
+        if not self.agent.observation.is_position_within_reach(position_center):
+            self.agent.turn_towards(distance)
+            turn_direction = self.agent.get_turn_direction(distance)
+            self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
             return Status.RUNNING
+
+        self.agent.move(0)
+        self.agent.turn(0)
+        self.agent.pitch(0)
+
+        if not self.agent.observation.is_looking_at_discrete_position(position_downwards):
+            self.agent.attack(False)
+            pitching = self.agent.pitch_towards(distance)
+            turning = self.agent.turn_towards(distance)
+
+            if pitching or turning:
+                return Status.RUNNING
 
         self.agent.attack(True)
 

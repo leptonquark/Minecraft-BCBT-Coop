@@ -333,6 +333,12 @@ class Observation:
             return False
         return np.linalg.norm(self.get_distance_to_discrete_position(position)) <= reach
 
+    def get_first_block_downwards(self):
+        check_position = np.copy(self.pos)
+        while self.grid_local[tuple(check_position)] in traversable:
+            check_position -= up_vector
+        return self.abs_pos_discrete - self.pos + check_position
+
 
 def get_position_center(block_position):
     return np.around(block_position + center_vector) - center_vector
