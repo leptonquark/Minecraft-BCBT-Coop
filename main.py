@@ -1,15 +1,10 @@
 from __future__ import print_function
 
 import os
-import sys
 
-from bt import conditions
-from items import items
 from goals.blueprint import Blueprint, BlueprintType
 from malmoutils import malmoutils
-from malmoutils.agent import MinerAgent
 from runner import Runner
-from world.world import World
 
 
 def run():
@@ -17,17 +12,13 @@ def run():
         print("Please set the MALMO_XSD_PATH environment variable.")
         return
     malmoutils.fix_print()
-
-    agent = MinerAgent()
     #goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
 
     #goals = [conditions.HasItem(agent, items.BEEF)]
 
-    goals = Blueprint.get_blueprint(BlueprintType.Fence)
+    goals = Blueprint.get_blueprint(BlueprintType.StraightFence)
 
-    world = World(agent, goals)
-
-    player = Runner(world, agent, goals)
+    player = Runner(goals)
     player.run_mission()
 
 
