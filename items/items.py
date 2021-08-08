@@ -48,3 +48,7 @@ pickups = [
     FURNACE,
     CRAFTING_TABLE
 ]
+
+traversable = [AIR, PLANT, TALL_GRASS, FLOWER_YELLOW, FLOWER_RED, WATER]
+narrow = [WOODEN_FENCE]
+unclimbable = [WOODEN_FENCE]

@@ -1,4 +1,4 @@
-from world.observation import get_position_center
+from world.observer import get_position_center
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from utils.constants import ATTACK_REACH, PLACING_REACH
@@ -43,7 +43,7 @@ class HasPickupNearby(Condition):
         self.item = item
 
     def update(self):
-        return Status.SUCCESS if self.agent.observation.has_pickup_nearby(self.item) else Status.FAILURE
+        return Status.SUCCESS if self.agent.observer.has_pickup_nearby(self.item) else Status.FAILURE
 
 
 class IsBlockWithinReach(Condition):
@@ -54,12 +54,12 @@ class IsBlockWithinReach(Condition):
         self.block_type = block_type
 
     def update(self):
-        discrete_position = self.agent.observation.get_closest_block(self.block_type)
+        discrete_position = self.agent.observer.get_closest_block(self.block_type)
         if discrete_position is None:
             return Status.FAILURE
 
         position_center = get_position_center(discrete_position)
-        return Status.SUCCESS if self.agent.observation.is_position_within_reach(position_center) else Status.FAILURE
+        return Status.SUCCESS if self.agent.observer.is_position_within_reach(position_center) else Status.FAILURE
 
 
 class IsBlockObservable(Condition):
@@ -69,7 +69,7 @@ class IsBlockObservable(Condition):
         self.block = block
 
     def update(self):
-        return Status.SUCCESS if self.agent.observation.is_block_observable(self.block) else Status.FAILURE
+        return Status.SUCCESS if self.agent.observer.is_block_observable(self.block) else Status.FAILURE
 
 
 class IsPositionWithinReach(Condition):
@@ -81,7 +81,7 @@ class IsPositionWithinReach(Condition):
 
     def update(self):
         position_center = get_position_center(self.position)
-        has_arrived = self.agent.observation.is_position_within_reach(position_center, reach=PLACING_REACH)
+        has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
         return Status.SUCCESS if has_arrived else Status.FAILURE
 
 
@@ -92,8 +92,8 @@ class IsAnimalWithinReach(Condition):
         self.specie = specie
 
     def update(self):
-        position = self.agent.observation.get_weakest_animal_position(self.specie)
-        within_reach = self.agent.observation.is_position_within_reach(position, ATTACK_REACH)
+        position = self.agent.observer.get_weakest_animal_position(self.specie)
+        within_reach = self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
         return Status.SUCCESS if within_reach else Status.FAILURE
 
 
@@ -104,7 +104,7 @@ class IsAnimalObservable(Condition):
         self.specie = specie
 
     def update(self):
-        return Status.SUCCESS if self.agent.observation.is_animal_observable(self.specie) else Status.FAILURE
+        return Status.SUCCESS if self.agent.observer.is_animal_observable(self.specie) else Status.FAILURE
 
 
 class IsBlockAtPosition(Condition):
@@ -115,5 +115,5 @@ class IsBlockAtPosition(Condition):
         self.position = position
 
     def update(self):
-        is_block_at_position = self.agent.observation.is_block_at_position(self.position, self.block)
+        is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
         return Status.SUCCESS if is_block_at_position else Status.FAILURE
