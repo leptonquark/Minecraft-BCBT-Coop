@@ -89,7 +89,9 @@ class GoToObject(Action):
         super(GoToObject, self).__init__(name)
         self.agent = agent
 
-    def go_to_position(self, distance):
+    def go_to_position(self, position):
+        distance = self.agent.observer.get_distance_to_position(position)
+
         flat_distance = np.copy(distance)
         flat_distance[1] = 0
 
@@ -181,11 +183,11 @@ class PickupItem(GoToObject):
     def update(self):
         self.agent.jump(False)
 
-        distance = self.agent.observer.get_pickup_position(self.item)
-        if distance is None:
+        position = self.agent.observer.get_pickup_position(self.item)
+        if position is None:
             return Status.FAILURE
 
-        self.go_to_position(distance)
+        self.go_to_position(position)
 
         if self.agent.observer.get_pickup_position(self.item) is None:
             return Status.SUCCESS
@@ -205,8 +207,7 @@ class GoToAnimal(GoToObject):
         if position is None:
             return Status.FAILURE
 
-        distance = self.agent.observer.get_distance_to_position(position)
-        self.go_to_position(distance)
+        self.go_to_position(position)
 
         if self.agent.observer.is_position_within_reach(position, ATTACK_REACH):
             return Status.SUCCESS
@@ -230,10 +231,9 @@ class GoToBlock(GoToObject):
         if discrete_position is None:
             return Status.FAILURE
 
-        distance = self.agent.observer.get_distance_to_discrete_position(discrete_position)
-        self.go_to_position(distance)
-
         position_center = get_position_center(discrete_position)
+        self.go_to_position(position_center)
+
         return Status.SUCCESS if self.agent.observer.is_position_within_reach(position_center) else Status.RUNNING
 
 
@@ -244,8 +244,7 @@ class GoToPosition(GoToObject):
         self.position = position
 
     def update(self):
-        distance = self.agent.observer.get_distance_to_discrete_position(self.position)
-        self.go_to_position(distance)
+        self.go_to_position(self.position)
 
         has_arrived = self.agent.observer.is_position_within_reach(self.position, ATTACK_REACH)
         return Status.SUCCESS if has_arrived else Status.RUNNING
@@ -317,11 +316,7 @@ class AttackAnimal(Action):
                 return Status.RUNNING
 
         self.agent.attack(True)
-        if distance is not None:
-            return Status.RUNNING
-
-        self.agent.attack(False)
-        return Status.SUCCESS
+        return Status.RUNNING
 
     def terminate(self, new_status):
         self.agent.stop()
@@ -422,9 +417,9 @@ class RunForwardTowardsAnimal(GoToObject):
     def update(self):
         self.agent.jump(False)
 
-        distance = directionVector[Direction.North]
+        position = self.agent.observer.get_abs_pos_discrete() + directionVector[Direction.North]
 
-        self.go_to_position(distance)
+        self.go_to_position(position)
 
         return Status.RUNNING
 

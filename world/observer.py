@@ -172,7 +172,7 @@ class Observer:
     def get_pickup_position(self, wanted):
         for pickup in self.observation.pickups:
             if pickup.name == wanted:
-                return pickup.get_centralized_position() - self.observation.abs_pos
+                return pickup.get_centralized_position()
         return None
 
     def is_stuck(self):
