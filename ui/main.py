@@ -10,6 +10,7 @@ from malmoutils import malmoutils
 from malmoutils.agent import MinerAgent
 from malmoutils.minecraft import run_minecraft
 from runner import Runner
+from ui import storage
 
 TKINTER_WINDOW_TITLE = "Malmo Behaviour Trees"
 TKINTER_WINDOW_SIZE = "400x100"
@@ -25,12 +26,14 @@ class MainUI(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
+        self.master.protocol("WM_DELETE_WINDOW", lambda: self.close_ui())
         self.pack()
 
-        self.goal_variable = tk.StringVar(self, GoalType(0).name)
-        self.condition_variable = tk.StringVar(self, CONDITIONS[0])
-        self.item_variable = tk.StringVar(self, ITEMS[0])
-        self.blueprint_variable = tk.StringVar(self, BlueprintType(0).name)
+        data = storage.load_data()
+        self.goal_variable = tk.StringVar(self, data.get(storage.GOAL_TYPE_DATA_NAME, GoalType(0).name))
+        self.condition_variable = tk.StringVar(self, data.get(storage.CONDITION_TYPE_DATA_NAME, CONDITIONS[0]))
+        self.item_variable = tk.StringVar(self, data.get(storage.ITEM_TYPE_DATA_NAME, ITEMS[0]))
+        self.blueprint_variable = tk.StringVar(self, data.get(storage.BLUEPRINT_TYPE_DATA_NAME, BlueprintType(0).name))
 
         self.goal_sub_drop_downs = {goal_type: [] for goal_type in GoalType}
 
@@ -79,15 +82,14 @@ class MainUI(tk.Frame):
         start_minecraft_button = tk.Button(button_area, text=START_MINECRAFT_BUTTON_TEXT, command=run_minecraft_async)
         start_minecraft_button.pack(side=tk.LEFT)
 
-        start_bot_button = tk.Button(button_area, text=START_BOT_BUTTON_TEXT, command = lambda: self.start_bot())
+        start_bot_button = tk.Button(button_area, text=START_BOT_BUTTON_TEXT, command=lambda: self.start_bot())
         start_bot_button.pack(side=tk.RIGHT)
 
     def start_bot(self):
         if "MALMO_XSD_PATH" not in os.environ:
             print("Please set the MALMO_XSD_PATH environment variable.")
             return
-        # Kill UI
-        self.master.destroy()
+        self.close_ui()
 
         malmoutils.fix_print()
 
@@ -106,6 +108,18 @@ class MainUI(tk.Frame):
             else:
                 return [conditions.HasItemEquipped(agent, self.item_variable.get())]
 
+    def close_ui(self):
+        self.save_configuration()
+        self.master.destroy()
+
+    def save_configuration(self):
+        data = {
+            storage.GOAL_TYPE_DATA_NAME: self.goal_variable.get(),
+            storage.CONDITION_TYPE_DATA_NAME : self.condition_variable.get(),
+            storage.ITEM_TYPE_DATA_NAME: self.item_variable.get(),
+            storage.BLUEPRINT_TYPE_DATA_NAME: self.blueprint_variable.get()
+        }
+        storage.save_data(data)
 
 def run_minecraft_async():
     threading.Thread(target=run_minecraft, daemon=True).start()
