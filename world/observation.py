@@ -13,6 +13,48 @@ SAME_SPOT_Y_THRESHOLD = 2
 EPSILON_ARRIVED_AT_POSITION = 0.09
 
 
+def grid_observation_from_list(grid_observation_list, grid_size):
+    grid = np.array(grid_observation_list).reshape((grid_size[1], grid_size[2], grid_size[0]))
+    grid = np.transpose(grid, (2, 0, 1))
+    return grid
+
+
+def get_absolute_position(info):
+    if Observation.X in info and Observation.Y in info and Observation.Z in info:
+        return np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
+    return None
+
+
+def get_yaw(info):
+    if Observation.YAW in info:
+        yaw = info[Observation.YAW]
+        if yaw <= 0:
+            yaw += CIRCLE_DEGREES
+        return yaw
+    return None
+
+
+def get_pitch(info):
+    return info.get(Observation.PITCH)
+
+
+def get_line_of_sight_position(info):
+    los = info.get(Observation.LOS)
+    if los is None:
+        return None
+    if Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
+        return np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
+    else:
+        return None
+
+
+def get_line_of_sight_type(info):
+    los = info.get(Observation.LOS)
+    if los is None:
+        return None
+    return los.get(Observation.LOS_TYPE)
+
+
 class Observation:
     GRID_LOCAL = "me"
 
@@ -41,23 +83,20 @@ class Observation:
 
         self.grid_size_local = mission_data.grid_local.get_grid_size()
 
+        self.pos_local_grid = None
+
         self.abs_pos = None
-        self.pickups = None
         self.pitch = None
         self.yaw = None
 
         self.grid_local = None
         self.grids_global = {}
         self.inventory = None
-        self.los_abs_pos = None
+        self.los_pos = None
         self.los_type = None
 
-        self.lower_surroundings = None
-        self.upper_surroundings = None
-        self.upper_upper_surroundings = None
-
-        self.pos_local_grid = None
         self.animals = None
+        self.pickups = None
 
         if observations is None or len(observations) == 0:
             print("Observations is null or empty")
@@ -71,47 +110,24 @@ class Observation:
         self.info = json.loads(info_json)
         self.inventory = Inventory(self.info)
 
-        self.setup_absolute_position(self.info)
-        self.setup_yaw(self.info)
-        self.setup_pitch(self.info)
-        self.setup_line_of_sight(self.info)
-        self.setup_local_grid(self.info)
+        self.pos_local_grid = np.array([int(axis / 2) for axis in self.grid_size_local])
+
+        self.abs_pos = get_absolute_position(self.info)
+        self.yaw = get_yaw(self.info)
+        self.pitch = get_pitch(self.info)
+
+        self.los_pos = get_line_of_sight_position(self.info)
+        self.los_type = get_line_of_sight_type(self.info)
+
+        self.grid_local = self.get_grid_local(self.info)
+
         self.setup_entities(self.info)
 
-    def get_grid_local(self):
-        if self.grid_local is not None:
-            return self.grid_local
-        grid_local_spec = self.mission_data.grid_local
-        grid_local = grid_observation_from_list(self.info[grid_local_spec.name], grid_local_spec.get_grid_size())
-        self.grid_local = grid_local
-
-    def setup_absolute_position(self, info):
-        if Observation.X in info and Observation.Y in info and Observation.Z in info:
-            self.abs_pos = np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
-
-    def setup_line_of_sight(self, info):
-        if Observation.LOS in info:
-            los = info[Observation.LOS]
-            if Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
-                self.los_abs_pos = np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
-            if Observation.LOS_TYPE in los:
-                self.los_type = los[Observation.LOS_TYPE]
-
-    def setup_yaw(self, info):
-        if Observation.YAW in info:
-            self.yaw = info[Observation.YAW]
-            if self.yaw <= 0:
-                self.yaw += CIRCLE_DEGREES
-
-    def setup_pitch(self, info):
-        if Observation.PITCH in info:
-            self.pitch = info[Observation.PITCH]
-
-    def setup_local_grid(self, info):
+    def get_grid_local(self, info):
         if Observation.GRID_LOCAL in info:
             grid_local_spec = self.mission_data.grid_local
-            self.grid_local = grid_observation_from_list(info[grid_local_spec.name], self.grid_size_local)
-            self.pos_local_grid = np.array([int(axis / 2) for axis in self.grid_size_local])
+            return grid_observation_from_list(info[grid_local_spec.name], self.grid_size_local)
+        return None
 
     def setup_entities(self, info):
         if Observation.ENTITIES in info:
@@ -142,8 +158,3 @@ class Observation:
             if key != Observation.GRID_LOCAL:
                 print(key, self.info[key])
 
-
-def grid_observation_from_list(grid_observation_list, grid_size):
-    grid = np.array(grid_observation_list).reshape((grid_size[1], grid_size[2], grid_size[0]))
-    grid = np.transpose(grid, (2, 0, 1))
-    return grid

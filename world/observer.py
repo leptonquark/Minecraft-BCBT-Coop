@@ -115,29 +115,29 @@ class Observer:
         return los_discrete_position is not None and np.all(discrete_position == los_discrete_position)
 
     def get_los_pos_discrete(self):
-        if self.observation.los_abs_pos is None:
+        if self.observation.los_pos is None:
             return None
 
         # Calculate which face of the cube we are looking at. In case of corners it will be prioritized by x, y then z.
         # TODO: Make this work for non-full-size-blocks.
         los_face = BlockFace.NoFace
-        if self.observation.los_abs_pos[0] == int(self.observation.los_abs_pos[0]):
+        if self.observation.los_pos[0] == int(self.observation.los_pos[0]):
             if 0 <= self.observation.yaw <= 180:
                 los_face = BlockFace.East
             else:
                 los_face = BlockFace.West
-        elif self.observation.los_abs_pos[1] == int(self.observation.los_abs_pos[1]):
+        elif self.observation.los_pos[1] == int(self.observation.los_pos[1]):
             if self.observation.pitch > 0:
                 los_face = BlockFace.Up
             else:
                 los_face = BlockFace.Down
-        elif self.observation.los_abs_pos[2] == int(self.observation.los_abs_pos[2]):
+        elif self.observation.los_pos[2] == int(self.observation.los_pos[2]):
             if 90 <= self.observation.yaw <= 270:
                 los_face = BlockFace.South
             else:
                 los_face = BlockFace.North
 
-        los_pos_discrete = np.floor(self.observation.los_abs_pos)
+        los_pos_discrete = np.floor(self.observation.los_pos)
         if los_face == BlockFace.East:
             los_pos_discrete[0] -= 1
         elif los_face == BlockFace.Up:

@@ -17,7 +17,7 @@ class MissionData:
         self.summary = "Behaviour Tree Malmo"
 
         self.seed = DESERT_SEED
-        self.ms_per_tick = 25  # Default: 50
+        self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
