@@ -1,7 +1,7 @@
 import numpy as np
 
 from items.gathering import get_ore
-from items.items import traversable, narrow, Item
+from items.items import traversable, narrow
 from utils.vectors import center_vector, Direction, directionAngle, directionVector, rad_to_degrees, CIRCLE_DEGREES, \
     up_vector, flat_center_vector, BlockFace
 
@@ -28,10 +28,7 @@ class Observer:
         }
 
     def get_grid_local_block(self, position):
-        if self.observation.grid_local is None:
-            return None
-        else:
-            return Item(self.observation.grid_local[tuple(position)])
+        return self.observation.grid_local[tuple(position)]
 
     def get_abs_pos_discrete(self):
         return np.floor(self.observation.abs_pos)
@@ -59,9 +56,8 @@ class Observer:
 
         if self.observation.grid_local is None:
             return None
-        print(material)
-        print(type(material))
-        hits = (self.observation.grid_local == material.value)
+
+        hits = (self.observation.grid_local == material)
         ore = get_ore(material)
         if ore is not None:
             hits = (hits | (self.observation.grid_local == ore))

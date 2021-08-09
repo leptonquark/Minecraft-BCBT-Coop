@@ -1,64 +1,54 @@
-from enum import Enum
+AIR = "air"
+PLANT = "double_plant"
+TALL_GRASS = "tallgrass"
+FLOWER_YELLOW = "yellow_flower"
+FLOWER_RED = "red_flower"
+WATER = "water"
 
+DIRT = "dirt"
 
-class Item(Enum):
-    AIR = "air"
-    PLANT = "double_plant"
-    TALL_GRASS = "tallgrass"
-    GRASS = "grass"
-    FLOWER_YELLOW = "yellow_flower"
-    FLOWER_RED = "red_flower"
-    WATER = "water"
+LOG = "log"
+LOG_2 = "log2"
+COAL = "coal"
+STONE = "stone"
+COBBLESTONE = "cobblestone"
+COAL_ORE = "coal_ore"
+IRON_ORE = "iron_ore"
+DIAMOND_ORE = "diamond_ore"
 
-    DIRT = "dirt"
+IRON_INGOT = "iron_ingot"
+DIAMOND = "diamond"
 
-    LOG = "log"
-    LOG_2 = "log2"
-    LEAVES = "leaves"
-    COAL = "coal"
-    STONE = "stone"
-    COBBLESTONE = "cobblestone"
-    COAL_ORE = "coal_ore"
-    IRON_ORE = "iron_ore"
-    DIAMOND_ORE = "diamond_ore"
+STICKS = "stick"
+PLANKS = "planks"
 
-    IRON_INGOT = "iron_ingot"
-    DIAMOND = "diamond"
+WOODEN_PICKAXE = "wooden_pickaxe"
+STONE_PICKAXE = "stone_pickaxe"
+IRON_PICKAXE = "iron_pickaxe"
+DIAMOND_PICKAXE = "diamond_pickaxe"
 
-    STICKS = "stick"
-    PLANKS = "planks"
+WOODEN_SWORD = "wooden_sword"
 
-    WOODEN_PICKAXE = "wooden_pickaxe"
-    STONE_PICKAXE = "stone_pickaxe"
-    IRON_PICKAXE = "iron_pickaxe"
-    DIAMOND_PICKAXE = "diamond_pickaxe"
+WOODEN_FENCE = "fence"
 
-    WOODEN_SWORD = "wooden_sword"
+CRAFTING_TABLE = "crafting_table"
+FURNACE = "furnace"
 
-    WOODEN_FENCE = "fence"
-
-    CRAFTING_TABLE = "crafting_table"
-    FURNACE = "furnace"
-
-    BEEF = "beef"
-    MUTTON = "mutton"
-
-    GRAVEL = "gravel"
-    SAND = "sand"
-
+BEEF = "beef"
+MUTTON = "mutton"
 
 pickups = [
-    Item.BEEF,
-    Item.MUTTON,
-    Item.LOG,
-    Item.COAL,
-    Item.IRON_ORE,
-    Item.DIAMOND_ORE,
-    Item.COBBLESTONE,
-    Item.FURNACE,
-    Item.CRAFTING_TABLE
+    BEEF,
+    MUTTON,
+    LOG,
+    COAL,
+    IRON_ORE,
+    DIAMOND_ORE,
+    COBBLESTONE,
+    FURNACE,
+    CRAFTING_TABLE
 ]
 
-traversable = [Item.AIR, Item.PLANT, Item.TALL_GRASS, Item.FLOWER_YELLOW, Item.FLOWER_RED, Item.WATER]
-narrow = [Item.WOODEN_FENCE]
-unclimbable = [Item.WOODEN_FENCE]
+traversable = [AIR, PLANT, TALL_GRASS, FLOWER_YELLOW, FLOWER_RED, WATER]
+narrow = [WOODEN_FENCE]
+unclimbable = [WOODEN_FENCE]

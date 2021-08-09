@@ -2,7 +2,7 @@ import numpy as np
 
 from malmoutils.commands import CommandInterface
 from items import effects
-from items.inventory import HOT_BAR_SIZE
+from items.inventory import HOTBAR_SIZE
 from world.observer import get_horizontal_distance,  get_wanted_pitch, Observer
 
 PITCH_DOWNWARDS = 90
@@ -125,7 +125,7 @@ class MinerAgent:
 
     def equip_item(self, item):
         position = self.inventory.find_item(item)
-        if position >= HOT_BAR_SIZE:
+        if position >= HOTBAR_SIZE:
             self.swap_items(position, PICKAXE_HOT_BAR_POSITION)
             position = PICKAXE_HOT_BAR_POSITION
 

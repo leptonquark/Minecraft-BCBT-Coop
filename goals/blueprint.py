@@ -1,9 +1,8 @@
-from enum import Enum
-
 import numpy as np
 
 from bt.conditions import IsBlockAtPosition
-from items.items import Item
+from enum import Enum
+from items import items
 from world.grid import GridSpecification
 
 
@@ -23,13 +22,13 @@ class Blueprint:
         return GridSpecification(name, grid_ranges, True)
 
     def as_conditions(self, agent):
-        return [IsBlockAtPosition(agent, Item.WOODEN_FENCE, position) for position in self.positions]
+        return [IsBlockAtPosition(agent, items.WOODEN_FENCE, position) for position in self.positions]
 
     @staticmethod
     def get_blueprint(blueprint_type):
         if blueprint_type == BlueprintType.Fence:
             return Blueprint(
-                material=Item.WOODEN_FENCE,
+                material=items.WOODEN_FENCE,
                 positions=np.array([
                     [209, 65, 238],
                     [209, 65, 239],
@@ -47,7 +46,7 @@ class Blueprint:
             )
         elif blueprint_type == BlueprintType.StraightFence:
             return Blueprint(
-                material=Item.WOODEN_FENCE,
+                material=items.WOODEN_FENCE,
                 positions=np.array([
                     [209, 65, 241],
                     [210, 65, 241],

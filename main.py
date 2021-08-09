@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 
 from goals.blueprint import Blueprint, BlueprintType
-from malmo import malmoutils
+from malmoutils import malmoutils
 from runner import Runner
 
 
@@ -12,6 +12,9 @@ def run():
         print("Please set the MALMO_XSD_PATH environment variable.")
         return
     malmoutils.fix_print()
+    #goals = [conditions.HasItemEquipped(agent, items.DIAMOND_PICKAXE)]
+
+    #goals = [conditions.HasItem(agent, items.BEEF)]
 
     goals = Blueprint.get_blueprint(BlueprintType.StraightFence)
 

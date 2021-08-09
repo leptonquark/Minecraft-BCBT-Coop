@@ -1,8 +1,8 @@
-from items.items import Item
 from mobs import animals
+from items import items
 
 hunting_tools = {
-    animals.COW: Item.WOODEN_SWORD
+    animals.COW: items.WOODEN_SWORD
 }
 
 

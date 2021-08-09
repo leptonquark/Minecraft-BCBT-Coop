@@ -4,7 +4,7 @@ from py_trees.common import Status
 
 from items import items
 from items.gathering import get_gathering_tool
-from items.items import traversable, narrow, unclimbable, Item
+from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector, up_vector
 from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
@@ -284,7 +284,7 @@ class MineMaterial(Action):
 
         target_block = self.agent.observer.get_block_at_position_from_local(discrete_position)
 
-        if target_block != Item.AIR:
+        if target_block != items.AIR:
             return Status.RUNNING
 
         self.agent.attack(False)
