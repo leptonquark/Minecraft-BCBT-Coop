@@ -49,6 +49,10 @@ class Inventory:
     def __str__(self):
         return str(self.inventory)
 
+    def __iter__(self):
+        for inventory_slot in self.inventory:
+            yield inventory_slot
+
     def has_item(self, item, amount=1):
         found = sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item == item)
         return found >= amount

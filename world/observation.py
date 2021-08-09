@@ -7,10 +7,58 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils.vectors import CIRCLE_DEGREES
+from utils.vectors import CIRCLE_DEGREES, degrees_to_radians, up_vector
 
 SAME_SPOT_Y_THRESHOLD = 2
 EPSILON_ARRIVED_AT_POSITION = 0.09
+
+# Always append at the end of this list
+game_objects = [
+    items.AIR,
+    items.PLANT,
+    items.TALL_GRASS,
+    items.FLOWER_YELLOW,
+    items.FLOWER_RED,
+    items.DIRT,
+    items.SAND,
+    items.GRAVEL,
+    items.GRASS,
+    items.LOG,
+    items.LOG_2,
+    items.COAL,
+    items.STONE,
+    items.COBBLESTONE,
+    items.COAL_ORE,
+    items.REDSTONE_ORE,
+    items.LAPIS_ORE,
+    items.IRON_ORE,
+    items.GOLD_ORE,
+    items.DIAMOND_ORE,
+    items.DIAMOND,
+    items.STICKS,
+    items.WOODEN_FENCE,
+    items.CRAFTING_TABLE,
+    items.FURNACE,
+    items.LEAVES,
+    items.LEAVES_2,
+    items.WATER,
+    items.CLAY,
+    items.SANDSTONE,
+    items.MOSSY_COBBLESTONE,
+    items.MOB_SPAWNER,
+    items.CHEST,
+    items.BROWN_MUSHROOM,
+    items.DEAD_BUSH,
+    items.FLOWING_WATER,
+    items.LAVA,
+    items.FLOWING_LAVA,
+    items.FIRE,
+    items.RED_MUSHROOM,
+    items.CACTUS,
+    items.REEDS,
+    items.BEDROCK,
+    items.OBSIDIAN
+]
 
 
 def grid_observation_from_list(grid_observation_list, grid_size):
@@ -123,6 +171,8 @@ class Observation:
 
         self.setup_entities(self.info)
 
+        self.to_obs_vector()
+
     def get_grid_local(self, info):
         if Observation.GRID_LOCAL in info:
             grid_local_spec = self.mission_data.grid_local
@@ -158,3 +208,49 @@ class Observation:
             if key != Observation.GRID_LOCAL:
                 print(key, self.info[key])
 
+    def to_obs_vector(self):
+        grid_vector = self.get_grid_obs_vector()
+        los_type_vector = np.array([get_item_ordinal(self.los_type)])
+        direction_vector = self.get_direction_vector()
+
+        obs_vector = np.hstack((
+            grid_vector,
+            self.abs_pos,
+            self.los_pos,
+            los_type_vector,
+            direction_vector
+        ))
+
+        return obs_vector
+
+    def get_grid_obs_vector(self):
+        grid_local_spec = self.mission_data.grid_local
+        if grid_local_spec.name in self.info:
+            return np.array([get_item_ordinal(block) for block in self.info[grid_local_spec.name]])
+        else:
+            return np.array([])
+
+    def get_direction_vector(self):
+        if self.yaw is None or self.pitch is None:
+            return np.array([])
+
+        yaw_radians = degrees_to_radians(self.yaw)
+        pitch_radians = degrees_to_radians(self.pitch)
+
+        direction_vector = np.array([
+            -np.sin(yaw_radians) * np.cos(pitch_radians),
+            -np.sin(pitch_radians),
+            np.cos(yaw_radians) * np.cos(pitch_radians),
+        ])
+
+        return direction_vector
+
+
+def get_item_ordinal(game_object):
+    if game_object is None:
+        return -1
+    if game_object not in game_objects:
+        print(f"Object {game_object} has not been added to the game objects list")
+        return -1
+    else:
+        return game_objects.index(game_object)

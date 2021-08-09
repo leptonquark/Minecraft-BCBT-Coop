@@ -2,7 +2,7 @@ import numpy as np
 
 from items.gathering import get_ore
 from items.items import traversable, narrow
-from utils.vectors import center_vector, Direction, directionAngle, directionVector, rad_to_degrees, CIRCLE_DEGREES, \
+from utils.vectors import center_vector, Direction, directionAngle, directionVector, radians_to_degrees, CIRCLE_DEGREES, \
     up_vector, flat_center_vector, BlockFace
 
 DELTA_ANGLES = 45
@@ -263,7 +263,7 @@ def get_yaw_from_vector(move):
 
     cos_angle = np.clip(dot_product_south, -1.0, 1.0)
     angle = np.arccos(cos_angle)
-    angle = rad_to_degrees(angle)
+    angle = radians_to_degrees(angle)
     if dot_product_east > 0:
         angle = CIRCLE_DEGREES - angle
     return angle
@@ -271,4 +271,4 @@ def get_yaw_from_vector(move):
 
 def get_wanted_pitch(dist_direction, delta_y):
     pitch = -np.arctan(delta_y / dist_direction)
-    return rad_to_degrees(pitch)
+    return radians_to_degrees(pitch)
