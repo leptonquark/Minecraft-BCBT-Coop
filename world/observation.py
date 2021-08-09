@@ -4,6 +4,7 @@ import numpy as np
 
 from items import items
 from items.inventory import Inventory
+from items.items import Item
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
@@ -123,6 +124,8 @@ class Observation:
 
         self.setup_entities(self.info)
 
+        print(self.to_vector_obs())
+
     def get_grid_local(self, info):
         if Observation.GRID_LOCAL in info:
             grid_local_spec = self.mission_data.grid_local
@@ -158,3 +161,16 @@ class Observation:
             if key != Observation.GRID_LOCAL:
                 print(key, self.info[key])
 
+    def to_vector_obs(self):
+        grid_local_spec = self.mission_data.grid_local
+        grid_vector = np.array([get_item_ordinal(block) for block in self.info[grid_local_spec.name]])
+        return grid_vector
+
+
+def get_item_ordinal(block):
+    try:
+        item = Item(block)
+        enum_list = list(Item)
+        return enum_list.index(item)
+    except ValueError:
+        return -1

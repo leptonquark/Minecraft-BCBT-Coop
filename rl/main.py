@@ -1,9 +1,8 @@
-from __future__ import print_function
-
 import os
 
-from goals.blueprint import Blueprint, BlueprintType
 from malmo import malmoutils
+
+from goals.blueprint import Blueprint, BlueprintType
 from runner import Runner
 
 

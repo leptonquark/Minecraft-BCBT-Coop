@@ -2,11 +2,12 @@ import os
 import threading
 import tkinter as tk
 
-from items import items
+from malmo import malmoutils
+
 from bt import conditions
 from goals.blueprint import BlueprintType, Blueprint
 from goals.goal import GoalType
-from malmoutils import malmoutils
+from items.items import Item
 from malmoutils.agent import MinerAgent
 from malmoutils.minecraft import run_minecraft
 from runner import Runner
@@ -16,7 +17,6 @@ TKINTER_WINDOW_TITLE = "Malmo Behaviour Trees"
 TKINTER_WINDOW_SIZE = "400x100"
 
 CONDITIONS = ["HasItem", "HasItemEquipped"]
-ITEMS = [items.BEEF, items.WOODEN_PICKAXE, items.STONE_PICKAXE, items.IRON_PICKAXE, items.DIAMOND_PICKAXE]
 
 START_MINECRAFT_BUTTON_TEXT = "Start Minecraft"
 START_BOT_BUTTON_TEXT = "Start Bot"
@@ -32,7 +32,7 @@ class MainUI(tk.Frame):
         data = storage.load_data()
         self.goal_variable = tk.StringVar(self, data.get(storage.GOAL_TYPE_DATA_NAME, GoalType(0).name))
         self.condition_variable = tk.StringVar(self, data.get(storage.CONDITION_TYPE_DATA_NAME, CONDITIONS[0]))
-        self.item_variable = tk.StringVar(self, data.get(storage.ITEM_TYPE_DATA_NAME, ITEMS[0]))
+        self.item_variable = tk.StringVar(self, data.get(storage.ITEM_TYPE_DATA_NAME, Item("diamond_pickaxe").name))
         self.blueprint_variable = tk.StringVar(self, data.get(storage.BLUEPRINT_TYPE_DATA_NAME, BlueprintType(0).name))
 
         self.goal_sub_drop_downs = {goal_type: [] for goal_type in GoalType}
@@ -52,7 +52,7 @@ class MainUI(tk.Frame):
         condition_drop_down.grid(row=0, column=1)
         self.goal_sub_drop_downs[GoalType.Condition].append(condition_drop_down)
 
-        item_drop_down = tk.OptionMenu(drop_down_area, self.item_variable, *ITEMS)
+        item_drop_down = tk.OptionMenu(drop_down_area, self.item_variable, *[item_type.name for item_type in Item])
         item_drop_down.grid(row=0, column=2)
         self.goal_sub_drop_downs[GoalType.Condition].append(item_drop_down)
 
@@ -104,9 +104,9 @@ class MainUI(tk.Frame):
             return Blueprint.get_blueprint(BlueprintType[self.blueprint_variable.get()])
         else:
             if self.condition_variable.get() == "HasItem":
-                return [conditions.HasItem(agent, self.item_variable.get())]
+                return [conditions.HasItem(agent, Item[self.item_variable.get()])]
             else:
-                return [conditions.HasItemEquipped(agent, self.item_variable.get())]
+                return [conditions.HasItemEquipped(agent, Item[self.item_variable.get()])]
 
     def close_ui(self):
         self.save_configuration()
@@ -115,11 +115,12 @@ class MainUI(tk.Frame):
     def save_configuration(self):
         data = {
             storage.GOAL_TYPE_DATA_NAME: self.goal_variable.get(),
-            storage.CONDITION_TYPE_DATA_NAME : self.condition_variable.get(),
+            storage.CONDITION_TYPE_DATA_NAME: self.condition_variable.get(),
             storage.ITEM_TYPE_DATA_NAME: self.item_variable.get(),
             storage.BLUEPRINT_TYPE_DATA_NAME: self.blueprint_variable.get()
         }
         storage.save_data(data)
+
 
 def run_minecraft_async():
     threading.Thread(target=run_minecraft, daemon=True).start()

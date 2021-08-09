@@ -1,12 +1,12 @@
-from items import items
+from items.items import Item
 
 from items.recipes import get_ingredients
 
 NO_SELECTION = -1
-HOTBAR_SIZE = 9
+HOT_BAR_SIZE = 9
 
 # Ordered by value
-fuels = [items.COAL, items.PLANKS, items.LOG]
+fuels = [Item.COAL, Item.PLANKS, Item.LOG]
 
 
 def get_size(info):

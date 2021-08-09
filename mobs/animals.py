@@ -1,5 +1,6 @@
 import numpy as np
 from items import items
+from items.items import Item
 
 CHICKEN = "Chicken"
 PIG = "Pig"
@@ -10,8 +11,8 @@ HORSE = "Horse"
 species = [CHICKEN, PIG, SHEEP, COW, HORSE]
 
 loot = {
-    items.BEEF: COW,
-    items.MUTTON: SHEEP
+    Item.BEEF: COW,
+    Item.MUTTON: SHEEP
 }
 
 starting_life = {

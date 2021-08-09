@@ -1,13 +1,13 @@
-from items import items
+from items.items import Item
 
 gathering_tools = {
-    items.COBBLESTONE: items.WOODEN_PICKAXE,
-    items.STONE: items.WOODEN_PICKAXE,
-    items.COAL: items.WOODEN_PICKAXE,
-    items.COAL_ORE: items.WOODEN_PICKAXE,
-    items.IRON_ORE: items.STONE_PICKAXE,
-    items.DIAMOND: items.IRON_PICKAXE,
-    items.DIAMOND_ORE: items.IRON_PICKAXE
+    Item.COBBLESTONE: Item.WOODEN_PICKAXE,
+    Item.STONE: Item.WOODEN_PICKAXE,
+    Item.COAL: Item.WOODEN_PICKAXE,
+    Item.COAL_ORE: Item.WOODEN_PICKAXE,
+    Item.IRON_ORE: Item.STONE_PICKAXE,
+    Item.DIAMOND: Item.IRON_PICKAXE,
+    Item.DIAMOND_ORE: Item.IRON_PICKAXE
 }
 
 
@@ -16,9 +16,9 @@ def get_gathering_tool(blocks):
 
 
 ores = {
-    items.COBBLESTONE: items.STONE,
-    items.COAL: items.COAL_ORE,
-    items.DIAMOND: items.DIAMOND_ORE
+    Item.COBBLESTONE: Item.STONE,
+    Item.COAL: Item.COAL_ORE,
+    Item.DIAMOND: Item.DIAMOND_ORE
 }
 
 
