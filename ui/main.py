@@ -6,7 +6,7 @@ from items import items
 from bt import conditions
 from goals.blueprint import BlueprintType, Blueprint
 from goals.goal import GoalType
-from malmoutils import malmoutils
+from malmo import malmoutils
 from malmoutils.agent import MinerAgent
 from malmoutils.minecraft import run_minecraft
 from runner import Runner

@@ -1,7 +1,8 @@
-import malmoutils.malmoutils as malmoutils
+
 import uuid
 import time
 
+from malmo import malmoutils
 from MalmoPython import MissionSpec, ClientInfo, ClientPool
 from world.missiondata import MissionData
 

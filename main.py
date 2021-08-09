@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 
 from goals.blueprint import Blueprint, BlueprintType
-from malmoutils import malmoutils
+from malmo import malmoutils
 from runner import Runner
 
 
