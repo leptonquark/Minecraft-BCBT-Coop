@@ -57,7 +57,9 @@ game_objects = [
     items.CACTUS,
     items.REEDS,
     items.BEDROCK,
-    items.OBSIDIAN
+    items.OBSIDIAN,
+    items.PLANKS,
+    items.STICKS
 ]
 
 
@@ -210,15 +212,17 @@ class Observation:
 
     def to_obs_vector(self):
         grid_vector = self.get_grid_obs_vector()
-        los_type_vector = np.array([get_item_ordinal(self.los_type)])
+        los_type_vector = np.array([get_game_object_ordinal(self.los_type)])
         direction_vector = self.get_direction_vector()
+        inventory_vector = self.get_inventory_vector()
 
         obs_vector = np.hstack((
             grid_vector,
             self.abs_pos,
             self.los_pos,
             los_type_vector,
-            direction_vector
+            direction_vector,
+            inventory_vector
         ))
 
         return obs_vector
@@ -226,7 +230,7 @@ class Observation:
     def get_grid_obs_vector(self):
         grid_local_spec = self.mission_data.grid_local
         if grid_local_spec.name in self.info:
-            return np.array([get_item_ordinal(block) for block in self.info[grid_local_spec.name]])
+            return np.array([get_game_object_ordinal(block) for block in self.info[grid_local_spec.name]])
         else:
             return np.array([])
 
@@ -242,11 +246,16 @@ class Observation:
             -np.sin(pitch_radians),
             np.cos(yaw_radians) * np.cos(pitch_radians),
         ])
-
         return direction_vector
 
+    def get_inventory_vector(self):
+        inventory_list = []
+        for inventory_slot in self.inventory:
+            inventory_list += [inventory_slot.amount, get_game_object_ordinal(inventory_slot.item)]
+        return np.array(inventory_list)
 
-def get_item_ordinal(game_object):
+
+def get_game_object_ordinal(game_object):
     if game_object is None:
         return -1
     if game_object not in game_objects:
