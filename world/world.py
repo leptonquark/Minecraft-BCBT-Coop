@@ -6,7 +6,7 @@ from malmo import malmoutils
 from MalmoPython import MissionSpec, ClientInfo, ClientPool
 from world.missiondata import MissionData
 
-TIME_LIMIT_IN_SECONDS = 1000
+TIME_LIMIT_IN_SECONDS = 30
 VIDEO_SIZE = (800, 600)
 
 RECORDING_NAME = "saved_data"

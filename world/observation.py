@@ -134,6 +134,7 @@ class Observation:
         self.grid_size_local = mission_data.grid_local.get_grid_size()
 
         self.pos_local_grid = None
+        self.info = None
 
         self.abs_pos = None
         self.pitch = None
@@ -212,6 +213,9 @@ class Observation:
 
     def to_obs_vector(self):
         grid_vector = self.get_grid_obs_vector()
+
+        return grid_vector
+        """        
         los_type_vector = np.array([get_game_object_ordinal(self.los_type)])
         direction_vector = self.get_direction_vector()
         inventory_vector = self.get_inventory_vector()
@@ -226,13 +230,14 @@ class Observation:
         ))
 
         return obs_vector
-
+        """
     def get_grid_obs_vector(self):
         grid_local_spec = self.mission_data.grid_local
-        if grid_local_spec.name in self.info:
-            return np.array([get_game_object_ordinal(block) for block in self.info[grid_local_spec.name]])
+        if self.info is not None and grid_local_spec.name in self.info:
+            grid_ordinals = [get_game_object_ordinal(block) for block in self.info[grid_local_spec.name]]
+            return np.array(grid_ordinals, dtype=np.float32)
         else:
-            return np.array([])
+            return -1 * np.ones(41*41*41) #TODO: Remove this workaround. Instead it should refetch when this happens
 
     def get_direction_vector(self):
         if self.yaw is None or self.pitch is None:

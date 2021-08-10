@@ -3,7 +3,7 @@ import numpy as np
 from malmoutils.commands import CommandInterface
 from items import effects
 from items.inventory import HOTBAR_SIZE
-from world.observer import get_horizontal_distance,  get_wanted_pitch, Observer
+from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
 PITCH_DOWNWARDS = 90
 MOVE_THRESHOLD = 5
@@ -77,7 +77,7 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
-    #TODO Jump, Attack, Move, Turn, Select on Hotbar, Swap Items and Pitch should probably be removed
+    # TODO Jump, Attack, Move, Turn, Select on Hotbar, Swap Items and Pitch should probably be removed
     def jump(self, active):
         self.interface.jump(active)
 
@@ -102,7 +102,6 @@ class MinerAgent:
         if fuel_position != FUEL_HOT_BAR_POSITION:
             self.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
         self.craft(item, amount)
-
 
     def select_on_hotbar(self, position):
         self.interface.select_on_hotbar(position)
@@ -130,3 +129,16 @@ class MinerAgent:
             position = PICKAXE_HOT_BAR_POSITION
 
         self.select_on_hotbar(position)
+
+    def quit(self):
+        self.interface.quit()
+
+    def get_next_world_state(self):
+        observations = None
+        world_state = None
+        while observations is None or len(observations) == 0:
+            world_state = self.get_world_state()
+            observations = world_state.observations
+            if not world_state.is_mission_running:
+                break
+        return world_state

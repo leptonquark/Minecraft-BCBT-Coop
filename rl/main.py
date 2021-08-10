@@ -1,11 +1,14 @@
-from __future__ import print_function
-
 import os
 
-from goals.blueprint import Blueprint, BlueprintType
+import gym
 from malmo import malmoutils
+from stable_baselines3 import A2C
+
+from goals.blueprint import Blueprint, BlueprintType
 from malmoutils.agent import MinerAgent
-from runner import Runner
+from rl.MineEnvironment import MineEnvironment
+
+TOTAL_TIME_STEPS = 1000000
 
 
 def run():
@@ -15,9 +18,11 @@ def run():
     malmoutils.fix_print()
     goals = Blueprint.get_blueprint(BlueprintType.StraightFence)
 
-    agent = MinerAgent()
-    player = Runner(agent, goals)
-    player.run_mission()
+    env = MineEnvironment(MinerAgent())
+    model = A2C('MlpPolicy', env, verbose=1)
+
+
+    model.learn(total_timesteps=TOTAL_TIME_STEPS)
 
 
 if __name__ == "__main__":

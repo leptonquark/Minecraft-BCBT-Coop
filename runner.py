@@ -28,7 +28,7 @@ class Runner:
         self.night_vision = self.world.mission_data.night_vision
 
         self.tree = BackChainTree(self.agent, goals)
-        create_file_and_write(TREE_LOG_FILE_NAME, lambda file : save_tree_to_log(self.tree, file))
+        create_file_and_write(TREE_LOG_FILE_NAME, lambda file: save_tree_to_log(self.tree, file))
 
         self.last_delta = time.time()
         self.world.start_world()
@@ -36,13 +36,13 @@ class Runner:
     def run_mission(self):
         self.last_delta = time.time()
 
-        world_state = self.get_next_world_state()
+        world_state = self.agent.get_next_world_state()
 
         if self.night_vision:
             self.agent.activate_night_vision()
 
         while world_state is not None and world_state.is_mission_running:
-            observation = Observation(self.get_next_world_state().observations, self.world.mission_data)
+            observation = Observation(self.agent.get_next_world_state().observations, self.world.mission_data)
             self.agent.set_observation(observation)
             # observation.print()
 
@@ -51,14 +51,6 @@ class Runner:
             # print(tree_to_string(self.tree.root))
 
             self.check_timeout(self.world, world_state)
-
-    def get_next_world_state(self):
-        observations = None
-        world_state = None
-        while observations is None or len(observations) == 0:
-            world_state = self.agent.get_world_state()
-            observations = world_state.observations
-        return world_state
 
     def check_timeout(self, world, world_state):
         if (world_state.number_of_video_frames_since_last_state > 0 or

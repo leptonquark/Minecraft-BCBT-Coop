@@ -63,3 +63,6 @@ class CommandInterface:
             time.sleep(10)
         self.agent_host.killClient(client_info)
         raise MissionTimeoutException(message)
+
+    def quit(self):
+        self.agent_host.sendCommand("quit")

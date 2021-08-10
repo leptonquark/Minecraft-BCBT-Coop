@@ -17,7 +17,7 @@ class MissionData:
         self.summary = "Behaviour Tree Malmo"
 
         self.seed = DESERT_SEED
-        self.ms_per_tick = 50  # Default: 50
+        self.ms_per_tick = 15  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
@@ -34,11 +34,13 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.start_position = None  # (247.5, 68, 232.5)
+        self.start_position = (247.5, 68, 232.5)
         self.start_pitch = 18
 
         self.start_time = 6000
         self.allow_passage_of_time = False
+
+        self.force_reset = True
 
         self.night_vision = True
 
@@ -90,6 +92,9 @@ class MissionData:
         server_handlers = Et.SubElement(server_section, xmlconstants.ELEMENT_SERVER_HANDLERS)
         default_world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_WORLD_GENERATOR)
         default_world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
+
+        xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
+        default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
 
     def initialize_agent_section(self, mission):
         agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
