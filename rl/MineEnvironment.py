@@ -1,9 +1,9 @@
 import time
-
-import numpy as np
-import gym
-
 from enum import Enum
+
+import gym
+import numpy as np
+
 from items import items
 from world.observation import game_objects, Observation
 from world.world import World
@@ -16,6 +16,8 @@ class BaseAction(Enum):
     StopMove = 3
     TurnLeft = 4
     TurnRight = 5
+    StopTurn = 6
+
 
 class MineEnvironment(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -42,10 +44,14 @@ class MineEnvironment(gym.Env):
             self.agent.attack(False)
         elif action == BaseAction.MoveForward:
             self.agent.move(0.3)
+        elif action == BaseAction.StopMove:
+            self.agent.move(0)
         elif action == BaseAction.TurnLeft:
             self.agent.turn(0.3)
         elif action == BaseAction.TurnRight:
             self.agent.turn(-0.3)
+        elif action == BaseAction.StopTurn:
+            self.agent.turn(0)
 
     def close(self):
         print("Quit")
@@ -88,7 +94,7 @@ def calculate_rewards(observation):
 
 
 def get_observation_space():
-    grid_size = 41*41*41  # TODO: Don't hardcode this later
+    grid_size = 41 * 41 * 41  # TODO: Don't hardcode this later
 
     low = float(-1) * np.ones(grid_size, dtype=np.float32)
     high = float(len(game_objects) - 1) * np.ones(grid_size, dtype=np.float32)

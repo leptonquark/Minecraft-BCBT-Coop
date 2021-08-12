@@ -1,8 +1,8 @@
 import numpy as np
 
-from malmoutils.commands import CommandInterface
 from items import effects
 from items.inventory import HOTBAR_SIZE
+from malmoutils.commands import CommandInterface
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
 PITCH_DOWNWARDS = 90
@@ -139,6 +139,6 @@ class MinerAgent:
         while observations is None or len(observations) == 0:
             world_state = self.get_world_state()
             observations = world_state.observations
-            if not world_state.is_mission_running:
+            if world_state.has_mission_begun and not world_state.is_mission_running:
                 break
         return world_state

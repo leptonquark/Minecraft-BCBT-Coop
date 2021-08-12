@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as Et
+
 import numpy as np
 
 from goals.blueprint import Blueprint
@@ -17,7 +18,7 @@ class MissionData:
         self.summary = "Behaviour Tree Malmo"
 
         self.seed = DESERT_SEED
-        self.ms_per_tick = 15  # Default: 50
+        self.ms_per_tick = 25  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
