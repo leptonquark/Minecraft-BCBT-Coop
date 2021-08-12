@@ -52,11 +52,10 @@ class PPA:
         self.post_condition = None
         self.pre_conditions = []
         self.action = None
-        self.tree = None
 
-    def create_ppa(self):
+    def as_tree(self):
         if self.action is None:
-            return
+            return None
 
         if len(self.pre_conditions) > 0:
             sub_tree = Sequence(
@@ -66,15 +65,16 @@ class PPA:
         else:
             sub_tree = self.action
         if self.post_condition is not None:
-            self.tree = Selector(
+            tree = Selector(
                 name=f"Postcondition Handler {self.name}",
                 children=[self.post_condition, sub_tree]
             )
         else:
-            self.tree = sub_tree
+            tree = sub_tree
 
-        self.tree.name = f"PPA {self.name}"
-        self.tree.setup_with_descendants()
+        tree.name = f"PPA {self.name}"
+
+        return tree
 
 
 class CraftPPA(PPA):
