@@ -11,7 +11,17 @@ from mobs.animals import get_loot_source
 from mobs.hunting import get_hunting_tool
 
 
-# TODO: This should be done in a more dynamic way
+def back_chain_recursive(agent, condition):
+    ppa = condition_to_ppa_tree(agent, condition)
+    if ppa is not None:
+        for i, pre_condition in enumerate(ppa.pre_conditions):
+            ppa_condition_tree = back_chain_recursive(agent, ppa.pre_conditions[i])
+            if ppa_condition_tree is not None:
+                ppa.pre_conditions[i] = ppa_condition_tree
+        return ppa.as_tree()
+    return None
+
+
 def condition_to_ppa_tree(agent, condition):
     if isinstance(condition, conditions.HasItem):
         recipe = get_recipe(condition.item)
