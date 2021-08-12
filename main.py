@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 
 from goals.blueprint import Blueprint, BlueprintType
@@ -16,8 +14,8 @@ def run():
     goals = Blueprint.get_blueprint(BlueprintType.StraightFence)
 
     agent = MinerAgent()
-    player = Runner(agent, goals)
-    player.run_mission()
+    runner = Runner(agent, goals)
+    runner.run_mission()
 
 
 if __name__ == "__main__":

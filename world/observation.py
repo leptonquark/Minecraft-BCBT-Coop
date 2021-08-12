@@ -8,6 +8,7 @@ from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
 from utils.vectors import CIRCLE_DEGREES, degrees_to_radians, up_vector
+from world.grid import MAX_HEIGHT
 
 SAME_SPOT_Y_THRESHOLD = 2
 EPSILON_ARRIVED_AT_POSITION = 0.09
@@ -213,24 +214,22 @@ class Observation:
 
     def to_obs_vector(self):
         grid_vector = self.get_grid_obs_vector()
-
-        return grid_vector
-        """        
+        position_vector = self.get_position_vector()
+        los_pos_vector = self.get_los_pos_vector()
         los_type_vector = np.array([get_game_object_ordinal(self.los_type)])
         direction_vector = self.get_direction_vector()
-        inventory_vector = self.get_inventory_vector()
+        #inventory_vector = self.get_inventory_vector()
 
         obs_vector = np.hstack((
             grid_vector,
-            self.abs_pos,
-            self.los_pos,
+            position_vector,
+            los_pos_vector,
             los_type_vector,
-            direction_vector,
-            inventory_vector
+            direction_vector
         ))
 
         return obs_vector
-        """
+
     def get_grid_obs_vector(self):
         grid_local_spec = self.mission_data.grid_local
         if self.info is not None and grid_local_spec.name in self.info:
@@ -239,9 +238,21 @@ class Observation:
         else:
             return -1 * np.ones(grid_local_spec.get_list_size()) #TODO: Remove this workaround. Instead it should refetch when this happens
 
+    def get_position_vector(self):
+        if self.abs_pos is None:
+            return np.array([np.inf, MAX_HEIGHT, np.inf])
+        else:
+            return np.copy(self.abs_pos)
+
+    def get_los_pos_vector(self):
+        if self.los_pos is None:
+            return np.array([np.inf, MAX_HEIGHT, np.inf])
+        else:
+            return np.copy(self.los_pos)
+
     def get_direction_vector(self):
         if self.yaw is None or self.pitch is None:
-            return np.array([])
+            return np.zeros(3)
 
         yaw_radians = degrees_to_radians(self.yaw)
         pitch_radians = degrees_to_radians(self.pitch)

@@ -5,6 +5,7 @@ import gym
 import numpy as np
 
 from items import items
+from world.grid import MAX_HEIGHT
 from world.observation import game_objects, Observation
 from world.world import World
 
@@ -83,9 +84,24 @@ class MineEnvironment(gym.Env):
 
     def get_observation_space(self):
         grid_size = self.world.mission_data.grid_local.get_list_size()
+        grid_low = float(-1) * np.ones(grid_size, dtype=np.float32)
+        grid_high = float(len(game_objects) - 1) * np.ones(grid_size, dtype=np.float32)
 
-        low = float(-1) * np.ones(grid_size, dtype=np.float32)
-        high = float(len(game_objects) - 1) * np.ones(grid_size, dtype=np.float32)
+        position_low = np.array([-np.inf, 0, -np.inf], dtype=np.float32)
+        position_high = np.array([-np.inf, MAX_HEIGHT, np.inf], dtype=np.float32)
+
+        los_pos_low = np.copy(position_low)
+        los_pos_high = np.copy(position_high)
+
+        los_type_low = float(-1) * np.ones(1, dtype=np.float32)
+        los_type_high = float(len(game_objects) - 1) * np.ones(1, dtype=np.float32)
+
+        direction_vector_low = np.zeros(3,  dtype=np.float32)
+        direction_vector_high = np.ones(3,  dtype=np.float32)
+
+        low = np.hstack((grid_low, position_low, los_pos_low, los_type_low, direction_vector_low))
+        high = np.hstack((grid_high, position_high, los_pos_high, los_type_high, direction_vector_high))
+
         return gym.spaces.Box(low, high)
 
 

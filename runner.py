@@ -1,17 +1,12 @@
-import codecs
-import pathlib
 import time
 
 from bt.back_chain_tree import BackChainTree
-from malmoutils.agent import MinerAgent
 from utils.file import create_file_and_write
-from utils.string import tree_to_string
-from utils.visualisation import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
+from utils.visualisation import tree_to_drawio_csv
 from world.observation import Observation
 from world.world import World
 
 MAX_DELAY = 60
-EXTRA_SLEEP_TIME = 0.1
 
 TREE_LOG_FILE_NAME = "log/tree.txt"
 
@@ -44,12 +39,7 @@ class Runner:
         while world_state is not None and world_state.is_mission_running:
             observation = Observation(self.agent.get_next_world_state().observations, self.world.mission_data)
             self.agent.set_observation(observation)
-            # observation.print()
-
             self.tree.root.tick_once()
-
-            # print(tree_to_string(self.tree.root))
-
             self.check_timeout(self.world, world_state)
 
     def check_timeout(self, world, world_state):

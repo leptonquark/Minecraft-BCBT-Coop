@@ -3,6 +3,8 @@ import numpy as np
 from world import xmlconstants
 from xml.etree import ElementTree as Et
 
+MAX_HEIGHT = 255
+
 
 class GridSpecification:
     def __init__(self, name, grid_range, is_global):

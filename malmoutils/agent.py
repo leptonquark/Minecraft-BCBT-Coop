@@ -139,6 +139,4 @@ class MinerAgent:
         while observations is None or len(observations) == 0:
             world_state = self.get_world_state()
             observations = world_state.observations
-            if world_state.has_mission_begun and not world_state.is_mission_running:
-                break
         return world_state
