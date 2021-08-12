@@ -78,8 +78,15 @@ class MineEnvironment(gym.Env):
         self.world = World(self.agent, None)
         self.world.start_world()
 
-        self.observation_space = get_observation_space()
+        self.observation_space = self.get_observation_space()
         self.action_space = get_action_space()
+
+    def get_observation_space(self):
+        grid_size = self.world.mission_data.grid_local.get_list_size()
+
+        low = float(-1) * np.ones(grid_size, dtype=np.float32)
+        high = float(len(game_objects) - 1) * np.ones(grid_size, dtype=np.float32)
+        return gym.spaces.Box(low, high)
 
 
 def is_done(world_state):
@@ -91,14 +98,6 @@ def calculate_rewards(observation):
         return 0
     else:
         return observation.inventory.get_item_amount(items.DIRT)
-
-
-def get_observation_space():
-    grid_size = 41 * 41 * 41  # TODO: Don't hardcode this later
-
-    low = float(-1) * np.ones(grid_size, dtype=np.float32)
-    high = float(len(game_objects) - 1) * np.ones(grid_size, dtype=np.float32)
-    return gym.spaces.Box(low, high)
 
 
 def get_action_space():

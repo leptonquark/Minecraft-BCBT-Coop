@@ -237,7 +237,7 @@ class Observation:
             grid_ordinals = [get_game_object_ordinal(block) for block in self.info[grid_local_spec.name]]
             return np.array(grid_ordinals, dtype=np.float32)
         else:
-            return -1 * np.ones(41*41*41) #TODO: Remove this workaround. Instead it should refetch when this happens
+            return -1 * np.ones(grid_local_spec.get_list_size()) #TODO: Remove this workaround. Instead it should refetch when this happens
 
     def get_direction_vector(self):
         if self.yaw is None or self.pitch is None:
