@@ -3,7 +3,7 @@ from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 from utils.constants import ATTACK_REACH, PLACING_REACH
 
-
+#TODO: Move agent setter to here
 class Condition(Behaviour):
     def __init__(self, name):
         super(Condition, self).__init__(name)

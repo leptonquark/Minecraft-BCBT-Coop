@@ -12,7 +12,7 @@ from world.observer import get_position_center, get_horizontal_distance, get_wan
 
 HAS_ARRIVED_HORIZONTAL_TOLERANCE = 0.2
 
-
+#TODO: Move agent setter to here
 class Action(Behaviour):
     def __init__(self, name):
         super(Action, self).__init__(name)

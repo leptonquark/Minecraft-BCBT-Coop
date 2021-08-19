@@ -7,7 +7,7 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs.animals import Animal
-from utils.vectors import CIRCLE_DEGREES, degrees_to_radians, up_vector
+from utils.vectors import CIRCLE_DEGREES, degrees_to_radians
 from world.grid import MAX_HEIGHT
 
 SAME_SPOT_Y_THRESHOLD = 2
@@ -218,7 +218,7 @@ class Observation:
         los_pos_vector = self.get_los_pos_vector()
         los_type_vector = np.array([get_game_object_ordinal(self.los_type)])
         direction_vector = self.get_direction_vector()
-        #inventory_vector = self.get_inventory_vector()
+        # inventory_vector = self.get_inventory_vector()
 
         obs_vector = np.hstack((
             grid_vector,
@@ -236,7 +236,8 @@ class Observation:
             grid_ordinals = [get_game_object_ordinal(block) for block in self.info[grid_local_spec.name]]
             return np.array(grid_ordinals, dtype=np.float32)
         else:
-            return -1 * np.ones(grid_local_spec.get_list_size()) #TODO: Remove this workaround. Instead it should refetch when this happens
+            # TODO: Remove this workaround. Instead it should re-fetch when this happens
+            return -1 * np.ones(grid_local_spec.get_list_size())
 
     def get_position_vector(self):
         if self.abs_pos is None:
