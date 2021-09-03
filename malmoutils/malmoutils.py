@@ -19,12 +19,7 @@
 
 from __future__ import print_function
 
-# Allow MalmoPython to be imported both from an installed 
-# malmoutils module and (as an override) separately as a native library.
-try:
-    import MalmoPython
-except ImportError:
-    import malmoutils.MalmoPython as MalmoPython
+from malmo import MalmoPython
 
 import os
 import sys
