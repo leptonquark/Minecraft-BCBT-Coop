@@ -1,12 +1,8 @@
-import codecs
-import pathlib
 import time
 
 from bt.back_chain_tree import BackChainTree
-from malmoutils.agent import MinerAgent
 from utils.file import create_file_and_write
-from utils.string import tree_to_string
-from utils.visualisation import tree_to_drawio_xml, tree_to_drawio_csv, render_tree
+from utils.visualisation import save_tree_to_log
 from world.observation import Observation
 from world.world import World
 
@@ -28,7 +24,7 @@ class Runner:
         self.night_vision = self.world.mission_data.night_vision
 
         self.tree = BackChainTree(self.agent, goals)
-        create_file_and_write(TREE_LOG_FILE_NAME, lambda file : save_tree_to_log(self.tree, file))
+        create_file_and_write(TREE_LOG_FILE_NAME, lambda file: save_tree_to_log(self.tree.root, file))
 
         self.last_delta = time.time()
         self.world.start_world()
@@ -69,7 +65,3 @@ class Runner:
             if time.time() - self.last_delta > MAX_DELAY:
                 print("Max delay exceeded for world state change")
                 world.restart_minecraft(world_state, "world state change")
-
-
-def save_tree_to_log(tree, file):
-    file.write(tree_to_drawio_csv(tree.root))
