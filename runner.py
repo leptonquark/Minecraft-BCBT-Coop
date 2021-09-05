@@ -28,7 +28,7 @@ class Runner:
         self.night_vision = self.world.mission_data.night_vision
 
         self.tree = BackChainTree(self.agent, goals)
-        create_file_and_write(TREE_LOG_FILE_NAME, lambda file : file.write(tree_to_string(self.tree.root, 0)))
+        create_file_and_write(TREE_LOG_FILE_NAME, lambda file: file.write(tree_to_drawio_csv(self.tree.root)))
 
         self.last_delta = time.time()
         self.world.start_world()

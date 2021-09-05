@@ -1,3 +1,6 @@
+import inspect
+import sys
+
 from world.observation import get_position_center
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
@@ -117,3 +120,12 @@ class IsBlockAtPosition(Condition):
     def update(self):
         is_block_at_position = self.agent.observation.is_block_at_position(self.position, self.block)
         return Status.SUCCESS if is_block_at_position else Status.FAILURE
+
+
+def list_conditions():
+    condition_module = sys.modules[__name__]
+    conditions = []
+    for conditionName, conditionObject in inspect.getmembers(condition_module):
+        if inspect.isclass(conditionObject) and (conditionObject is not Condition and issubclass(conditionObject, Condition)):
+            conditions.append(conditionName)
+    return conditions
