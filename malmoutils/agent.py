@@ -119,8 +119,8 @@ class MinerAgent:
         self.interface.pitch(0)
         self.interface.turn(0)
 
-    def start_mission(self, mission, pool, mission_record, experiment_id):
-        self.interface.start_mission(mission, pool, mission_record, experiment_id)
+    def start_mission(self, mission, mission_record):
+        self.interface.start_mission(mission, mission_record)
 
     def equip_item(self, item):
         position = self.inventory.find_item(item)

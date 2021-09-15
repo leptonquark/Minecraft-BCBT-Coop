@@ -53,8 +53,8 @@ class CommandInterface:
     def activate_effect(self, effect, effect_time, amplifier):
         self.agent_host.sendCommand(f"chat /effect @p {effect} {effect_time} {amplifier}")
 
-    def start_mission(self, mission, pool, mission_record, experiment_id):
-        self.agent_host.startMission(mission, pool, mission_record, 0, experiment_id)
+    def start_mission(self, mission, mission_record):
+        self.agent_host.startMission(mission, mission_record)
 
     def restart_minecraft(self, world_state, client_info, message=""):
         """"Attempt to quit world if running and kill the client"""

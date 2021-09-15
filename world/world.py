@@ -1,9 +1,8 @@
 import time
 import uuid
 
-from MalmoPython import MissionSpec, ClientInfo, ClientPool
 from malmo import malmoutils
-from malmo.MalmoPython import MissionSpec, ClientInfo, ClientPool
+from malmo.MalmoPython import MissionSpec, ClientInfo, ClientPool, MissionRecordSpec
 
 from world.missiondata import MissionData
 
@@ -27,7 +26,7 @@ def setup_mission(mission_data):
 
 
 def setup_mission_record(agent):
-    mission_record = malmoutils.get_default_recording_object(agent.get_agent_host(), RECORDING_NAME)
+    mission_record = MissionRecordSpec()
     return mission_record
 
 
@@ -63,7 +62,7 @@ class World:
     def start_world(self):
         for retry in range(MAX_RETRIES):
             try:
-                self.agent.start_mission(self.mission, self.pool, self.mission_record, self.experiment_id)
+                self.agent.start_mission(self.mission, self.mission_record)
                 break
             except RuntimeError as e:
                 if retry == MAX_RETRIES - 1:
