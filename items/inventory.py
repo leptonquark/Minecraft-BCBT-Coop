@@ -34,6 +34,7 @@ class Inventory:
     KEY_CURRENT_SELECTION = "currentItemIndex"
 
     def __init__(self, info):
+        self.inventory = None
         if "inventoriesAvailable" not in info:
             print("Can't create inventory. No inventory available.")
             return
@@ -49,12 +50,21 @@ class Inventory:
     def __str__(self):
         return str(self.inventory)
 
+    def __iter__(self):
+        for inventory_slot in self.inventory:
+            yield inventory_slot
+
     def has_item(self, item, amount=1):
-        found = sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item == item)
-        return found >= amount
+        return self.get_item_amount(item) >= amount
 
     def has_item_equipped(self, item):
         return self.inventory[self.current_selection].item == item
+
+    def get_item_amount(self, item):
+        if self.inventory is None:
+            return 0
+        else:
+            return sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item == item)
 
     def find_item(self, item):
         for i, inventory_slot in enumerate(self.inventory):

@@ -1,14 +1,12 @@
 import graphviz
 import pydot
-import textwrap
-
-#from graphviz2drawio import graphviz2drawio
+# from graphviz2drawio import graphviz2drawio
 from py_trees.composites import Selector
 
 from bt.actions import Action
 from bt.conditions import Condition
 from bt.sequence import Sequence
-from utils.string import prettify_xml
+from utils.file import create_file_and_write
 
 
 def render_tree(root):
@@ -97,3 +95,8 @@ def subtree_to_csv(tree, parent_id):
         child_csv = subtree_to_csv(child, str(tree.id))
         children_csv += child_csv
     return base_csv + children_csv
+
+
+def save_tree_to_log(tree, filename):
+    logfile = f"log/{filename}"
+    create_file_and_write(logfile, lambda file: file.write(tree_to_drawio_csv(tree)))

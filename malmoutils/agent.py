@@ -1,9 +1,9 @@
 import numpy as np
 
-from malmoutils.commands import CommandInterface
 from items import effects
-from world.observation import get_horizontal_distance, get_turn_direction, get_wanted_pitch, get_yaw_from_vector, \
-    get_pitch_change
+from items.inventory import HOTBAR_SIZE
+from malmoutils.commands import CommandInterface
+from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
 PITCH_DOWNWARDS = 90
 MOVE_THRESHOLD = 5
@@ -11,12 +11,18 @@ MIN_MOVE_SPEED = 0.05
 NO_MOVE_SPEED_DISTANCE_EPSILON = 1
 NO_MOVE_SPEED_TURN_DIRECTION_EPSILON = 0.1
 
+FUEL_HOT_BAR_POSITION = 0
+PICKAXE_HOT_BAR_POSITION = 5
+
 
 def get_move_speed(horizontal_distance, turn_direction):
     move_speed = horizontal_distance / MOVE_THRESHOLD if horizontal_distance < MOVE_THRESHOLD else 1
     move_speed *= (1 - np.abs(turn_direction)) ** 2
     move_speed = max(move_speed, MIN_MOVE_SPEED)
-    if np.abs(turn_direction) > NO_MOVE_SPEED_TURN_DIRECTION_EPSILON and horizontal_distance < NO_MOVE_SPEED_DISTANCE_EPSILON:
+
+    is_close_to_target = horizontal_distance < NO_MOVE_SPEED_DISTANCE_EPSILON
+    is_large_turn = np.abs(turn_direction) > NO_MOVE_SPEED_TURN_DIRECTION_EPSILON
+    if is_large_turn and is_close_to_target:
         move_speed = 0
     return move_speed
 
@@ -25,16 +31,16 @@ class MinerAgent:
 
     def __init__(self):
         self.interface = CommandInterface()
-        self.observation = None
+        self.observer = None
         self.inventory = None
 
     def get_agent_host(self):
         return self.interface.agent_host
 
     def set_observation(self, observation):
-        self.observation = observation
         if observation:
             self.inventory = observation.inventory
+            self.observer = Observer(observation)
 
     def get_world_state(self):
         return self.interface.get_world_state()
@@ -45,38 +51,33 @@ class MinerAgent:
         move_speed = get_move_speed(horizontal_distance, turn_direction)
         self.interface.move(move_speed)
 
-        pitch_req = get_pitch_change(self.observation.pitch, 0)
+        pitch_req = self.observer.get_pitch_change(0)
         self.interface.pitch(pitch_req)
 
     def turn_towards(self, distance):
-        wanted_yaw = get_yaw_from_vector(distance)
-        current_yaw = self.observation.yaw
-        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
+        turn_direction = self.get_turn_direction(distance)
         self.interface.turn(turn_direction)
         return turn_direction != 0
 
     def get_turn_direction(self, distance):
-        return get_turn_direction(self.observation.yaw, get_yaw_from_vector(distance))
+        return self.observer.get_turn_direction(distance)
 
     def pitch_towards(self, distance):
         mat_horizontal_distance = get_horizontal_distance(distance)
         wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
-        current_pitch = self.observation.pitch
-        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
+        pitch_req = self.observer.get_pitch_change(wanted_pitch)
         self.interface.pitch(pitch_req)
         return pitch_req != 0
 
     def pitch_downwards(self):
-        wanted_pitch = PITCH_DOWNWARDS
-        current_pitch = self.observation.pitch
-        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
+        pitch_req = self.observer.get_pitch_change(PITCH_DOWNWARDS)
         self.interface.pitch(pitch_req)
         return pitch_req == 0
 
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
-    #TODO Jump, Attack, Move, Turn, Select on Hotbar, Swap Items and Pitch should probably be removed
+    # TODO Jump, Attack, Move, Turn, Select on Hotbar, Swap Items and Pitch should probably be removed
     def jump(self, active):
         self.interface.jump(active)
 
@@ -96,6 +97,12 @@ class MinerAgent:
         for _ in range(amount):
             self.interface.craft(item)
 
+    def melt(self, item, fuel, amount=1):
+        fuel_position = self.inventory.find_item(fuel)
+        if fuel_position != FUEL_HOT_BAR_POSITION:
+            self.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
+        self.craft(item, amount)
+
     def select_on_hotbar(self, position):
         self.interface.select_on_hotbar(position)
 
@@ -114,3 +121,22 @@ class MinerAgent:
 
     def start_mission(self, mission, pool, mission_record, experiment_id):
         self.interface.start_mission(mission, pool, mission_record, experiment_id)
+
+    def equip_item(self, item):
+        position = self.inventory.find_item(item)
+        if position >= HOTBAR_SIZE:
+            self.swap_items(position, PICKAXE_HOT_BAR_POSITION)
+            position = PICKAXE_HOT_BAR_POSITION
+
+        self.select_on_hotbar(position)
+
+    def quit(self):
+        self.interface.quit()
+
+    def get_next_world_state(self):
+        observations = None
+        world_state = None
+        while observations is None or len(observations) == 0:
+            world_state = self.get_world_state()
+            observations = world_state.observations
+        return world_state
