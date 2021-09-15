@@ -1,4 +1,7 @@
+import inspect
 import numpy as np
+import sys
+
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
@@ -468,3 +471,12 @@ class RunForwardTowardsAnimal(GoToObject):
 
     def terminate(self, new_status):
         self.agent.stop()
+
+
+def list_actions():
+    action_module = sys.modules[__name__]
+    actions = []
+    for actionName, actionObject in inspect.getmembers(action_module):
+        if inspect.isclass(actionObject) and (actionObject is not Action and issubclass(actionObject, Action)):
+            actions.append(actionName)
+    return actions

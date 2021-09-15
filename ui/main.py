@@ -86,9 +86,6 @@ class MainUI(tk.Frame):
         start_bot_button.pack(side=tk.RIGHT)
 
     def start_bot(self):
-        if "MALMO_XSD_PATH" not in os.environ:
-            print("Please set the MALMO_XSD_PATH environment variable.")
-            return
         self.close_ui()
 
         malmoutils.fix_print()
