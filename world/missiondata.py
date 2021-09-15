@@ -18,7 +18,7 @@ class MissionData:
         self.summary = "Behaviour Tree Malmo"
 
         self.seed = DESERT_SEED
-        self.ms_per_tick = 25  # Default: 50
+        self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
@@ -35,13 +35,13 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.start_position = (247.5, 68, 232.5)
+        self.force_reset = True
+
+        self.start_position = (235.5, 67, 248.5) if self.force_reset else None
         self.start_pitch = 18
 
         self.start_time = 6000
         self.allow_passage_of_time = False
-
-        self.force_reset = True
 
         self.night_vision = True
 

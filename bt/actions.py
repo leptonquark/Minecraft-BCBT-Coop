@@ -12,9 +12,10 @@ from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector, up_vector
 from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
 
-HAS_ARRIVED_HORIZONTAL_TOLERANCE = 0.2
+DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
 
-#TODO: Move agent setter to here
+
+# TODO: Move agent setter to here
 class Action(Behaviour):
     def __init__(self, name):
         super(Action, self).__init__(name)
@@ -50,7 +51,7 @@ class Melt(Action):
         if not self.agent.inventory.has_ingredients(self.item):
             return Status.FAILURE
 
-        self.agent.melt(self.item, fuel, amount=1)
+        self.agent.melt(self.item, fuel, self.amount)
 
         return Status.SUCCESS
 
@@ -97,7 +98,7 @@ class GoToObject(Action):
         flat_distance = np.copy(distance)
         flat_distance[1] = 0
 
-        if np.linalg.norm(flat_distance) <= HAS_ARRIVED_HORIZONTAL_TOLERANCE:
+        if np.linalg.norm(flat_distance) <= DIG_DOWNWARDS_HORIZONTAL_TOLERANCE:
             self.mine_downwards()
             return
 
@@ -106,22 +107,23 @@ class GoToObject(Action):
         turn_direction = self.agent.get_turn_direction(distance)
         current_direction = self.agent.observer.get_current_direction()
 
+        at_same_discrete_position_horizontally = np.all(np.round(flat_distance) == 0)
+
         lower_free = self.agent.observer.lower_surroundings[current_direction] in traversable + narrow
         upper_free = self.agent.observer.upper_surroundings[current_direction] in traversable
 
-        if lower_free and upper_free:
+        if at_same_discrete_position_horizontally or (lower_free and upper_free):
             self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
             return
 
-        else:
-            wanted_direction = get_wanted_direction(distance)
-            if not upper_free:
-                self.mine_forward(1, wanted_direction)
-            elif not lower_free:
-                if self.can_jump(wanted_direction):
-                    self.jump_forward(wanted_direction)
-                else:
-                    self.mine_forward(0, wanted_direction)
+        wanted_direction = get_wanted_direction(distance)
+        if not upper_free:
+            self.mine_forward(1, wanted_direction)
+        elif not lower_free:
+            if self.can_jump(wanted_direction):
+                self.jump_forward(wanted_direction)
+            else:
+                self.mine_forward(0, wanted_direction)
 
     def mine_downwards(self):
         self.agent.move(0)
@@ -432,7 +434,7 @@ class RunForwardTowardsAnimal(GoToObject):
 def list_actions():
     action_module = sys.modules[__name__]
     actions = []
-    for actionName, actionObject in inspect.getmembers(action_module):
-        if inspect.isclass(actionObject) and (actionObject is not Action and issubclass(actionObject, Action)):
-            actions.append(actionName)
+    for action_name, action_object in inspect.getmembers(action_module):
+        if inspect.isclass(action_object) and (action_object is not Action and issubclass(action_object, Action)):
+            actions.append(action_name)
     return actions

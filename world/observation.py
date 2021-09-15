@@ -60,7 +60,8 @@ game_objects = [
     items.BEDROCK,
     items.OBSIDIAN,
     items.PLANKS,
-    items.STICKS
+    items.STICKS,
+    items.XP_ORB
 ]
 
 
