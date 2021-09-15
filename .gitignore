@@ -147,3 +147,5 @@ cython_debug/
 .vscode/
 
 ./bootstrap/MalmoPlatform/
+
+.DS_Store
