@@ -44,6 +44,11 @@ flat_center_vector = np.array([0.5, 0, 0.5])
 center_vector = np.array([0.5, 0.5, 0.5])
 
 
-def rad_to_degrees(rad):
+def radians_to_degrees(rad):
     half_circle = CIRCLE_DEGREES / 2
     return rad * half_circle / np.pi
+
+
+def degrees_to_radians(deg):
+    half_circle = CIRCLE_DEGREES / 2
+    return deg * np.pi / half_circle

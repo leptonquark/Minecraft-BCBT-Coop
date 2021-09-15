@@ -1,28 +1,20 @@
+import inspect
+import sys
+
 import numpy as np
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 from items import items
 from items.gathering import get_gathering_tool
-from items.inventory import HOTBAR_SIZE
+from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH
-from utils.vectors import Direction, directionVector, down_vector
-from world.observation import get_horizontal_distance, get_pitch_change, get_wanted_direction, get_wanted_pitch, \
-    get_yaw_from_direction, get_yaw_from_vector, get_turn_direction, narrow, get_position_center, round_move, \
-    traversable, unclimbable
-
-MAX_DELAY = 60
-STOP_TURN_DIRECTION_TOLERANCE = 0.1
-
-DELTA_ANGLES = 45
-LOS_TOLERANCE = 0.5
-
-FUEL_HOT_BAR_POSITION = 0
-PICKAXE_HOT_BAR_POSITION = 5
+from utils.vectors import Direction, directionVector, down_vector, up_vector
+from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
 
 HAS_ARRIVED_HORIZONTAL_TOLERANCE = 0.2
 
-
+#TODO: Move agent setter to here
 class Action(Behaviour):
     def __init__(self, name):
         super(Action, self).__init__(name)
@@ -58,11 +50,8 @@ class Melt(Action):
         if not self.agent.inventory.has_ingredients(self.item):
             return Status.FAILURE
 
-        fuel_position = self.agent.observation.inventory.find_item(fuel)
-        if fuel_position != FUEL_HOT_BAR_POSITION:
-            self.agent.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
+        self.agent.melt(self.item, fuel, amount=1)
 
-        self.agent.craft(self.item, self.amount)
         return Status.SUCCESS
 
 
@@ -74,18 +63,10 @@ class Equip(Action):
 
     def update(self):
         if self.agent.inventory.has_item(self.item):
-            self.equip_item(self.agent.observation, self.item)
+            self.agent.equip_item(self.item)
             return Status.SUCCESS
 
         return Status.FAILURE
-
-    def equip_item(self, observation, item):
-        position = observation.inventory.find_item(item)
-        if position >= HOTBAR_SIZE:
-            self.agent.swap_items(position, PICKAXE_HOT_BAR_POSITION)
-            position = PICKAXE_HOT_BAR_POSITION
-
-        self.agent.select_on_hotbar(position)
 
 
 class JumpIfStuck(Action):
@@ -94,7 +75,7 @@ class JumpIfStuck(Action):
         self.agent = agent
 
     def update(self):
-        if self.agent.observation.is_stuck():
+        if self.agent.observer.is_stuck():
             self.agent.jump(True)
             return Status.RUNNING
         else:
@@ -110,25 +91,27 @@ class GoToObject(Action):
         super(GoToObject, self).__init__(name)
         self.agent = agent
 
-    def go_to_position(self, distance):
+    def go_to_position(self, position):
+        distance = self.agent.observer.get_distance_to_position(position)
+
         flat_distance = np.copy(distance)
         flat_distance[1] = 0
 
         if np.linalg.norm(flat_distance) <= HAS_ARRIVED_HORIZONTAL_TOLERANCE:
             self.mine_downwards()
-            return Status.RUNNING
+            return
 
         self.agent.turn_towards(distance)
 
         turn_direction = self.agent.get_turn_direction(distance)
-        current_direction = self.agent.observation.get_current_direction()
+        current_direction = self.agent.observer.get_current_direction()
 
-        lower_free = self.agent.observation.lower_surroundings[current_direction] in traversable + narrow
-        upper_free = self.agent.observation.upper_surroundings[current_direction] in traversable
+        lower_free = self.agent.observer.lower_surroundings[current_direction] in traversable + narrow
+        upper_free = self.agent.observer.upper_surroundings[current_direction] in traversable
 
         if lower_free and upper_free:
             self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
-            return Status.RUNNING
+            return
 
         else:
             wanted_direction = get_wanted_direction(distance)
@@ -150,20 +133,17 @@ class GoToObject(Action):
         self.agent.attack(True)
 
     def mine_forward(self, vertical_distance, wanted_direction):
-        block_position = self.agent.observation.get_discrete_position(wanted_direction, vertical_distance)
+        distance_to_block = directionVector[wanted_direction] + vertical_distance * up_vector
+        block_position = self.agent.observer.get_abs_pos_discrete() + distance_to_block
 
-        if not self.agent.observation.is_looking_at_discrete_position(block_position):
-            turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
-            self.agent.turn(turn_direction)
+        if not self.agent.observer.is_looking_at_discrete_position(block_position):
+            turning = self.agent.turn_towards(distance_to_block)
+            pitching = self.agent.pitch_towards(distance_to_block)
 
-            wanted_pitch = get_wanted_pitch(1, vertical_distance - 1)
-            pitch_req = get_pitch_change(self.agent.observation.pitch, wanted_pitch)
-            self.agent.pitch(pitch_req)
-
-            if turn_direction != 0 or pitch_req != 0:
+            if turning or pitching:
                 self.agent.attack(False)
                 self.agent.move(0)
-                return Status.RUNNING
+                return
         self.agent.turn(0)
         self.agent.pitch(0)
         self.agent.move(0)
@@ -171,22 +151,22 @@ class GoToObject(Action):
         self.agent.attack(True)
 
     def can_jump(self, current_direction):
-        climbable_below = self.agent.observation.lower_surroundings[current_direction] not in unclimbable
+        climbable_below = self.agent.observer.lower_surroundings[current_direction] not in unclimbable
 
-        free_above = self.agent.observation.upper_upper_surroundings[Direction.Zero] in traversable
-        free_above_direction = self.agent.observation.upper_upper_surroundings[current_direction] in traversable
+        free_above = self.agent.observer.upper_upper_surroundings[Direction.Zero] in traversable
+        free_above_direction = self.agent.observer.upper_upper_surroundings[current_direction] in traversable
 
         return climbable_below and free_above and free_above_direction
 
     def jump_forward(self, wanted_direction):
-        turn_direction = get_turn_direction(self.agent.observation.yaw, get_yaw_from_direction(wanted_direction))
+        turn_direction = self.agent.get_turn_direction(directionVector[wanted_direction])
         self.agent.turn(turn_direction)
 
         if turn_direction != 0:
             self.agent.attack(False)
             self.agent.move(0)
             self.agent.pitch(0)
-            return Status.RUNNING
+            return
         self.agent.move(0)
 
         self.agent.attack(False)
@@ -205,13 +185,13 @@ class PickupItem(GoToObject):
     def update(self):
         self.agent.jump(False)
 
-        distance = self.agent.observation.get_pickup_position(self.item)
-        if distance is None:
+        position = self.agent.observer.get_pickup_position(self.item)
+        if position is None:
             return Status.FAILURE
 
-        self.go_to_position(distance)
+        self.go_to_position(position)
 
-        if self.agent.observation.get_pickup_position(self.item) is None:
+        if self.agent.observer.get_pickup_position(self.item) is None:
             return Status.SUCCESS
         else:
             return Status.RUNNING
@@ -225,14 +205,13 @@ class GoToAnimal(GoToObject):
     def update(self):
         self.agent.jump(False)
 
-        position = self.agent.observation.get_weakest_animal_position(self.specie)
+        position = self.agent.observer.get_weakest_animal_position(self.specie)
         if position is None:
             return Status.FAILURE
 
-        distance = self.agent.observation.get_distance_to_position(position)
-        self.go_to_position(distance)
+        self.go_to_position(position)
 
-        if self.agent.observation.is_position_within_reach(position, ATTACK_REACH):
+        if self.agent.observer.is_position_within_reach(position, ATTACK_REACH):
             return Status.SUCCESS
         else:
             return Status.RUNNING
@@ -250,15 +229,14 @@ class GoToBlock(GoToObject):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        discrete_position = self.agent.observation.get_closest_block(self.block)
+        discrete_position = self.agent.observer.get_closest_block(self.block)
         if discrete_position is None:
             return Status.FAILURE
 
-        distance = self.agent.observation.get_distance_to_discrete_position(discrete_position)
-        self.go_to_position(distance)
-
         position_center = get_position_center(discrete_position)
-        return Status.SUCCESS if self.agent.observation.is_position_within_reach(position_center) else Status.RUNNING
+        self.go_to_position(position_center)
+
+        return Status.SUCCESS if self.agent.observer.is_position_within_reach(position_center) else Status.RUNNING
 
 
 class GoToPosition(GoToObject):
@@ -268,10 +246,9 @@ class GoToPosition(GoToObject):
         self.position = position
 
     def update(self):
-        distance = self.agent.observation.get_distance_to_discrete_position(self.position)
-        self.go_to_position(distance)
+        self.go_to_position(self.position)
 
-        has_arrived = self.agent.observation.is_position_within_reach(self.position, ATTACK_REACH)
+        has_arrived = self.agent.observer.is_position_within_reach(self.position, ATTACK_REACH)
         return Status.SUCCESS if has_arrived else Status.RUNNING
 
 
@@ -286,16 +263,16 @@ class MineMaterial(Action):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        discrete_position = self.agent.observation.get_closest_block(self.material)
+        discrete_position = self.agent.observer.get_closest_block(self.material)
 
         if discrete_position is None:
             return Status.FAILURE
 
-        if not self.agent.observation.is_position_within_reach(get_position_center(discrete_position)):
+        if not self.agent.observer.is_position_within_reach(get_position_center(discrete_position)):
             return Status.FAILURE
 
-        distance = self.agent.observation.get_distance_to_discrete_position(discrete_position)
-        if not self.agent.observation.is_looking_at_discrete_position(discrete_position):
+        distance = self.agent.observer.get_distance_to_discrete_position(discrete_position)
+        if not self.agent.observer.is_looking_at_discrete_position(discrete_position):
             self.agent.attack(False)
             pitching = self.agent.pitch_towards(distance)
             turning = self.agent.turn_towards(distance)
@@ -306,8 +283,10 @@ class MineMaterial(Action):
         self.agent.pitch(0)
 
         self.agent.attack(True)
-        target_grid_point = tuple(self.agent.observation.pos + round_move(distance))
-        if self.agent.observation.grid_local[target_grid_point] != items.AIR:
+
+        target_block = self.agent.observer.get_block_at_position_from_local(discrete_position)
+
+        if target_block != items.AIR:
             return Status.RUNNING
 
         self.agent.attack(False)
@@ -324,13 +303,13 @@ class AttackAnimal(Action):
         self.specie = specie
 
     def update(self):
-        position = self.agent.observation.get_weakest_animal_position(self.specie)
-        distance = self.agent.observation.get_distance_to_position(position)
+        position = self.agent.observer.get_weakest_animal_position(self.specie)
+        distance = self.agent.observer.get_distance_to_position(position)
 
-        if not self.agent.observation.is_position_within_reach(position):
+        if not self.agent.observer.is_position_within_reach(position):
             return Status.FAILURE
 
-        if not self.agent.observation.is_looking_at_type(self.specie):
+        if not self.agent.observer.is_looking_at_type(self.specie):
             pitching = self.agent.pitch_towards(distance)
             turning = self.agent.turn_towards(distance)
 
@@ -339,11 +318,7 @@ class AttackAnimal(Action):
                 return Status.RUNNING
 
         self.agent.attack(True)
-        if distance is not None:
-            return Status.RUNNING
-
-        self.agent.attack(False)
-        return Status.SUCCESS
+        return Status.RUNNING
 
     def terminate(self, new_status):
         self.agent.stop()
@@ -358,43 +333,28 @@ class PlaceBlockAtPosition(Action):
         self.position_below = position + down_vector
 
     def update(self):
-        distance = self.agent.observation.get_distance_to_discrete_position(self.position_below)
+        distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
 
-        if not self.agent.observation.is_position_within_reach(self.position_below, ATTACK_REACH):
+        if not self.agent.observer.is_position_within_reach(self.position_below, ATTACK_REACH):
             return Status.FAILURE
 
         # Look at
         self.agent.jump(False)
         self.agent.move(0)
 
-        pitching = self.pitch_towards(distance)
-        turning = self.turn_towards(distance)
+        pitching = self.agent.pitch_towards(distance)
+        turning = self.agent.turn_towards(distance)
 
         if pitching or turning:
             return Status.RUNNING
 
-        if not self.agent.observation.is_looking_at_discrete_position(self.position_below):
+        if not self.agent.observer.is_looking_at_discrete_position(self.position_below):
             self.agent.attack(True)
             return Status.RUNNING
 
         self.agent.place_block()
 
         return Status.SUCCESS
-
-    def pitch_towards(self, distance):
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
-        current_pitch = self.agent.observation.pitch
-        pitch_req = get_pitch_change(current_pitch, wanted_pitch)
-        self.agent.pitch(pitch_req)
-        return pitch_req != 0
-
-    def turn_towards(self, distance):
-        wanted_yaw = get_yaw_from_vector(distance)
-        current_yaw = self.agent.observation.yaw
-        turn_direction = get_turn_direction(current_yaw, wanted_yaw)
-        self.agent.turn(turn_direction)
-        return turn_direction != 0
 
     def terminate(self, new_status):
         self.agent.attack(False)
@@ -403,7 +363,6 @@ class PlaceBlockAtPosition(Action):
 # TODO: Refactor to "LookForMaterial" Which will be an exploratory step when looking for materials
 # First it will dig down to a correct height then start digging sideways.
 class DigDownwardsToMaterial(Action):
-    PITCH_DOWNWARDS = 90
 
     def __init__(self, agent, material):
         super(DigDownwardsToMaterial, self).__init__(f"Dig downwards to {material}")
@@ -416,16 +375,16 @@ class DigDownwardsToMaterial(Action):
         if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
             return Status.FAILURE
 
-        position_block = self.agent.observation.get_closest_block(self.material)
+        position_block = self.agent.observer.get_closest_block(self.material)
 
         if position_block is not None:
             return Status.SUCCESS
 
-        position_downwards = self.agent.observation.get_first_block_downwards()
-        distance = self.agent.observation.get_distance_to_discrete_position(position_downwards)
+        position_downwards = self.agent.observer.get_first_block_downwards()
+        distance = self.agent.observer.get_distance_to_discrete_position(position_downwards)
 
         position_center = get_position_center(position_downwards)
-        if not self.agent.observation.is_position_within_reach(position_center):
+        if not self.agent.observer.is_position_within_reach(position_center):
             self.agent.turn_towards(distance)
             turn_direction = self.agent.get_turn_direction(distance)
             self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
@@ -435,7 +394,7 @@ class DigDownwardsToMaterial(Action):
         self.agent.turn(0)
         self.agent.pitch(0)
 
-        if not self.agent.observation.is_looking_at_discrete_position(position_downwards):
+        if not self.agent.observer.is_looking_at_discrete_position(position_downwards):
             self.agent.attack(False)
             pitching = self.agent.pitch_towards(distance)
             turning = self.agent.turn_towards(distance)
@@ -460,11 +419,20 @@ class RunForwardTowardsAnimal(GoToObject):
     def update(self):
         self.agent.jump(False)
 
-        distance = directionVector[Direction.North]
+        position = self.agent.observer.get_abs_pos_discrete() + directionVector[Direction.North]
 
-        self.go_to_position(distance)
+        self.go_to_position(position)
 
         return Status.RUNNING
 
     def terminate(self, new_status):
         self.agent.stop()
+
+
+def list_actions():
+    action_module = sys.modules[__name__]
+    actions = []
+    for actionName, actionObject in inspect.getmembers(action_module):
+        if inspect.isclass(actionObject) and (actionObject is not Action and issubclass(actionObject, Action)):
+            actions.append(actionName)
+    return actions

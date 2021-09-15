@@ -1,12 +1,12 @@
-import os
 import threading
 import tkinter as tk
 
-from items import items
+from malmo import malmoutils
+
 from bt import conditions
 from goals.blueprint import BlueprintType, Blueprint
 from goals.goal import GoalType
-from malmoutils import malmoutils
+from items import items
 from malmoutils.agent import MinerAgent
 from malmoutils.minecraft import run_minecraft
 from runner import Runner
@@ -86,9 +86,6 @@ class MainUI(tk.Frame):
         start_bot_button.pack(side=tk.RIGHT)
 
     def start_bot(self):
-        if "MALMO_XSD_PATH" not in os.environ:
-            print("Please set the MALMO_XSD_PATH environment variable.")
-            return
         self.close_ui()
 
         malmoutils.fix_print()

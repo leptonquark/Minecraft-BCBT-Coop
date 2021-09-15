@@ -3,6 +3,8 @@ import numpy as np
 from world import xmlconstants
 from xml.etree import ElementTree as Et
 
+MAX_HEIGHT = 255
+
 
 class GridSpecification:
     def __init__(self, name, grid_range, is_global):
@@ -25,6 +27,12 @@ class GridSpecification:
 
     def get_grid_size(self):
         return [axis[1] - axis[0] + 1 for axis in self.grid_range]
+
+    def get_list_size(self):
+        list_size = 1
+        for axis_size in self.get_grid_size():
+            list_size *= axis_size
+        return list_size
 
     def contains_position(self, position):
         return np.all(position >= self.grid_range[:, 0]) and np.all(position <= self.grid_range[:, 1])

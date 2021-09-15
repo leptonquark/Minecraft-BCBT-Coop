@@ -1,6 +1,6 @@
 import time
 
-from MalmoPython import AgentHost
+from malmo.MalmoPython import AgentHost
 
 CRAFT_SLEEP = 0.25
 SWAP_SLEEP = 0.25
@@ -63,3 +63,6 @@ class CommandInterface:
             time.sleep(10)
         self.agent_host.killClient(client_info)
         raise MissionTimeoutException(message)
+
+    def quit(self):
+        self.agent_host.sendCommand("quit")
