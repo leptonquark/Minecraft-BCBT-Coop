@@ -1,3 +1,6 @@
+import inspect
+import sys
+
 import numpy as np
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
@@ -8,7 +11,6 @@ from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector, up_vector
 from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
-
 
 HAS_ARRIVED_HORIZONTAL_TOLERANCE = 0.2
 
@@ -425,3 +427,12 @@ class RunForwardTowardsAnimal(GoToObject):
 
     def terminate(self, new_status):
         self.agent.stop()
+
+
+def list_actions():
+    action_module = sys.modules[__name__]
+    actions = []
+    for actionName, actionObject in inspect.getmembers(action_module):
+        if inspect.isclass(actionObject) and (actionObject is not Action and issubclass(actionObject, Action)):
+            actions.append(actionName)
+    return actions

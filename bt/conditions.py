@@ -1,9 +1,14 @@
-from world.observer import get_position_center
+import inspect
+import sys
+
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
-from utils.constants import ATTACK_REACH, PLACING_REACH
 
-#TODO: Move agent setter to here
+from utils.constants import ATTACK_REACH, PLACING_REACH
+from world.observer import get_position_center
+
+
+# TODO: Move agent setter to here
 class Condition(Behaviour):
     def __init__(self, name):
         super(Condition, self).__init__(name)
@@ -117,3 +122,13 @@ class IsBlockAtPosition(Condition):
     def update(self):
         is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
         return Status.SUCCESS if is_block_at_position else Status.FAILURE
+
+
+def list_conditions():
+    condition_module = sys.modules[__name__]
+    conditions = []
+    for conditionName, conditionObject in inspect.getmembers(condition_module):
+        if inspect.isclass(conditionObject) and (
+                conditionObject is not Condition and issubclass(conditionObject, Condition)):
+            conditions.append(conditionName)
+    return conditions
