@@ -1,7 +1,6 @@
 import time
 
 from bt.back_chain_tree import BackChainTree
-from utils.file import create_file_and_write
 from utils.visualisation import save_tree_to_log
 from world.observation import Observation
 from world.world import World
@@ -24,7 +23,7 @@ class Runner:
         self.night_vision = self.world.mission_data.night_vision
 
         self.tree = BackChainTree(self.agent, goals)
-        create_file_and_write(TREE_LOG_FILE_NAME, lambda file: save_tree_to_log(self.tree.root, file))
+        save_tree_to_log(self.tree.root, TREE_LOG_FILE_NAME)
 
         self.last_delta = time.time()
         self.world.start_world()
