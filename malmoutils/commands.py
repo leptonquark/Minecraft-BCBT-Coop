@@ -56,6 +56,9 @@ class CommandInterface:
     def start_mission(self, mission, mission_record):
         self.agent_host.startMission(mission, mission_record)
 
+    def start_multi_agent_mission(self, mission, client_pool, mission_record, role, experiment_id):
+        self.agent_host.startMission(mission, client_pool, mission_record, role, experiment_id)
+
     def restart_minecraft(self, world_state, client_info, message=""):
         """"Attempt to quit world if running and kill the client"""
         if world_state.is_mission_running:

@@ -35,3 +35,7 @@ class BackChainTree:
                 ppa.pre_conditions[i] = ppa_condition.tree
         ppa.create_ppa()
         return ppa.tree
+
+    def print_tip(self):
+        tip = self.root.tip()
+        print(tip.name if tip is not None else "")

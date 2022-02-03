@@ -13,9 +13,11 @@ DESERT_SEED = "400009"
 
 class MissionData:
 
-    def __init__(self, goals):
-        self.name = "SteveBot"
+    def __init__(self, goals, n_agents):
+        self.names = ["SteveBot", "AlexBot"]
         self.summary = "Behaviour Tree Malmo"
+
+        self.n_agents = n_agents
 
         self.seed = DESERT_SEED
         self.ms_per_tick = 50  # Default: 50
@@ -35,7 +37,7 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = True
+        self.force_reset = False
 
         self.start_position = (235.5, 67, 248.5) if self.force_reset else None
         self.start_pitch = 18
@@ -98,16 +100,17 @@ class MissionData:
         default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
 
     def initialize_agent_section(self, mission):
-        agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
-        agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
+        for i in range(self.n_agents):
+            agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
+            agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
 
-        self.initialize_agent_name(agent_section)
-        self.initialize_agent_start(agent_section)
-        self.initialize_agent_handlers(agent_section)
+            self.initialize_agent_name(agent_section, i)
+            self.initialize_agent_start(agent_section)
+            self.initialize_agent_handlers(agent_section)
 
-    def initialize_agent_name(self, agent_section):
+    def initialize_agent_name(self, agent_section, i):
         name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
-        name.text = self.name
+        name.text = self.names[i]
 
     def initialize_agent_start(self, agent_section):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)

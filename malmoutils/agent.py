@@ -122,6 +122,9 @@ class MinerAgent:
     def start_mission(self, mission, mission_record):
         self.interface.start_mission(mission, mission_record)
 
+    def start_multi_agent_mission(self, mission, client_pool, mission_record, role, experiment_id):
+        self.interface.start_multi_agent_mission(mission, client_pool, mission_record, role, experiment_id)
+
     def equip_item(self, item):
         position = self.inventory.find_item(item)
         if position >= HOTBAR_SIZE:
