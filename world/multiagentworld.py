@@ -14,7 +14,7 @@ RECORDING_NAME = "saved_data"
 IP = "127.0.0.1"
 BASE_PORT = 10000
 
-MAX_RETRIES = 3
+MAX_RETRIES = 15
 MAX_RESPONSE_TIME = 60
 
 
@@ -75,7 +75,7 @@ class MultiAgentWorld:
                     print("Error starting world:", e)
                     exit(1)
                 else:
-                    time.sleep(2)
+                    time.sleep(4)
 
     def wait_for_mission(self):
 
