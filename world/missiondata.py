@@ -40,11 +40,9 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = True
+        self.force_reset = False
 
-        #        self.start_position = (235.5, 67, 248.5) if self.force_reset else None
-
-        self.start_positions = [(235.5, 67, 248.5), (255.5, 69, 248.5)]
+        self.start_positions = [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
 
         self.start_pitch = 18
 
@@ -120,7 +118,7 @@ class MissionData:
 
     def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
-        if self.start_positions[i] is not None:
+        if self.start_positions is not None and self.start_positions[i] is not None:
             placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
             placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_positions[i][0]))
             placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_positions[i][1]))

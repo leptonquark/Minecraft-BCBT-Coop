@@ -12,6 +12,13 @@ class MissionTimeoutException(Exception):
 
 
 class CommandInterface:
+
+    def __getstate__(self):
+        return {}
+
+    def __setstate__(self, state):
+        self.agent_host = AgentHost()
+
     def __init__(self):
         self.agent_host = AgentHost()
 

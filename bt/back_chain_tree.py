@@ -4,12 +4,22 @@ from bt.ppa import PPA, condition_to_ppa_tree
 from bt.sequence import Sequence
 from goals.agentless_condition import AgentlessCondition
 from goals.blueprint import Blueprint
+from utils.pickle import tree_to_state, state_to_tree
 
 
 class BackChainTree:
     def __init__(self, agent, goals):
         self.agent = agent
         self.root = self.get_base_back_chain_tree(goals)
+
+    def __getstate__(self):
+        state = {'agent': self.agent, 'root': tree_to_state(self.root)}
+        return state
+
+    def __setstate__(self, state):
+        print("AYOOO")
+        self.agent = state['agent']
+        self.root = state_to_tree(state['root'])
 
     def get_base_back_chain_tree(self, goals):
         children = [JumpIfStuck(self.agent)]

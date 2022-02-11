@@ -28,6 +28,9 @@ class Observer:
         }
 
     def get_grid_local_block(self, position):
+        if self.observation.grid_local is None:
+            return None
+
         return self.observation.grid_local[tuple(position)]
 
     def get_abs_pos_discrete(self):

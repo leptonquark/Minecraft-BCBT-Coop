@@ -52,23 +52,22 @@ class MultiAgentWorld:
         malmoutils.parse_command_line(self.agents[0].get_agent_host(), [''])
 
         self.mission_data = MissionData(goals, [agent.name for agent in self.agents])
-        self.mission = setup_mission(self.mission_data)
-        self.mission_record = setup_mission_record(self.agents[0])
+        mission = setup_mission(self.mission_data)
+        mission_record = setup_mission_record(self.agents[0])
 
-        self.client_info = [ClientInfo(IP, BASE_PORT + i) for i in range(len(agents))]
-        self.pool = setup_pool(self.client_info)
+        client_info = [ClientInfo(IP, BASE_PORT + i) for i in range(len(agents))]
+        pool = setup_pool(client_info)
 
-        self.experiment_id = setup_experiment_id()
+        experiment_id = setup_experiment_id()
 
         for i, agent in enumerate(self.agents):
-            self.start_world(i)
+            self.start_world(mission, pool, mission_record, i, experiment_id)
         self.wait_for_mission()
 
-    def start_world(self, i):
+    def start_world(self, mission, pool, mission_record, i, experiment_id):
         for retry in range(MAX_RETRIES):
             try:
-                self.agents[i].start_multi_agent_mission(self.mission, self.pool, self.mission_record, i,
-                                                         self.experiment_id)
+                self.agents[i].start_multi_agent_mission(mission, pool, mission_record, i, experiment_id)
                 break
             except RuntimeError as e:
                 if retry == MAX_RETRIES - 1:
