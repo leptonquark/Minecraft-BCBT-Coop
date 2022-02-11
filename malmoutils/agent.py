@@ -29,7 +29,8 @@ def get_move_speed(horizontal_distance, turn_direction):
 
 class MinerAgent:
 
-    def __init__(self):
+    def __init__(self, name="SteveBot"):
+        self.name = name
         self.interface = CommandInterface()
         self.observer = None
         self.inventory = None

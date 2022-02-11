@@ -13,11 +13,14 @@ DESERT_SEED = "400009"
 
 class MissionData:
 
-    def __init__(self, goals, n_agents):
-        self.names = ["SteveBot", "AlexBot"]
+    def __init__(self, goals, names=None):
+        if names is None:
+            self.names = ["SteveBot"]
+        else:
+            self.names = names
         self.summary = "Behaviour Tree Malmo"
 
-        self.n_agents = n_agents
+        self.n_agents = len(names)
 
         self.seed = DESERT_SEED
         self.ms_per_tick = 50  # Default: 50
@@ -37,9 +40,12 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = False
+        self.force_reset = True
 
-        self.start_position = (235.5, 67, 248.5) if self.force_reset else None
+        #        self.start_position = (235.5, 67, 248.5) if self.force_reset else None
+
+        self.start_positions = [(235.5, 67, 248.5), (255.5, 69, 248.5)]
+
         self.start_pitch = 18
 
         self.start_time = 6000
@@ -105,20 +111,20 @@ class MissionData:
             agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
 
             self.initialize_agent_name(agent_section, i)
-            self.initialize_agent_start(agent_section)
+            self.initialize_agent_start(agent_section, i)
             self.initialize_agent_handlers(agent_section)
 
     def initialize_agent_name(self, agent_section, i):
         name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
         name.text = self.names[i]
 
-    def initialize_agent_start(self, agent_section):
+    def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
-        if self.start_position is not None:
+        if self.start_positions[i] is not None:
             placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
-            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_position[0]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_position[1]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_position[2]))
+            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_positions[i][0]))
+            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_positions[i][1]))
+            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_positions[i][2]))
             placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
 
     def initialize_agent_handlers(self, agent_section):

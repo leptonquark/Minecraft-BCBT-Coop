@@ -51,7 +51,7 @@ class MultiAgentWorld:
 
         malmoutils.parse_command_line(self.agents[0].get_agent_host(), [''])
 
-        self.mission_data = MissionData(goals, len(agents))
+        self.mission_data = MissionData(goals, [agent.name for agent in self.agents])
         self.mission = setup_mission(self.mission_data)
         self.mission_record = setup_mission_record(self.agents[0])
 

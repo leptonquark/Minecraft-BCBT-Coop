@@ -5,12 +5,14 @@ from malmoutils.agent import MinerAgent
 from malmoutils.minecraft import run_minecraft
 from multiagentrunner import MultiAgentRunner
 
-N_AGENTS = 2
+# agent_names = ["SteveBot"]
+agent_names = ["SteveBot", "AlexBot"]
+N_AGENTS = len(agent_names)
 
 run_minecraft(N_AGENTS)
 
 goals = [AgentlessCondition(HasItemEquipped, [DIAMOND_PICKAXE])]
-agents = [MinerAgent() for _ in range(N_AGENTS)]
+agents = [MinerAgent(name) for name in agent_names]
 
 runner = MultiAgentRunner(agents, goals)
 runner.run_mission()
