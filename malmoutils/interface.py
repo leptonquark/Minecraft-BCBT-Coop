@@ -1,17 +1,32 @@
 import time
 
-from malmo.MalmoPython import AgentHost
+from malmo.MalmoPython import AgentHost, MissionRecordSpec, MissionSpec, ClientPool, ClientInfo
+
+from utils.network import get_ports, get_ip
 
 CRAFT_SLEEP = 0.1
 DISCRETE_USE_SLEEP = 0.1
 HOT_BAR_SLEEP = 0.1
+
+MAX_RETRIES = 15
+MAX_RESPONSE_TIME = 60
+
+
+def setup_pool(n_agents):
+    ports = get_ports(n_agents)
+    ip = get_ip()
+    pool = ClientPool()
+    for port in ports:
+        client = ClientInfo(ip, port)
+        pool.add(client)
+    return pool
 
 
 class MissionTimeoutException(Exception):
     pass
 
 
-class CommandInterface:
+class MalmoInterface:
 
     def __getstate__(self):
         return {}
@@ -62,8 +77,21 @@ class CommandInterface:
     def start_mission(self, mission, mission_record):
         self.agent_host.startMission(mission, mission_record)
 
-    def start_multi_agent_mission(self, mission, client_pool, mission_record, role, experiment_id):
-        self.agent_host.startMission(mission, client_pool, mission_record, role, experiment_id)
+    def start_multi_agent_mission(self, mission_data, i):
+        mission = MissionSpec(mission_data.get_xml(), True)
+        mission_record = MissionRecordSpec()
+        pool = setup_pool(mission_data.n_agents)
+
+        for retry in range(MAX_RETRIES):
+            try:
+                self.agent_host.startMission(mission, pool, mission_record, i, mission_data.experiment_id)
+                break
+            except RuntimeError as e:
+                if retry == MAX_RETRIES - 1:
+                    print("Error starting world:", e)
+                    exit(1)
+                else:
+                    time.sleep(4)
 
     def restart_minecraft(self, world_state, client_info, message=""):
         """"Attempt to quit world if running and kill the client"""
@@ -72,6 +100,21 @@ class CommandInterface:
             time.sleep(10)
         self.agent_host.killClient(client_info)
         raise MissionTimeoutException(message)
+
+    def wait_for_mission(self):
+        print("Waiting for the world to start", end=' ')
+        start_time = time.time()
+        world_state = self.get_world_state()
+        while not world_state.has_mission_begun:
+            print(".", end="")
+            time.sleep(0.1)
+            if time.time() - start_time > MAX_RESPONSE_TIME:
+                print("Max delay exceeded for world to begin")
+                self.restart_minecraft(world_state, "begin world")
+            world_state = self.get_world_state()
+            for error in world_state.errors:
+                print("Error:", error.text)
+        print()
 
     def quit(self):
         self.agent_host.sendCommand("quit")

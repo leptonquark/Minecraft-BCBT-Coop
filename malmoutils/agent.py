@@ -2,7 +2,7 @@ import numpy as np
 
 from items import effects
 from items.inventory import HOTBAR_SIZE
-from malmoutils.commands import CommandInterface
+from malmoutils.interface import MalmoInterface
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
 PITCH_DOWNWARDS = 90
@@ -31,7 +31,7 @@ class MinerAgent:
 
     def __init__(self, name="SteveBot"):
         self.name = name
-        self.interface = CommandInterface()
+        self.interface = MalmoInterface()
         self.observer = None
         self.inventory = None
 
@@ -120,12 +120,6 @@ class MinerAgent:
         self.interface.pitch(0)
         self.interface.turn(0)
 
-    def start_mission(self, mission, mission_record):
-        self.interface.start_mission(mission, mission_record)
-
-    def start_multi_agent_mission(self, mission, client_pool, mission_record, role, experiment_id):
-        self.interface.start_multi_agent_mission(mission, client_pool, mission_record, role, experiment_id)
-
     def equip_item(self, item):
         position = self.inventory.find_item(item)
         if position >= HOTBAR_SIZE:
@@ -133,6 +127,15 @@ class MinerAgent:
             position = PICKAXE_HOT_BAR_POSITION
 
         self.select_on_hotbar(position)
+
+    def start_mission(self, mission, mission_record):
+        self.interface.start_mission(mission, mission_record)
+
+    def start_multi_agent_mission(self, mission_data, i):
+        self.interface.start_multi_agent_mission(mission_data, i)
+
+    def wait_for_mission(self):
+        self.interface.wait_for_mission()
 
     def quit(self):
         self.interface.quit()

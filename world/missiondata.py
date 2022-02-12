@@ -1,3 +1,4 @@
+import uuid
 import xml.etree.ElementTree as Et
 
 import numpy as np
@@ -11,6 +12,12 @@ FOREST_SEED = "-5603130799377933031"
 DESERT_SEED = "400009"
 
 
+def setup_experiment_id():
+    experiment_id = str(uuid.uuid1())
+    print(f"experiment id {experiment_id}")
+    return experiment_id
+
+
 class MissionData:
 
     def __init__(self, goals, names=None):
@@ -18,6 +25,9 @@ class MissionData:
             self.names = ["SteveBot"]
         else:
             self.names = names
+
+        self.experiment_id = setup_experiment_id()
+
         self.summary = "Behaviour Tree Malmo"
 
         self.n_agents = len(names)
