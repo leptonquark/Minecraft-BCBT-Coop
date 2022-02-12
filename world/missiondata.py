@@ -22,9 +22,8 @@ class MissionData:
 
     def __init__(self, goals, agent_names=None):
         if agent_names is None:
-            self.agent_names = ["SteveBot"]
-        else:
-            self.agent_names = agent_names
+            agent_names = ["SteveBot"]
+        self.agent_names = agent_names
 
         self.experiment_id = setup_experiment_id()
 
