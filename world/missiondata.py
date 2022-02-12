@@ -1,3 +1,4 @@
+import uuid
 import xml.etree.ElementTree as Et
 
 import numpy as np
@@ -11,14 +12,27 @@ FOREST_SEED = "-5603130799377933031"
 DESERT_SEED = "400009"
 
 
+def setup_experiment_id():
+    experiment_id = str(uuid.uuid1())
+    print(f"experiment id {experiment_id}")
+    return experiment_id
+
+
 class MissionData:
 
-    def __init__(self, goals):
-        self.name = "SteveBot"
+    def __init__(self, goals, agent_names=None):
+        if agent_names is None:
+            agent_names = ["SteveBot"]
+        self.agent_names = agent_names
+
+        self.experiment_id = setup_experiment_id()
+
         self.summary = "Behaviour Tree Malmo"
 
+        self.n_agents = len(agent_names)
+
         self.seed = DESERT_SEED
-        self.ms_per_tick = 25  # Default: 50
+        self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
@@ -35,13 +49,14 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.start_position = (247.5, 68, 232.5)
+        self.force_reset = False
+
+        self.start_positions = [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
+
         self.start_pitch = 18
 
         self.start_time = 6000
         self.allow_passage_of_time = False
-
-        self.force_reset = True
 
         self.night_vision = True
 
@@ -98,24 +113,25 @@ class MissionData:
         default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
 
     def initialize_agent_section(self, mission):
-        agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
-        agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
+        for i in range(self.n_agents):
+            agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
+            agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
 
-        self.initialize_agent_name(agent_section)
-        self.initialize_agent_start(agent_section)
-        self.initialize_agent_handlers(agent_section)
+            self.initialize_agent_name(agent_section, i)
+            self.initialize_agent_start(agent_section, i)
+            self.initialize_agent_handlers(agent_section)
 
-    def initialize_agent_name(self, agent_section):
+    def initialize_agent_name(self, agent_section, i):
         name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
-        name.text = self.name
+        name.text = self.agent_names[i]
 
-    def initialize_agent_start(self, agent_section):
+    def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
-        if self.start_position is not None:
+        if self.start_positions is not None and self.start_positions[i] is not None:
             placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
-            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_position[0]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_position[1]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_position[2]))
+            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_positions[i][0]))
+            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_positions[i][1]))
+            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_positions[i][2]))
             placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
 
     def initialize_agent_handlers(self, agent_section):

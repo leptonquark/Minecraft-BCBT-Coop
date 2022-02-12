@@ -77,13 +77,15 @@ CACTUS = "cactus"
 
 REEDS = "reeds"
 
+XP_ORB = "XPOrb"
+
 pickups = [
     BEEF,
     MUTTON,
     LOG,
     COAL,
     IRON_ORE,
-    DIAMOND_ORE,
+    DIAMOND,
     COBBLESTONE,
     FURNACE,
     CRAFTING_TABLE

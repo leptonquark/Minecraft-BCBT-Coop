@@ -39,6 +39,7 @@ class Runner:
             observation = Observation(self.agent.get_next_world_state().observations, self.world.mission_data)
             self.agent.set_observation(observation)
             self.tree.root.tick_once()
+            self.print_tip()
             self.check_timeout(self.world, world_state)
 
     def check_timeout(self, world, world_state):
@@ -50,3 +51,7 @@ class Runner:
             if time.time() - self.last_delta > MAX_DELAY:
                 print("Max delay exceeded for world state change")
                 world.restart_minecraft(world_state, "world state change")
+
+    def print_tip(self):
+        tip = self.tree.root.tip()
+        print(tip.name if tip is not None else "")
