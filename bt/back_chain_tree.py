@@ -1,6 +1,6 @@
 from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
-from bt.ppa import PPA, condition_to_ppa_tree
+from bt.ppa import PPA, condition_to_ppa_tree, back_chain_recursive
 from bt.sequence import Sequence
 from goals.agentless_condition import AgentlessCondition
 from goals.blueprint import Blueprint
@@ -51,3 +51,4 @@ class BackChainTree:
     def print_tip(self):
         tip = self.root.tip()
         print(tip.name if tip is not None else "")
+
