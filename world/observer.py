@@ -28,6 +28,9 @@ class Observer:
         }
 
     def get_grid_local_block(self, position):
+        if self.observation.grid_local is None:
+            return None
+
         return self.observation.grid_local[tuple(position)]
 
     def get_abs_pos_discrete(self):
@@ -42,9 +45,14 @@ class Observer:
         if len(positions) > 0:
             distances_vector = positions - self.observation.pos_local_grid
             distances = np.linalg.norm(distances_vector, axis=1)
-            min_dist_arg = np.argmin(distances)
 
-            return self.get_abs_pos_discrete() + distances_vector[min_dist_arg]
+            closest_vectors = distances_vector[(distances == min(distances))]
+            closest_vectors_same_horizontal = closest_vectors[(closest_vectors[:, 1] == 0)]
+            # Prioritize same horizontal level
+            if len(closest_vectors_same_horizontal) > 0:
+                return self.get_abs_pos_discrete() + closest_vectors_same_horizontal[0]
+            else:
+                return self.get_abs_pos_discrete() + closest_vectors[0]
 
     def is_block_observable(self, block_type):
         hits = self.get_hits(block_type)

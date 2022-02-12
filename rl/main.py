@@ -1,6 +1,5 @@
 import os
 
-import gym
 from malmo import malmoutils
 from stable_baselines3 import A2C
 

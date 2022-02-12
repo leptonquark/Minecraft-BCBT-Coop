@@ -224,11 +224,12 @@ class GoToBlock(GoToObject):
         super(GoToBlock, self).__init__(agent, f"Go to {block}")
         self.agent = agent
         self.block = block
-        self.tool = get_gathering_tool(block)
 
     def update(self):
+        tool = get_gathering_tool(self.block)
+
         self.agent.jump(False)
-        if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
+        if tool is not None and not self.agent.inventory.has_item_equipped(tool):
             return Status.FAILURE
 
         discrete_position = self.agent.observer.get_closest_block(self.block)
@@ -259,10 +260,11 @@ class MineMaterial(Action):
         super(MineMaterial, self).__init__(f"Mine {material}")
         self.agent = agent
         self.material = material
-        self.tool = get_gathering_tool(material)
 
     def update(self):
-        if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
+        tool = get_gathering_tool(self.material)
+
+        if tool is not None and not self.agent.inventory.has_item_equipped(tool):
             return Status.FAILURE
 
         discrete_position = self.agent.observer.get_closest_block(self.material)
@@ -371,10 +373,10 @@ class DigDownwardsToMaterial(Action):
         self.agent = agent
         self.material = material
 
-        self.tool = get_gathering_tool(material)
-
     def update(self):
-        if self.tool is not None and not self.agent.inventory.has_item_equipped(self.tool):
+        tool = get_gathering_tool(self.material)
+
+        if tool is not None and not self.agent.inventory.has_item_equipped(tool):
             return Status.FAILURE
 
         position_block = self.agent.observer.get_closest_block(self.material)
