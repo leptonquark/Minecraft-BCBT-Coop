@@ -20,17 +20,17 @@ def setup_experiment_id():
 
 class MissionData:
 
-    def __init__(self, goals, names=None):
-        if names is None:
-            self.names = ["SteveBot"]
+    def __init__(self, goals, agent_names=None):
+        if agent_names is None:
+            self.agent_names = ["SteveBot"]
         else:
-            self.names = names
+            self.agent_names = agent_names
 
         self.experiment_id = setup_experiment_id()
 
         self.summary = "Behaviour Tree Malmo"
 
-        self.n_agents = len(names)
+        self.n_agents = len(agent_names)
 
         self.seed = DESERT_SEED
         self.ms_per_tick = 50  # Default: 50
@@ -124,7 +124,7 @@ class MissionData:
 
     def initialize_agent_name(self, agent_section, i):
         name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
-        name.text = self.names[i]
+        name.text = self.agent_names[i]
 
     def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
