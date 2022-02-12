@@ -2,6 +2,7 @@ import time
 
 from malmoutils.world_state import check_timeout
 from multiagents.multiagentprocess import MultiAgentProcess
+from world.missiondata import MissionData
 from world.observation import Observation
 
 TREE_LOG_FILE_NAME = "../log/tree.txt"
@@ -50,7 +51,10 @@ class MultiAgentRunner:
 
         #        if self.night_vision:
         #            [agent.activate_night_vision() for agent in self.agents]
+        mission_data = MissionData(self.goals, self.agent_names)
 
-        process = MultiAgentProcess(self.agent_names)
-        process.start()
-        process.join()
+        processes = [MultiAgentProcess(mission_data, [self.agent_names[i]], [i]) for i in range(len(self.agent_names))]
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join()

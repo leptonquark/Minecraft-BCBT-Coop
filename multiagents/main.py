@@ -11,6 +11,8 @@ if __name__ == "__main__":
 
     run_minecraft(N_AGENTS)
 
+    cat = None
+
     goals = [AgentlessCondition(HasItemEquipped, [DIAMOND_PICKAXE])]
 
     runner = MultiAgentRunner(agent_names, goals)

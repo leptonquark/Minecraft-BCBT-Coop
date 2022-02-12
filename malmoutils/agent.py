@@ -29,8 +29,9 @@ def get_move_speed(horizontal_distance, turn_direction):
 
 class MinerAgent:
 
-    def __init__(self, name="SteveBot"):
+    def __init__(self, name="SteveBot", role=0):
         self.name = name
+        self.role = role
         self.interface = MalmoInterface()
         self.observer = None
         self.inventory = None
@@ -131,8 +132,8 @@ class MinerAgent:
     def start_mission(self, mission, mission_record):
         self.interface.start_mission(mission, mission_record)
 
-    def start_multi_agent_mission(self, mission_data, i):
-        self.interface.start_multi_agent_mission(mission_data, i)
+    def start_multi_agent_mission(self, mission_data, role):
+        self.interface.start_multi_agent_mission(mission_data, role)
 
     def wait_for_mission(self):
         self.interface.wait_for_mission()

@@ -87,8 +87,8 @@ class MalmoInterface:
                 self.agent_host.startMission(mission, pool, mission_record, i, mission_data.experiment_id)
                 break
             except RuntimeError as e:
+                print("Error starting world:", e)
                 if retry == MAX_RETRIES - 1:
-                    print("Error starting world:", e)
                     exit(1)
                 else:
                     time.sleep(4)
