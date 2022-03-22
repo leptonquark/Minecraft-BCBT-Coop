@@ -13,6 +13,12 @@ class Condition(Behaviour):
     def __init__(self, name):
         super(Condition, self).__init__(name)
 
+    def update(self):
+        return Status.SUCCESS if self.verify() else Status.FAILURE
+
+    def verify(self):
+        raise NotImplementedError("Please Implement this method")
+
 
 class HasItem(Condition):
     def __init__(self, agent, item, amount=1):
@@ -21,11 +27,8 @@ class HasItem(Condition):
         self.item = item
         self.amount = amount
 
-    def update(self):
-        if self.agent.inventory.has_item(self.item, self.amount):
-            return Status.SUCCESS
-        else:
-            return Status.FAILURE
+    def verify(self):
+        return self.agent.inventory.has_item(self.item, self.amount)
 
 
 class HasItemEquipped(Condition):
@@ -34,11 +37,8 @@ class HasItemEquipped(Condition):
         self.agent = agent
         self.item = item
 
-    def update(self):
-        if self.agent.inventory.has_item_equipped(self.item):
-            return Status.SUCCESS
-        else:
-            return Status.FAILURE
+    def verify(self):
+        return self.agent.inventory.has_item(self.item)
 
 
 class HasPickupNearby(Condition):
@@ -47,8 +47,8 @@ class HasPickupNearby(Condition):
         self.agent = agent
         self.item = item
 
-    def update(self):
-        return Status.SUCCESS if self.agent.observer.has_pickup_nearby(self.item) else Status.FAILURE
+    def verify(self):
+        return self.agent.observer.has_pickup_nearby(self.item)
 
 
 class IsBlockWithinReach(Condition):
@@ -66,15 +66,24 @@ class IsBlockWithinReach(Condition):
         position_center = get_position_center(discrete_position)
         return Status.SUCCESS if self.agent.observer.is_position_within_reach(position_center) else Status.FAILURE
 
+    def verify(self):
+        discrete_position = self.agent.observer.get_closest_block(self.block_type)
+        if discrete_position is None:
+            return False
+
+        position_center = get_position_center(discrete_position)
+        return self.agent.observer.is_position_within_reach(position_center)
+
 
 class IsBlockObservable(Condition):
+
     def __init__(self, agent, block):
         super(IsBlockObservable, self).__init__(f"Is Block Observable {block}")
         self.agent = agent
         self.block = block
 
-    def update(self):
-        return Status.SUCCESS if self.agent.observer.is_block_observable(self.block) else Status.FAILURE
+    def verify(self):
+        return self.agent.observer.is_block_observable(self.block)
 
 
 class IsPositionWithinReach(Condition):
@@ -84,10 +93,10 @@ class IsPositionWithinReach(Condition):
         self.agent = agent
         self.position = position
 
-    def update(self):
+    def verify(self):
         position_center = get_position_center(self.position)
         has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
-        return Status.SUCCESS if has_arrived else Status.FAILURE
+        return has_arrived
 
 
 class IsAnimalWithinReach(Condition):
@@ -96,10 +105,9 @@ class IsAnimalWithinReach(Condition):
         self.agent = agent
         self.specie = specie
 
-    def update(self):
+    def verify(self):
         position = self.agent.observer.get_weakest_animal_position(self.specie)
-        within_reach = self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
-        return Status.SUCCESS if within_reach else Status.FAILURE
+        return self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
 
 
 class IsAnimalObservable(Condition):
@@ -108,8 +116,8 @@ class IsAnimalObservable(Condition):
         self.agent = agent
         self.specie = specie
 
-    def update(self):
-        return Status.SUCCESS if self.agent.observer.is_animal_observable(self.specie) else Status.FAILURE
+    def verify(self):
+        return self.agent.observer.is_animal_observable(self.specie)
 
 
 class IsBlockAtPosition(Condition):
@@ -119,9 +127,9 @@ class IsBlockAtPosition(Condition):
         self.block = block
         self.position = position
 
-    def update(self):
+    def verify(self):
         is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
-        return Status.SUCCESS if is_block_at_position else Status.FAILURE
+        return is_block_at_position
 
 
 def list_conditions():
