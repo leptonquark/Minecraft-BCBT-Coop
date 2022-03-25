@@ -41,6 +41,26 @@ class HasItemEquipped(Condition):
         return self.agent.inventory.has_item(self.item)
 
 
+class HasPickaxeByMinimumTier(Condition):
+    def __init__(self, agent, tier):
+        super(HasPickaxeByMinimumTier, self).__init__(f"Has Pickaxe of tier {tier} or better")
+        self.agent = agent
+        self.tier = tier
+
+    def verify(self):
+        return self.agent.has_pickaxe_by_minimum_tier(self.tier)
+
+
+class HasPickaxeByMinimumTierEquipped(Condition):
+    def __init__(self, agent, tier):
+        super(HasPickaxeByMinimumTierEquipped, self).__init__(f"Has Pickaxe of tier {tier} or better equipped")
+        self.agent = agent
+        self.tier = tier
+
+    def verify(self):
+        return self.agent.has_pickaxe_by_minimum_tier_equipped(self.tier)
+
+
 class HasPickupNearby(Condition):
     def __init__(self, agent, item):
         super(HasPickupNearby, self).__init__(f"Has Pickup Nearby {item}")

@@ -6,7 +6,6 @@ from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 from items import items
-from items.gathering import get_gathering_tool
 from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH
 from utils.vectors import Direction, directionVector, down_vector, up_vector
@@ -67,6 +66,19 @@ class Equip(Action):
             self.agent.equip_item(self.item)
             return Status.SUCCESS
 
+        return Status.FAILURE
+
+
+class EquipBestPickAxe(Action):
+    def __init__(self, agent, tier):
+        super(EquipBestPickAxe, self).__init__(f"Equip best pickaxe, {tier} or better")
+        self.agent = agent
+        self.tier = tier
+
+    def update(self):
+        if self.agent.has_pickaxe_by_minimum_tier(self.tier):
+            self.agent.equip_best_pickaxe(self.tier)
+            return Status.SUCCESS
         return Status.FAILURE
 
 
@@ -226,11 +238,7 @@ class GoToBlock(GoToObject):
         self.block = block
 
     def update(self):
-        tool = get_gathering_tool(self.block)
-
         self.agent.jump(False)
-        if tool is not None and not self.agent.inventory.has_item_equipped(tool):
-            return Status.FAILURE
 
         discrete_position = self.agent.observer.get_closest_block(self.block)
         if discrete_position is None:
@@ -262,10 +270,6 @@ class MineMaterial(Action):
         self.material = material
 
     def update(self):
-        tool = get_gathering_tool(self.material)
-
-        if tool is not None and not self.agent.inventory.has_item_equipped(tool):
-            return Status.FAILURE
 
         discrete_position = self.agent.observer.get_closest_block(self.material)
 
@@ -374,11 +378,6 @@ class DigDownwardsToMaterial(Action):
         self.material = material
 
     def update(self):
-        tool = get_gathering_tool(self.material)
-
-        if tool is not None and not self.agent.inventory.has_item_equipped(tool):
-            return Status.FAILURE
-
         position_block = self.agent.observer.get_closest_block(self.material)
 
         if position_block is not None:

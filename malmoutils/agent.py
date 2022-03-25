@@ -79,7 +79,6 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
-    # TODO Jump, Attack, Move, Turn, Select on Hotbar, Swap Items and Pitch should probably be removed
     def jump(self, active):
         self.interface.jump(active)
 
@@ -128,6 +127,16 @@ class MinerAgent:
             position = PICKAXE_HOT_BAR_POSITION
 
         self.select_on_hotbar(position)
+
+    def equip_best_pickaxe(self, tier):
+        pickaxe = self.inventory.get_best_pickaxe(tier)
+        self.equip_item(pickaxe)
+
+    def has_pickaxe_by_minimum_tier(self, tier):
+        return self.inventory.has_pickaxe_by_minimum_tier(tier)
+
+    def has_pickaxe_by_minimum_tier_equipped(self, tier):
+        return self.inventory.has_pickaxe_by_minimum_tier_equipped(tier)
 
     def start_mission(self, mission, mission_record):
         self.interface.start_mission(mission, mission_record)

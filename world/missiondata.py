@@ -32,7 +32,7 @@ class MissionData:
         self.n_agents = len(agent_names)
 
         self.seed = DESERT_SEED
-        self.ms_per_tick = 50  # Default: 50
+        self.ms_per_tick = 25  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
@@ -49,7 +49,7 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = False
+        self.force_reset = True
 
         self.start_positions = [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
 

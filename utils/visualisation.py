@@ -14,14 +14,6 @@ def render_tree(root):
     src = graphviz.Source(tree_dot)
     src.render('tree.gv', format='png', view=True)
 
-
-def tree_to_drawio_xml(root):
-   # tree_dot = tree_to_dot(root)
-   # rough_drawio = graphviz2drawio.convert(tree_dot)
-   # return prettify_xml(rough_drawio)
-   pass
-
-
 def tree_to_dot(root):
     graph = pydot.Dot(graph_type='digraph', ordering="out", )
     graph.set_name(root.name)

@@ -4,6 +4,8 @@ import time
 from bt.back_chain_tree import BackChainTree
 from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
+from utils.string import tree_to_string
+from utils.visualisation import save_tree_to_log
 from world.observation import Observation
 
 
@@ -26,6 +28,7 @@ class MultiAgentProcess(mp.Process):
             agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.goals)
+        save_tree_to_log(tree.root, "steel_pickaxe")
 
         last_delta = time.time()
 
@@ -36,4 +39,6 @@ class MultiAgentProcess(mp.Process):
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             tree.root.tick_once()
+            print(tree_to_string(tree.root))
+#            print(tree.root.tip().name)
             last_delta = check_timeout(agent, world_state, last_delta)

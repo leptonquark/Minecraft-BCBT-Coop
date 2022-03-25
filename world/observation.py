@@ -277,7 +277,6 @@ def get_game_object_ordinal(game_object):
     if game_object is None:
         return -1
     if game_object not in game_objects:
-        print(f"Object {game_object} has not been added to the game objects list")
         return -1
     else:
         return game_objects.index(game_object)
