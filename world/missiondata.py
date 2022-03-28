@@ -3,6 +3,7 @@ import xml.etree.ElementTree as Et
 
 import numpy as np
 
+from items import items
 from goals.blueprint import Blueprint
 from utils.string import prettify_xml
 from world import xmlconstants
@@ -32,7 +33,7 @@ class MissionData:
         self.n_agents = len(agent_names)
 
         self.seed = DESERT_SEED
-        self.ms_per_tick = 25  # Default: 50
+        self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
         self.commands = [
@@ -68,6 +69,8 @@ class MissionData:
         self.grids_global = []
         if isinstance(goals, Blueprint):
             self.grids_global.append(goals.get_required_grid("global"))
+
+        self.start_inventory = [items.DIAMOND_PICKAXE]
 
     def get_xml(self):
         mission = Et.Element(xmlconstants.ELEMENT_MISSION)
@@ -133,6 +136,14 @@ class MissionData:
             placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_positions[i][1]))
             placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_positions[i][2]))
             placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
+
+            if self.start_inventory is not None and len(self.start_inventory) > 0:
+                inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
+                for i, item in enumerate(self.start_inventory):
+                    item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
+                    item_element.set(xmlconstants.ATTRIBUTE_TYPE, item)
+                    item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(i))
+
 
     def initialize_agent_handlers(self, agent_section):
         agent_handlers = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_HANDLERS)

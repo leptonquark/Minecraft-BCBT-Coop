@@ -39,6 +39,6 @@ class MultiAgentProcess(mp.Process):
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             tree.root.tick_once()
-            print(tree_to_string(tree.root))
+            #print(tree_to_string(tree.root))
 #            print(tree.root.tip().name)
             last_delta = check_timeout(agent, world_state, last_delta)

@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 from items import effects
@@ -102,6 +104,7 @@ class MinerAgent:
         fuel_position = self.inventory.find_item(fuel)
         if fuel_position != FUEL_HOT_BAR_POSITION:
             self.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
+        time.sleep(0.2)
         self.craft(item, amount)
 
     def select_on_hotbar(self, position):
