@@ -38,7 +38,7 @@ class HasItemEquipped(Condition):
         self.item = item
 
     def verify(self):
-        return self.agent.inventory.has_item(self.item)
+        return self.agent.inventory.has_item_equipped(self.item)
 
 
 class HasPickaxeByMinimumTier(Condition):
