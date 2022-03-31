@@ -52,7 +52,7 @@ def condition_to_ppa_tree(agent, condition):
         return LookForAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsBlockAtPosition):
         return PlaceBlockPPA(agent, condition.block, condition.position)
-    elif isinstance(condition, conditions.HasPickaxeByMinimumTierEquipped):
+    elif isinstance(condition, conditions.HasBestPickaxeByMinimumTierEquipped):
         return EquipPickaxePPA(agent, condition.tier)
     elif isinstance(condition, conditions.HasPickaxeByMinimumTier):
         return CraftPickaxePPA(agent, condition.tier)
@@ -175,7 +175,7 @@ class MinePPA(PPA):
 
         tier = get_gathering_tier_by_material(material)
         if tier is not None:
-            self.pre_conditions.insert(0, conditions.HasPickaxeByMinimumTierEquipped(agent, tier))
+            self.pre_conditions.insert(0, conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier))
         self.action = actions.MineMaterial(agent, material)
 
 
@@ -224,7 +224,7 @@ class EquipPickaxePPA(PPA):
         super(EquipPickaxePPA, self).__init__()
         self.name = f"Equip Pickaxe of tier {tier}"
         self.agent = agent
-        self.post_condition = conditions.HasPickaxeByMinimumTierEquipped(agent, tier)
+        self.post_condition = conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier)
         self.action = actions.EquipBestPickAxe(agent, tier)
         self.pre_conditions = [conditions.HasPickaxeByMinimumTier(agent, tier)]
 

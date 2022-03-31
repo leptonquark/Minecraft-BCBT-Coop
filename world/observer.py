@@ -6,10 +6,10 @@ from utils.vectors import center_vector, Direction, directionAngle, directionVec
     up_vector, flat_center_vector, BlockFace
 
 DELTA_ANGLES = 45
-GATHERING_REACH = 3
+GATHERING_REACH = 2.5
 YAW_TOLERANCE = 15
 PITCH_TOLERANCE = 3
-MAX_PITCH = 0.5
+MAX_PITCH = 0.8
 
 
 class Observer:

@@ -51,14 +51,14 @@ class HasPickaxeByMinimumTier(Condition):
         return self.agent.has_pickaxe_by_minimum_tier(self.tier)
 
 
-class HasPickaxeByMinimumTierEquipped(Condition):
+class HasBestPickaxeByMinimumTierEquipped(Condition):
     def __init__(self, agent, tier):
-        super(HasPickaxeByMinimumTierEquipped, self).__init__(f"Has Pickaxe of tier {tier} or better equipped")
+        super(HasBestPickaxeByMinimumTierEquipped, self).__init__(f"Has Pickaxe of tier {tier} or better equipped")
         self.agent = agent
         self.tier = tier
 
     def verify(self):
-        return self.agent.has_pickaxe_by_minimum_tier_equipped(self.tier)
+        return self.agent.has_best_pickaxe_by_minimum_tier_equipped(self.tier)
 
 
 class HasPickupNearby(Condition):

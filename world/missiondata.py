@@ -70,7 +70,8 @@ class MissionData:
         if isinstance(goals, Blueprint):
             self.grids_global.append(goals.get_required_grid("global"))
 
-        self.start_inventory = [items.DIAMOND_PICKAXE]
+        self.start_inventory = None
+        # self.start_inventory = [items.IRON_ORE, items.IRON_ORE, items.IRON_ORE, items.CRAFTING_TABLE, items.STICKS, items.STICKS, items.COAL, items.COAL, items.COAL, items.FURNACE]
 
     def get_xml(self):
         mission = Et.Element(xmlconstants.ELEMENT_MISSION)

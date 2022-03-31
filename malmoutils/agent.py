@@ -138,8 +138,8 @@ class MinerAgent:
     def has_pickaxe_by_minimum_tier(self, tier):
         return self.inventory.has_pickaxe_by_minimum_tier(tier)
 
-    def has_pickaxe_by_minimum_tier_equipped(self, tier):
-        return self.inventory.has_pickaxe_by_minimum_tier_equipped(tier)
+    def has_best_pickaxe_by_minimum_tier_equipped(self, tier):
+        return self.inventory.has_best_pickaxe_by_minimum_tier_equipped(tier)
 
     def start_mission(self, mission, mission_record):
         self.interface.start_mission(mission, mission_record)
