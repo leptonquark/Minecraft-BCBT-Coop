@@ -229,7 +229,7 @@ class Observer:
 
 
 def get_position_center(block_position):
-    return np.around(block_position + center_vector) - center_vector
+    return np.around(block_position) + center_vector
 
 
 def round_move(move):

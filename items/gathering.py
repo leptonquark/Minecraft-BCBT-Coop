@@ -1,6 +1,6 @@
-from items import items
 from enum import Enum
 
+from items import items
 from utils.dicts import invert_dict
 
 
@@ -52,7 +52,8 @@ def get_gathering_tier_by_material(material):
 ores = {
     items.COBBLESTONE: items.STONE,
     items.COAL: items.COAL_ORE,
-    items.DIAMOND: items.DIAMOND_ORE
+    items.DIAMOND: items.DIAMOND_ORE,
+    items.LOG: items.LOG_2
 }
 
 

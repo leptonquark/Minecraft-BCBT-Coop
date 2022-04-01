@@ -3,15 +3,13 @@ import xml.etree.ElementTree as Et
 
 import numpy as np
 
-from items import items
 from goals.blueprint import Blueprint
 from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
 
-FOREST_SEED = "-5603130799377933031"
 DESERT_SEED = "400009"
-
+PLAIN_SEED = "4000020"
 
 def setup_experiment_id():
     experiment_id = str(uuid.uuid1())
@@ -32,7 +30,7 @@ class MissionData:
 
         self.n_agents = len(agent_names)
 
-        self.seed = DESERT_SEED
+        self.seed = PLAIN_SEED
         self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
@@ -50,10 +48,10 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = True
+        self.force_reset = False
 
-        self.start_positions = [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
-
+        # self.start_positions = None # [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
+        self.start_positions = [[140, 71, -11]]
         self.start_pitch = 18
 
         self.start_time = 6000
