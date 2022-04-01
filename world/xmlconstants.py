@@ -25,11 +25,17 @@ ELEMENT_GRID = "Grid"
 ELEMENT_GRID_MIN = "min"
 ELEMENT_GRID_MAX = "max"
 
+ELEMENT_INVENTORY = "Inventory"
+ELEMENT_INVENTORY_ITEM = "InventoryItem"
+
 ATTRIBUTE_XMLNS = "xmlns"
 ATTRIBUTE_XSI = "xmlns:xsi"
 
 ATTRIBUTE_SEED = "seed"
 ATTRIBUTE_GAME_MODE = "mode"
+
+ATTRIBUTE_TYPE = "type"
+ATTRIBUTE_SLOT = "slot"
 
 ATTRIBUTE_GRID_NAME = "name"
 ATTRIBUTE_GRID_GLOBAL = "absoluteCoords"

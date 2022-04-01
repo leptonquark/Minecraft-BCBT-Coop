@@ -5,7 +5,7 @@ from py_trees.composites import Selector
 import bt.actions as actions
 import bt.conditions as conditions
 from bt.sequence import Sequence
-from items.gathering import get_gathering_tool
+from items.gathering import get_gathering_tier_by_material, get_pickaxe
 from items.recipes import get_recipe, RecipeType
 from mobs.animals import get_loot_source
 from mobs.hunting import get_hunting_tool
@@ -52,6 +52,10 @@ def condition_to_ppa_tree(agent, condition):
         return LookForAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsBlockAtPosition):
         return PlaceBlockPPA(agent, condition.block, condition.position)
+    elif isinstance(condition, conditions.HasBestPickaxeByMinimumTierEquipped):
+        return EquipPickaxePPA(agent, condition.tier)
+    elif isinstance(condition, conditions.HasPickaxeByMinimumTier):
+        return CraftPickaxePPA(agent, condition.tier)
     return None
 
 
@@ -130,6 +134,21 @@ class PickupPPA(PPA):
         self.action = actions.PickupItem(agent, material)
 
 
+class CraftPickaxePPA(PPA):
+    def __init__(self, agent, tier):
+        super(CraftPickaxePPA, self).__init__()
+        self.name = f"Craft pickaxe for gathering {tier.name}"
+        self.post_condition = conditions.HasPickaxeByMinimumTier(agent, tier)
+        minimum_pickaxe = get_pickaxe(tier)
+        recipe = get_recipe(minimum_pickaxe)
+        if recipe is not None:
+            if recipe.station:
+                self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
+            for ingredient in recipe.ingredients:
+                self.pre_conditions.append(conditions.HasItem(agent, ingredient.item, ingredient.amount))
+        self.action = actions.Craft(agent, minimum_pickaxe, 1)
+
+
 class ExplorePPA(PPA):
     def __init__(self, agent, material):
         super(ExplorePPA, self).__init__()
@@ -153,9 +172,10 @@ class MinePPA(PPA):
         self.name = f"Mine {material}"
         self.post_condition = conditions.HasPickupNearby(agent, material)
         self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
-        tool = get_gathering_tool(material)
-        if tool is not None:
-            self.pre_conditions.insert(0, conditions.HasItemEquipped(agent, tool))
+
+        tier = get_gathering_tier_by_material(material)
+        if tier is not None:
+            self.pre_conditions.insert(0, conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier))
         self.action = actions.MineMaterial(agent, material)
 
 
@@ -197,6 +217,16 @@ class EquipPPA(PPA):
         self.post_condition = conditions.HasItemEquipped(agent, item)
         self.action = actions.Equip(agent, item)
         self.pre_conditions = [conditions.HasItem(agent, item)]
+
+
+class EquipPickaxePPA(PPA):
+    def __init__(self, agent, tier):
+        super(EquipPickaxePPA, self).__init__()
+        self.name = f"Equip Pickaxe of tier {tier}"
+        self.agent = agent
+        self.post_condition = conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier)
+        self.action = actions.EquipBestPickAxe(agent, tier)
+        self.pre_conditions = [conditions.HasPickaxeByMinimumTier(agent, tier)]
 
 
 class PlaceBlockPPA(PPA):

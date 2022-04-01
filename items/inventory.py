@@ -1,4 +1,5 @@
 from items import items
+from items.gathering import get_sufficient_pickaxes, get_gathering_tier_by_pickaxe
 
 from items.recipes import get_ingredients
 
@@ -74,17 +75,25 @@ class Inventory:
 
     def has_ingredients(self, item):
         ingredients = get_ingredients(item)
-
-        for ingredient in ingredients:
-            if not self.has_item(ingredient.item, ingredient.amount):
-                return False
-        return True
+        return all(self.has_item(ingredient.item, ingredient.amount) for ingredient in ingredients)
 
     def get_fuel(self):
-        for fuel in fuels:
-            if self.has_item(fuel):
-                return fuel
-        return None
+        return next((fuel for fuel in fuels if self.has_item(fuel)), None)
+
+    def has_pickaxe_by_minimum_tier(self, min_tier):
+        sufficient_pickaxes = get_sufficient_pickaxes(min_tier)
+        return any(self.has_item(pickaxe) for pickaxe in sufficient_pickaxes)
+
+    def has_best_pickaxe_by_minimum_tier_equipped(self, min_tier):
+        best_pickaxe = self.get_best_pickaxe(min_tier)
+        return self.inventory[self.current_selection].item == best_pickaxe
+
+    def get_best_pickaxe(self, min_tier):
+        sufficient_pickaxes = get_sufficient_pickaxes(min_tier)
+        available_pickaxes = [pickaxe for pickaxe in sufficient_pickaxes if self.has_item(pickaxe)]
+        if len(available_pickaxes) == 0:
+            return None
+        return max(available_pickaxes, key=lambda pickaxe: get_gathering_tier_by_pickaxe(pickaxe).value)
 
 
 class InventorySlot:
