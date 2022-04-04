@@ -10,10 +10,11 @@ from world.observation import Observation
 
 class MultiAgentProcess(mp.Process):
 
-    def __init__(self, mission_data, role, goals):
+    def __init__(self, mission_data, goals, blackboard, role):
         super(MultiAgentProcess, self).__init__()
         self.mission_data = mission_data
         self.goals = goals
+        self.blackboard = blackboard
         self.role = role
 
     def run(self):
@@ -27,7 +28,7 @@ class MultiAgentProcess(mp.Process):
             agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.goals)
-        save_tree_to_log(tree.root, "steel_pickaxe")
+        save_tree_to_log(tree, "steel_pickaxe")
 
         last_delta = time.time()
 
@@ -37,8 +38,7 @@ class MultiAgentProcess(mp.Process):
             world_state = agent.get_next_world_state()
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
-            tree.root.tick_once()
+            tree.tick()
             tree.print_tip()
-            # print(tree_to_string(tree.root))
             # tree.print_tree()
             last_delta = check_timeout(agent, world_state, last_delta)

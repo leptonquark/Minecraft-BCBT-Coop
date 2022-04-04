@@ -38,10 +38,10 @@ directionVector = {
     Direction.West: np.array([-1, 0, 0])
 }
 
-up_vector = np.array([0, 1, 0])
-down_vector = np.array([0, -1, 0])
-flat_center_vector = np.array([0.5, 0, 0.5])
-center_vector = np.array([0.5, 0.5, 0.5])
+up = np.array([0, 1, 0])
+down = np.array([0, -1, 0])
+flat_center = np.array([0.5, 0, 0.5])
+center = np.array([0.5, 0.5, 0.5])
 
 
 def radians_to_degrees(rad):

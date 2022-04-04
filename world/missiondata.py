@@ -11,6 +11,7 @@ from world.grid import GridSpecification
 DESERT_SEED = "400009"
 PLAIN_SEED = "4000020"
 
+
 def setup_experiment_id():
     experiment_id = str(uuid.uuid1())
     print(f"experiment id {experiment_id}")
@@ -141,7 +142,6 @@ class MissionData:
                     item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
                     item_element.set(xmlconstants.ATTRIBUTE_TYPE, item)
                     item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(i))
-
 
     def initialize_agent_handlers(self, agent_section):
         agent_handlers = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_HANDLERS)

@@ -3,7 +3,7 @@ import malmo.minecraftbootstrap
 # TODO: Remove Hardcoded line and move to a config file
 from utils.network import get_ports
 
-INSTALL_DIR = "C:\Malmo-0.37.0-Windows-64bit_withBoost_Python3.7"
+INSTALL_DIR = "C:\\Malmo-0.37.0-Windows-64bit_withBoost_Python3.7"
 
 
 def run_minecraft(n_clients=None):

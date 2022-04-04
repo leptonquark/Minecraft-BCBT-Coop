@@ -25,7 +25,7 @@ def setup_mission(mission_data):
     return mission
 
 
-def setup_mission_record(agent):
+def setup_mission_record():
     mission_record = MissionRecordSpec()
     return mission_record
 
@@ -52,7 +52,7 @@ class World:
 
         self.mission_data = MissionData(goals)
         self.mission = setup_mission(self.mission_data)
-        self.mission_record = setup_mission_record(agent)
+        self.mission_record = setup_mission_record()
 
         self.client_info = ClientInfo(IP, PORT)
         self.pool = setup_pool(self.client_info)

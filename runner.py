@@ -22,7 +22,7 @@ class Runner:
         self.night_vision = self.world.mission_data.night_vision
 
         self.tree = BackChainTree(self.agent, goals)
-        save_tree_to_log(self.tree.root, TREE_LOG_FILE_NAME)
+        save_tree_to_log(self.tree, TREE_LOG_FILE_NAME)
 
         self.last_delta = time.time()
         self.world.start_world()
@@ -38,7 +38,7 @@ class Runner:
         while world_state is not None and world_state.is_mission_running:
             observation = Observation(self.agent.get_next_world_state().observations, self.world.mission_data)
             self.agent.set_observation(observation)
-            self.tree.root.tick_once()
+            self.tree.tick()
             self.check_timeout(self.world, world_state)
 
     def check_timeout(self, world, world_state):

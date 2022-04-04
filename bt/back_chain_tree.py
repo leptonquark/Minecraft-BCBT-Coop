@@ -11,7 +11,7 @@ from utils.string import tree_to_string
 class BackChainTree:
     def __init__(self, agent, goals):
         self.agent = agent
-        self.root = self.get_base_back_chain_tree(goals)
+        self.root = self.back_chain(goals)
 
     def __getstate__(self):
         state = {'agent': self.agent, 'root': tree_to_state(self.root)}
@@ -21,7 +21,7 @@ class BackChainTree:
         self.agent = state['agent']
         self.root = state_to_tree(state['root'])
 
-    def get_base_back_chain_tree(self, goals):
+    def back_chain(self, goals):
         children = [JumpIfStuck(self.agent)]
         if isinstance(goals, Blueprint):
             goals = goals.as_conditions(self.agent)
@@ -37,6 +37,9 @@ class BackChainTree:
                         goal_ppa_tree.setup_with_descendants()
                         children.append(goal_ppa_tree)
         return Sequence("BaseTree", children=children)
+
+    def tick(self):
+        self.root.tick_once()
 
     def print_tip(self):
         tip = self.root.tip()

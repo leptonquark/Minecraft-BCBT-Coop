@@ -2,8 +2,7 @@ import numpy as np
 
 from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
-from utils.vectors import center_vector, Direction, directionAngle, directionVector, radians_to_degrees, CIRCLE_DEGREES, \
-    up_vector, flat_center_vector, BlockFace
+from utils import vectors
 
 DELTA_ANGLES = 45
 GATHERING_REACH = 2.5
@@ -18,13 +17,13 @@ class Observer:
         self.hits = {}
 
         self.lower_surroundings = self.get_surroundings(self.observation.pos_local_grid)
-        self.upper_surroundings = self.get_surroundings(self.observation.pos_local_grid + up_vector)
-        self.upper_upper_surroundings = self.get_surroundings(self.observation.pos_local_grid + 2 * up_vector)
+        self.upper_surroundings = self.get_surroundings(self.observation.pos_local_grid + vectors.up)
+        self.upper_upper_surroundings = self.get_surroundings(self.observation.pos_local_grid + 2 * vectors.up)
 
     def get_surroundings(self, central_position):
         return {
-            direction: self.get_grid_local_block(central_position + directionVector[direction])
-            for direction in Direction
+            direction: self.get_grid_local_block(central_position + vectors.directionVector[direction])
+            for direction in vectors.Direction
         }
 
     def get_grid_local_block(self, position):
@@ -75,7 +74,7 @@ class Observer:
     def get_first_block_downwards(self):
         check_position = np.copy(self.observation.pos_local_grid)
         while self.observation.grid_local[tuple(check_position)] in traversable:
-            check_position -= up_vector
+            check_position -= vectors.up
         return self.get_abs_pos_discrete() - self.observation.pos_local_grid + check_position
 
     def is_position_within_reach(self, position, reach=GATHERING_REACH):
@@ -106,7 +105,7 @@ class Observer:
         return None
 
     def get_distance_to_discrete_position(self, discrete_position):
-        position_center = discrete_position + flat_center_vector
+        position_center = discrete_position + vectors.flat_center
         return position_center - self.observation.abs_pos
 
     def get_rounded_distance_to_position(self, position):
@@ -129,29 +128,29 @@ class Observer:
 
         # Calculate which face of the cube we are looking at. In case of corners it will be prioritized by x, y then z.
         # TODO: Make this work for non-full-size-blocks.
-        los_face = BlockFace.NoFace
+        los_face = vectors.BlockFace.NoFace
         if self.observation.los_pos[0] == int(self.observation.los_pos[0]):
             if 0 <= self.observation.yaw <= 180:
-                los_face = BlockFace.East
+                los_face = vectors.BlockFace.East
             else:
-                los_face = BlockFace.West
+                los_face = vectors.BlockFace.West
         elif self.observation.los_pos[1] == int(self.observation.los_pos[1]):
             if self.observation.pitch > 0:
-                los_face = BlockFace.Up
+                los_face = vectors.BlockFace.Up
             else:
-                los_face = BlockFace.Down
+                los_face = vectors.BlockFace.Down
         elif self.observation.los_pos[2] == int(self.observation.los_pos[2]):
             if 90 <= self.observation.yaw <= 270:
-                los_face = BlockFace.South
+                los_face = vectors.BlockFace.South
             else:
-                los_face = BlockFace.North
+                los_face = vectors.BlockFace.North
 
         los_pos_discrete = np.floor(self.observation.los_pos)
-        if los_face == BlockFace.East:
+        if los_face == vectors.BlockFace.East:
             los_pos_discrete[0] -= 1
-        elif los_face == BlockFace.Up:
+        elif los_face == vectors.BlockFace.Up:
             los_pos_discrete[1] -= 1
-        elif los_face == BlockFace.South:
+        elif los_face == vectors.BlockFace.South:
             los_pos_discrete[2] -= 1
         return los_pos_discrete
 
@@ -187,22 +186,22 @@ class Observer:
     def is_stuck(self):
         if self.lower_surroundings is None:
             return False
-        position_traversable = self.lower_surroundings[Direction.Zero] in traversable + narrow
+        position_traversable = self.lower_surroundings[vectors.Direction.Zero] in traversable + narrow
         return not position_traversable
 
     def is_animal_observable(self, specie):
         return self.observation.animals and any(animal.specie == specie for animal in self.observation.animals)
 
     def get_current_direction(self):
-        for key in directionAngle:
-            check_angle = directionAngle[key]
+        for key in vectors.directionAngle:
+            check_angle = vectors.directionAngle[key]
             diff = check_angle - self.observation.yaw
             if diff <= 0:
                 diff += 360
 
-            if diff <= DELTA_ANGLES or diff >= CIRCLE_DEGREES - DELTA_ANGLES:
+            if diff <= DELTA_ANGLES or diff >= vectors.CIRCLE_DEGREES - DELTA_ANGLES:
                 return key
-        return Direction.South
+        return vectors.Direction.South
 
     def get_turn_direction(self, distance):
         wanted_angle = get_yaw_from_vector(distance)
@@ -211,17 +210,17 @@ class Observer:
         if diff <= 0:
             diff += 360
 
-        if diff <= YAW_TOLERANCE or diff >= CIRCLE_DEGREES - YAW_TOLERANCE:
+        if diff <= YAW_TOLERANCE or diff >= vectors.CIRCLE_DEGREES - YAW_TOLERANCE:
             return 0
         else:
-            half_circle = CIRCLE_DEGREES / 2
+            half_circle = vectors.CIRCLE_DEGREES / 2
             if diff <= half_circle:
                 return diff / half_circle
             else:
-                return (diff - CIRCLE_DEGREES) / half_circle
+                return (diff - vectors.CIRCLE_DEGREES) / half_circle
 
     def get_pitch_change(self, wanted_pitch):
-        quarter_circle = CIRCLE_DEGREES / 4
+        quarter_circle = vectors.CIRCLE_DEGREES / 4
         diff = self.observation.pitch - wanted_pitch
         if np.abs(diff) <= PITCH_TOLERANCE:
             return 0
@@ -230,7 +229,7 @@ class Observer:
 
 
 def get_position_center(block_position):
-    return np.around(block_position) + center_vector
+    return np.around(block_position) + vectors.center
 
 
 def round_move(move):
@@ -244,19 +243,19 @@ def get_horizontal_distance(distance):
 def get_wanted_direction(move):
     if np.abs(move[2]) >= np.abs(move[0]):
         if move[2] > 0:
-            wanted_direction = Direction.South
+            wanted_direction = vectors.Direction.South
         else:
-            wanted_direction = Direction.North
+            wanted_direction = vectors.Direction.North
     else:
         if move[0] > 0:
-            wanted_direction = Direction.East
+            wanted_direction = vectors.Direction.East
         else:
-            wanted_direction = Direction.West
+            wanted_direction = vectors.Direction.West
     return wanted_direction
 
 
 def get_yaw_from_direction(direction):
-    return directionAngle[direction]
+    return vectors.directionAngle[direction]
 
 
 def get_yaw_from_vector(move):
@@ -264,20 +263,20 @@ def get_yaw_from_vector(move):
     flat_move[1] = 0.0
     normalized_move = flat_move / np.linalg.norm(flat_move)
 
-    south_angle = directionVector[Direction.South]
+    south_angle = vectors.directionVector[vectors.Direction.South]
     dot_product_south = np.dot(normalized_move, south_angle)
 
-    east_angle = directionVector[Direction.East]
+    east_angle = vectors.directionVector[vectors.Direction.East]
     dot_product_east = np.dot(normalized_move, east_angle)
 
     cos_angle = np.clip(dot_product_south, -1.0, 1.0)
     angle = np.arccos(cos_angle)
-    angle = radians_to_degrees(angle)
+    angle = vectors.radians_to_degrees(angle)
     if dot_product_east > 0:
-        angle = CIRCLE_DEGREES - angle
+        angle = vectors.CIRCLE_DEGREES - angle
     return angle
 
 
 def get_wanted_pitch(dist_direction, delta_y):
     pitch = -np.arctan(delta_y / dist_direction)
-    return radians_to_degrees(pitch)
+    return vectors.radians_to_degrees(pitch)
