@@ -1,7 +1,7 @@
 import numpy as np
 
 from items.gathering import get_ore
-from items.items import traversable, narrow
+from items.items import traversable, narrow, get_variants
 from utils.vectors import center_vector, Direction, directionAngle, directionVector, radians_to_degrees, CIRCLE_DEGREES, \
     up_vector, flat_center_vector, BlockFace
 
@@ -82,9 +82,10 @@ class Observer:
         return position is not None and np.linalg.norm(self.get_distance_to_discrete_position(position)) <= reach
 
     def is_block_at_position(self, position, block):
+        variants = get_variants(block)
         if self.is_position_local(position):
-            return self.get_block_at_position_from_local(position) == block
-        return self.get_block_at_position_from_global(position) == block
+            return self.get_block_at_position_from_local(position) in variants
+        return self.get_block_at_position_from_global(position) in variants
 
     def is_position_local(self, position):
         grid_pos = self.observation.pos_local_grid + self.get_rounded_distance_to_position(position)

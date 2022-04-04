@@ -48,10 +48,10 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = False
+        self.force_reset = True
 
         # self.start_positions = None # [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
-        self.start_positions = [[140, 71, -11]]
+        self.start_positions = [[131, 71, 17], [117, 72, 13]]
         self.start_pitch = 18
 
         self.start_time = 6000
@@ -69,7 +69,6 @@ class MissionData:
             self.grids_global.append(goals.get_required_grid("global"))
 
         self.start_inventory = None
-        # self.start_inventory = [items.IRON_ORE, items.IRON_ORE, items.IRON_ORE, items.CRAFTING_TABLE, items.STICKS, items.STICKS, items.COAL, items.COAL, items.COAL, items.FURNACE]
 
     def get_xml(self):
         mission = Et.Element(xmlconstants.ELEMENT_MISSION)

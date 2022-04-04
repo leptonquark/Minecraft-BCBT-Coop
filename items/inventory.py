@@ -1,6 +1,6 @@
 from items import items
 from items.gathering import get_sufficient_pickaxes, get_gathering_tier_by_pickaxe
-from items.items import VARIANTS
+from items.items import get_variants
 from items.recipes import get_ingredients, get_recipe
 
 NO_SELECTION = -1
@@ -68,12 +68,13 @@ class Inventory:
         if self.inventory is None:
             return 0
         else:
-            variants = [item] + VARIANTS.get(item, [])
+            variants = get_variants(item)
             return sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item in variants)
 
     def find_item(self, item):
+        variants = get_variants(item)
         for i, inventory_slot in enumerate(self.inventory):
-            if inventory_slot.item == item:
+            if inventory_slot.item in variants:
                 return i
         return None
 

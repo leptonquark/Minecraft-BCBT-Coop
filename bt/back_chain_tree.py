@@ -1,10 +1,11 @@
 from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
-from bt.ppa import PPA, condition_to_ppa_tree, back_chain_recursive
+from bt.ppa import back_chain_recursive
 from bt.sequence import Sequence
 from goals.agentless_condition import AgentlessCondition
 from goals.blueprint import Blueprint
 from utils.pickle import tree_to_state, state_to_tree
+from utils.string import tree_to_string
 
 
 class BackChainTree:
@@ -37,9 +38,9 @@ class BackChainTree:
                         children.append(goal_ppa_tree)
         return Sequence("BaseTree", children=children)
 
-
-
     def print_tip(self):
         tip = self.root.tip()
         print(tip.name if tip is not None else "")
 
+    def print_tree(self):
+        print(tree_to_string(self.root))

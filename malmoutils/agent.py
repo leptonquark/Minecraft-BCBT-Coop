@@ -137,7 +137,7 @@ class MinerAgent:
 
     def equip_item(self, item):
         position = self.inventory.find_item(item)
-        if position >= HOTBAR_SIZE:
+        if position is not None and position >= HOTBAR_SIZE:
             self.swap_items(position, PICKAXE_HOT_BAR_POSITION)
             position = PICKAXE_HOT_BAR_POSITION
 
