@@ -151,7 +151,7 @@ class Observation:
         self.animals = None
         self.pickups = None
 
-        if observations is None or len(observations) == 0:
+        if observations is None or not observations:
             print("Observations is null or empty")
             return
 
@@ -219,7 +219,6 @@ class Observation:
         los_pos_vector = self.get_los_pos_vector()
         los_type_vector = np.array([get_game_object_ordinal(self.los_type)])
         direction_vector = self.get_direction_vector()
-        # inventory_vector = self.get_inventory_vector()
 
         obs_vector = np.hstack((
             grid_vector,

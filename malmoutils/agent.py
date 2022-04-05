@@ -32,9 +32,9 @@ def get_move_speed(horizontal_distance, turn_direction):
 
 class MinerAgent:
 
-    def __init__(self, name="SteveBot", role=0):
+    def __init__(self, blackboard, name="SteveBot"):
         self.name = name
-        self.role = role
+        self.blackboard = blackboard
         self.interface = MalmoInterface()
         self.observer = None
         self.inventory = None
@@ -104,7 +104,7 @@ class MinerAgent:
 
     def craft(self, item, amount=1):
         variants = self.inventory.get_variants(item)
-        if len(variants) > 0:
+        if variants:
             variant = variants[0]
         else:
             variant = None

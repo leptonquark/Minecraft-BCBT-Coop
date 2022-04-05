@@ -7,6 +7,8 @@ class Receiver(Condition):
         self.blackboard = blackboard
         self.channel = channel
         self.value = value
+        print(f"Receiver {self.channel} {self.value}")
 
     def verify(self):
-        return self.blackboard[self.channel] == self.value
+        print(f"Receiver {self.channel} {self.value}")
+        return self.blackboard.get(self.channel) == self.value

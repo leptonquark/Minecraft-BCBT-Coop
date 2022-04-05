@@ -1,10 +1,11 @@
 from goals.blueprint import Blueprint, BlueprintType
-from multiagentrunner import MultiAgentRunner
+from malmoutils.minecraft import run_minecraft
+from multiagents.multiagentrunner import MultiAgentRunner
 
 if __name__ == "__main__":
     # agent_names = ["SteveBot"]
     agent_names = ["SteveBot", "AlexBot"]
-    # run_minecraft(n_clients=len(agent_names))
+    run_minecraft(n_clients=len(agent_names))
 
     # goals = [AgentlessCondition(HasItemEquipped, [items.DIAMOND_PICKAXE])]
     # goals = [AgentlessCondition(HasItem, [items.WOODEN_FENCE, 4])]

@@ -66,7 +66,6 @@ class MalmoInterface:
         time.sleep(HOT_BAR_SLEEP)
 
     def craft(self, item, variant=None):
-        print(item, variant)
         if variant is None:
             self.agent_host.sendCommand(f"craft {item}")
         else:

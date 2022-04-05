@@ -136,7 +136,7 @@ class MissionData:
             placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_positions[i][2]))
             placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
 
-            if self.start_inventory is not None and len(self.start_inventory) > 0:
+            if self.start_inventory is not None and self.start_inventory:
                 inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
                 for i, item in enumerate(self.start_inventory):
                     item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)

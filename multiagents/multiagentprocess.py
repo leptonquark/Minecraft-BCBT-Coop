@@ -19,7 +19,7 @@ class MultiAgentProcess(mp.Process):
 
     def run(self):
         agent_name = self.mission_data.agent_names[self.role]
-        agent = MinerAgent(agent_name)
+        agent = MinerAgent(self.blackboard, agent_name)
 
         agent.start_multi_agent_mission(self.mission_data, self.role)
         agent.wait_for_mission()
@@ -39,6 +39,7 @@ class MultiAgentProcess(mp.Process):
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             tree.tick()
-            tree.print_tip()
+            # tree.print_tip()
             # tree.print_tree()
+            print(self.blackboard)
             last_delta = check_timeout(agent, world_state, last_delta)

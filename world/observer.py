@@ -3,6 +3,7 @@ import numpy as np
 from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
 from utils import vectors
+from utils.vectors import get_los_face
 
 DELTA_ANGLES = 45
 GATHERING_REACH = 2.5
@@ -41,14 +42,14 @@ class Observer:
             return None
 
         positions = np.argwhere(hits)
-        if len(positions) > 0:
+        if positions.size > 0:
             distances_vector = positions - self.observation.pos_local_grid
             distances = np.linalg.norm(distances_vector, axis=1)
 
             closest_vectors = distances_vector[(distances == min(distances))]
             closest_vectors_same_horizontal = closest_vectors[(closest_vectors[:, 1] == 0)]
             # Prioritize same horizontal level
-            if len(closest_vectors_same_horizontal) > 0:
+            if closest_vectors_same_horizontal.size > 0:
                 return self.get_abs_pos_discrete() + closest_vectors_same_horizontal[0]
             else:
                 return self.get_abs_pos_discrete() + closest_vectors[0]
@@ -126,24 +127,7 @@ class Observer:
         if self.observation.los_pos is None:
             return None
 
-        # Calculate which face of the cube we are looking at. In case of corners it will be prioritized by x, y then z.
-        # TODO: Make this work for non-full-size-blocks.
-        los_face = vectors.BlockFace.NoFace
-        if self.observation.los_pos[0] == int(self.observation.los_pos[0]):
-            if 0 <= self.observation.yaw <= 180:
-                los_face = vectors.BlockFace.East
-            else:
-                los_face = vectors.BlockFace.West
-        elif self.observation.los_pos[1] == int(self.observation.los_pos[1]):
-            if self.observation.pitch > 0:
-                los_face = vectors.BlockFace.Up
-            else:
-                los_face = vectors.BlockFace.Down
-        elif self.observation.los_pos[2] == int(self.observation.los_pos[2]):
-            if 90 <= self.observation.yaw <= 270:
-                los_face = vectors.BlockFace.South
-            else:
-                los_face = vectors.BlockFace.North
+        los_face = get_los_face(self.observation.los_pos, self.observation.yaw, self.observation.pitch)
 
         los_pos_discrete = np.floor(self.observation.los_pos)
         if los_face == vectors.BlockFace.East:

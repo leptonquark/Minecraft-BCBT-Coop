@@ -371,7 +371,11 @@ class PlaceBlockAtPosition(Action):
 
         self.agent.place_block()
 
-        return Status.SUCCESS
+        is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
+        if is_block_at_position:
+            return Status.SUCCESS
+        else:
+            return Status.FAILURE
 
     def terminate(self, new_status):
         self.agent.attack(False)
