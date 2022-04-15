@@ -145,5 +145,4 @@ class IsBlockAtPosition(Condition):
         self.position = position
 
     def verify(self):
-        is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
-        return is_block_at_position
+        return self.agent.observer.is_block_at_position(self.position, self.block)

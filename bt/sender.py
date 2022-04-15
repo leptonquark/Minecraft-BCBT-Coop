@@ -30,6 +30,5 @@ class StopSender(Sender):
         super(StopSender, self).__init__(blackboard, channel, False)
 
     def update(self):
-        print(f"StopSender ticked: {self.channel}")
         super(StopSender, self).update()
         return Status.SUCCESS

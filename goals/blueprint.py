@@ -10,6 +10,7 @@ from world.grid import GridSpecification
 class BlueprintType(Enum):
     Fence = 0
     StraightFence = 1
+    Points = 2
 
 
 class Blueprint:
@@ -23,7 +24,7 @@ class Blueprint:
         return GridSpecification(name, grid_ranges, True)
 
     def as_conditions(self, agent):
-        return [IsBlockAtPosition(agent, items.WOODEN_FENCE, position) for position in self.positions]
+        return [IsBlockAtPosition(agent, self.material, position) for position in self.positions]
 
     @staticmethod
     def get_blueprint(blueprint_type, start_position):
@@ -46,17 +47,20 @@ class Blueprint:
                 ])
             )
         elif blueprint_type == BlueprintType.StraightFence:
+            length = 9
+            positions = [[0, 0, i] for i in range(length)]
+            return Blueprint(
+                material=items.WOODEN_FENCE,
+                positions=np.array(start_position) + np.array(positions)
+            )
+        elif blueprint_type == BlueprintType.Points:
             return Blueprint(
                 material=items.WOODEN_FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
-                    [0, 0, 1],
-                    [0, 0, 2],
-                    [0, 0, 3],
-                    [0, 0, 4],
                     [0, 0, 5],
-                    [0, 0, 6],
-                    [0, 0, 7],
-                    [0, 0, 8]
+                    [0, 0, -5],
+                    [5, 0, 0],
+                    [-5, 0, 0]
                 ])
             )

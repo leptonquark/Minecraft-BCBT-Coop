@@ -3,12 +3,24 @@ from bt.conditions import Condition
 
 class Receiver(Condition):
     def __init__(self, blackboard, channel, value=True):
-        super(Receiver, self).__init__(f"Is {channel} fulfilled")
+        super(Condition, self).__init__(f"Is {channel} fulfilled")
         self.blackboard = blackboard
         self.channel = channel
         self.value = value
-        print(f"Receiver {self.channel} {self.value}")
 
     def verify(self):
-        print(f"Receiver {self.channel} {self.value}")
         return self.blackboard.get(self.channel) == self.value
+
+
+class InverseReceiver(Condition):
+    def __init__(self, blackboard, channel, values=None):
+        if values is None:
+            values = [False]
+        super(Condition, self).__init__(f"Is {channel} not in {values}")
+        self.blackboard = blackboard
+        self.channel = channel
+        self.values = values
+
+    def verify(self):
+        # print(f"Receiver {self.channel} values:  {self.blackboard.get(self.channel)}")
+        return self.blackboard.get(self.channel, False) not in self.values

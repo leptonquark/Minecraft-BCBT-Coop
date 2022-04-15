@@ -4,8 +4,8 @@ from py_trees.composites import Selector
 
 import bt.actions as actions
 import bt.conditions as conditions
-from bt.receiver import Receiver
-from bt.sender import StartSender, StopSender
+from bt.receiver import InverseReceiver
+from bt.sender import StopSender, Sender
 from bt.sequence import Sequence
 from items.gathering import get_gathering_tier_by_material, get_pickaxe
 from items.recipes import get_recipe, RecipeType
@@ -227,7 +227,7 @@ class PlaceBlockPPA(PPA):
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
         self.pre_conditions = [
             conditions.HasItemEquipped(agent, block),
-            StartSender(agent.blackboard, self.channel),
+            Sender(agent.blackboard, self.channel, self.agent.name),
             conditions.IsPositionWithinReach(agent, position),
 
         ]
@@ -240,11 +240,13 @@ class PlaceBlockPPA(PPA):
         if self.actions is None:
             return None
 
-        receiver = Receiver(self.agent.blackboard, self.channel, True)
+        receiver = InverseReceiver(self.agent.blackboard, self.channel, [False, self.agent.name])
 
         tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
         if self.post_condition is not None:
-            tree = Selector(name=f"Postcondition Handler {self.name}", children=[self.post_condition, receiver, tree])
+            tree = Selector(name=f"Postcondition Handler {self.name}", children=[
+                Sequence(children=[self.post_condition, StopSender(self.agent.blackboard, self.channel)]), receiver,
+                tree])
         tree.name = f"PPA {self.name}"
         return tree
 
