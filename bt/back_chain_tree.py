@@ -1,3 +1,5 @@
+from py_trees.common import Status
+
 from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
 from bt.ppa import back_chain_recursive
@@ -47,3 +49,6 @@ class BackChainTree:
 
     def print_tree(self):
         print(tree_to_string(self.root))
+
+    def all_goals_achieved(self):
+        return self.root.status == Status.SUCCESS

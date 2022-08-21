@@ -31,15 +31,16 @@ class MultiAgentProcess(mp.Process):
         save_tree_to_log(tree, "steel_pickaxe")
 
         last_delta = time.time()
+        start = time.time()
 
         world_state = agent.get_next_world_state()
 
-        while world_state is not None and world_state.is_mission_running:
+        while world_state is not None and world_state.is_mission_running and not tree.all_goals_achieved():
             world_state = agent.get_next_world_state()
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             tree.tick()
             # tree.print_tip()
             # tree.print_tree()
-            print(self.blackboard)
             last_delta = check_timeout(agent, world_state, last_delta)
+        print(f"Total time: {time.time() - start} \n")

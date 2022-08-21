@@ -10,7 +10,8 @@ from world.grid import GridSpecification
 class BlueprintType(Enum):
     Fence = 0
     StraightFence = 1
-    Points = 2
+    PointCross = 2
+    PointGrid = 3
 
 
 class Blueprint:
@@ -53,7 +54,7 @@ class Blueprint:
                 material=items.WOODEN_FENCE,
                 positions=np.array(start_position) + np.array(positions)
             )
-        elif blueprint_type == BlueprintType.Points:
+        elif blueprint_type == BlueprintType.PointCross:
             return Blueprint(
                 material=items.WOODEN_FENCE,
                 positions=np.array(start_position) + np.array([
@@ -62,5 +63,21 @@ class Blueprint:
                     [0, 0, -5],
                     [5, 0, 0],
                     [-5, 0, 0]
+                ])
+            )
+        elif blueprint_type == BlueprintType.PointGrid:
+            return Blueprint(
+                material=items.WOODEN_FENCE,
+                positions=np.array(start_position) + np.array([
+                    [0, 0, 0],
+                    [0, 0, 5],
+                    [0, 0, -5],
+                    [5, 0, 0],
+                    [5, 0, 5],
+                    [5, 0, -5],
+                    [-5, 0, 0],
+                    [-5, 0, 5],
+                    [-5, 0, -5],
+
                 ])
             )

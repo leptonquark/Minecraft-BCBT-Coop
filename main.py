@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     # goals = [AgentlessCondition(HasItemEquipped, [items.DIAMOND_PICKAXE])]
     # goals = [AgentlessCondition(HasItem, [items.WOODEN_FENCE, 4])]
-    goals = Blueprint.get_blueprint(BlueprintType.Points, [136, 71, 11])
+    goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
 
     runner = MultiAgentRunner(agent_names, goals)
     runner.run_mission_async()
