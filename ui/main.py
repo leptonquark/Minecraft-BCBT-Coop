@@ -90,7 +90,7 @@ class MainUI(tk.Frame):
 
         malmoutils.fix_print()
 
-        agent = MinerAgent()
+        agent = MinerAgent({})
         goals = self.get_goals(agent)
 
         player = Runner(agent, goals)

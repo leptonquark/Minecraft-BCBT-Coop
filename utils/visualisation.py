@@ -8,8 +8,8 @@ from bt.sequence import Sequence
 from utils.file import create_file_and_write
 
 
-def render_tree(root):
-    tree_dot = tree_to_dot(root)
+def render_tree(tree):
+    tree_dot = tree_to_dot(tree.root)
     src = graphviz.Source(tree_dot)
     src.render('tree.gv', format='png', view=True)
 
