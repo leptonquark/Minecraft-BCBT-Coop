@@ -111,7 +111,10 @@ class GoToObject(Action):
         flat_distance[1] = 0
 
         if np.linalg.norm(flat_distance) <= DIG_DOWNWARDS_HORIZONTAL_TOLERANCE:
-            self.mine_downwards()
+            if distance[1] < 0:
+                self.mine_downwards()
+            else:
+                self.mine_upwards()
             return
 
         self.agent.turn_towards(distance)
@@ -142,6 +145,15 @@ class GoToObject(Action):
 
         looking_downwards = self.agent.pitch_downwards()
         if not looking_downwards:
+            self.agent.attack(False)
+            return
+        self.agent.attack(True)
+
+    def mine_upwards(self):
+        self.agent.move(0)
+
+        looking_upwards = self.agent.pitch_upwards()
+        if not looking_upwards:
             self.agent.attack(False)
             return
         self.agent.attack(True)
