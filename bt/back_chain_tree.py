@@ -1,16 +1,19 @@
+from py_trees.common import Status
+
 from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
-from bt.ppa import PPA, condition_to_ppa_tree, back_chain_recursive
+from bt.ppa import back_chain_recursive
 from bt.sequence import Sequence
 from goals.agentless_condition import AgentlessCondition
 from goals.blueprint import Blueprint
 from utils.pickle import tree_to_state, state_to_tree
+from utils.string import tree_to_string
 
 
 class BackChainTree:
     def __init__(self, agent, goals):
         self.agent = agent
-        self.root = self.get_base_back_chain_tree(goals)
+        self.root = self.back_chain(goals)
 
     def __getstate__(self):
         state = {'agent': self.agent, 'root': tree_to_state(self.root)}
@@ -20,7 +23,7 @@ class BackChainTree:
         self.agent = state['agent']
         self.root = state_to_tree(state['root'])
 
-    def get_base_back_chain_tree(self, goals):
+    def back_chain(self, goals):
         children = [JumpIfStuck(self.agent)]
         if isinstance(goals, Blueprint):
             goals = goals.as_conditions(self.agent)
@@ -37,9 +40,15 @@ class BackChainTree:
                         children.append(goal_ppa_tree)
         return Sequence("BaseTree", children=children)
 
-
+    def tick(self):
+        self.root.tick_once()
 
     def print_tip(self):
         tip = self.root.tip()
         print(tip.name if tip is not None else "")
 
+    def print_tree(self):
+        print(tree_to_string(self.root))
+
+    def all_goals_achieved(self):
+        return self.root.status == Status.SUCCESS

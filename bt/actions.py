@@ -1,6 +1,3 @@
-import inspect
-import sys
-
 import numpy as np
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
@@ -8,7 +5,7 @@ from py_trees.common import Status
 from items import items
 from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH
-from utils.vectors import Direction, directionVector, down_vector, up_vector
+from utils.vectors import Direction, directionVector, down, up
 from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
 
 DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
@@ -111,7 +108,10 @@ class GoToObject(Action):
         flat_distance[1] = 0
 
         if np.linalg.norm(flat_distance) <= DIG_DOWNWARDS_HORIZONTAL_TOLERANCE:
-            self.mine_downwards()
+            if distance[1] < 0:
+                self.mine_downwards()
+            else:
+                self.mine_upwards()
             return
 
         self.agent.turn_towards(distance)
@@ -146,8 +146,17 @@ class GoToObject(Action):
             return
         self.agent.attack(True)
 
+    def mine_upwards(self):
+        self.agent.move(0)
+
+        looking_upwards = self.agent.pitch_upwards()
+        if not looking_upwards:
+            self.agent.attack(False)
+            return
+        self.agent.attack(True)
+
     def mine_forward(self, vertical_distance, wanted_direction):
-        distance_to_block = directionVector[wanted_direction] + vertical_distance * up_vector
+        distance_to_block = directionVector[wanted_direction] + vertical_distance * up
         block_position = self.agent.observer.get_abs_pos_discrete() + distance_to_block
 
         if not self.agent.observer.is_looking_at_discrete_position(block_position):
@@ -338,7 +347,7 @@ class PlaceBlockAtPosition(Action):
         self.agent = agent
         self.block = block
         self.position = position
-        self.position_below = position + down_vector
+        self.position_below = position + down
 
     def update(self):
         distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
@@ -362,7 +371,11 @@ class PlaceBlockAtPosition(Action):
 
         self.agent.place_block()
 
-        return Status.SUCCESS
+        is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
+        if is_block_at_position:
+            return Status.SUCCESS
+        else:
+            return Status.FAILURE
 
     def terminate(self, new_status):
         self.agent.attack(False)
@@ -431,11 +444,3 @@ class RunForwardTowardsAnimal(GoToObject):
     def terminate(self, new_status):
         self.agent.stop()
 
-
-def list_actions():
-    action_module = sys.modules[__name__]
-    actions = []
-    for action_name, action_object in inspect.getmembers(action_module):
-        if inspect.isclass(action_object) and (action_object is not Action and issubclass(action_object, Action)):
-            actions.append(action_name)
-    return actions

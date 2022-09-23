@@ -7,6 +7,7 @@ from items.inventory import HOTBAR_SIZE
 from malmoutils.interface import MalmoInterface
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
+PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
@@ -31,9 +32,9 @@ def get_move_speed(horizontal_distance, turn_direction):
 
 class MinerAgent:
 
-    def __init__(self, name="SteveBot", role=0):
+    def __init__(self, blackboard, name="SteveBot"):
         self.name = name
-        self.role = role
+        self.blackboard = blackboard
         self.interface = MalmoInterface()
         self.observer = None
         self.inventory = None
@@ -78,6 +79,11 @@ class MinerAgent:
         self.interface.pitch(pitch_req)
         return pitch_req == 0
 
+    def pitch_upwards(self):
+        pitch_req = self.observer.get_pitch_change(PITCH_UPWARDS)
+        self.interface.pitch(pitch_req)
+        return pitch_req == 0
+
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
@@ -97,8 +103,14 @@ class MinerAgent:
         self.interface.turn(intensity)
 
     def craft(self, item, amount=1):
+        variants = self.inventory.get_variants(item)
+        if variants:
+            variant = variants[0]
+        else:
+            variant = None
+
         for _ in range(amount):
-            self.interface.craft(item)
+            self.interface.craft(item, variant)
 
     def melt(self, item, fuel, amount=1):
         fuel_position = self.inventory.find_item(fuel)
@@ -125,7 +137,7 @@ class MinerAgent:
 
     def equip_item(self, item):
         position = self.inventory.find_item(item)
-        if position >= HOTBAR_SIZE:
+        if position is not None and position >= HOTBAR_SIZE:
             self.swap_items(position, PICKAXE_HOT_BAR_POSITION)
             position = PICKAXE_HOT_BAR_POSITION
 

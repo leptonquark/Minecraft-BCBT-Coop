@@ -90,7 +90,7 @@ class MainUI(tk.Frame):
 
         malmoutils.fix_print()
 
-        agent = MinerAgent()
+        agent = MinerAgent({})
         goals = self.get_goals(agent)
 
         player = Runner(agent, goals)
@@ -98,7 +98,7 @@ class MainUI(tk.Frame):
 
     def get_goals(self, agent):
         if self.goal_variable.get() == GoalType.Blueprint.name:
-            return Blueprint.get_blueprint(BlueprintType[self.blueprint_variable.get()])
+            return Blueprint.get_blueprint(BlueprintType[self.blueprint_variable.get()], [209, 65, 238])
         else:
             if self.condition_variable.get() == "HasItem":
                 return [conditions.HasItem(agent, self.item_variable.get())]
@@ -112,11 +112,12 @@ class MainUI(tk.Frame):
     def save_configuration(self):
         data = {
             storage.GOAL_TYPE_DATA_NAME: self.goal_variable.get(),
-            storage.CONDITION_TYPE_DATA_NAME : self.condition_variable.get(),
+            storage.CONDITION_TYPE_DATA_NAME: self.condition_variable.get(),
             storage.ITEM_TYPE_DATA_NAME: self.item_variable.get(),
             storage.BLUEPRINT_TYPE_DATA_NAME: self.blueprint_variable.get()
         }
         storage.save_data(data)
+
 
 def run_minecraft_async():
     threading.Thread(target=run_minecraft, daemon=True).start()

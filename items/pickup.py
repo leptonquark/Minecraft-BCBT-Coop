@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.vectors import flat_center_vector
+from utils.vectors import flat_center
 
 
 class PickUp:
@@ -10,7 +10,7 @@ class PickUp:
         self.position = np.array([x, y, z])
 
     def get_centralized_position(self):
-        centralized_vector = np.round(self.position - flat_center_vector) + flat_center_vector
+        centralized_vector = np.round(self.position - flat_center) + flat_center
         centralized_vector[1] = self.position[1]
         return centralized_vector
 

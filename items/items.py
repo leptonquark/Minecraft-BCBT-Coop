@@ -44,6 +44,7 @@ DIAMOND_PICKAXE = "diamond_pickaxe"
 WOODEN_SWORD = "wooden_sword"
 
 WOODEN_FENCE = "fence"
+ACACIA_FENCE = "acacia_fence"
 
 CRAFTING_TABLE = "crafting_table"
 FURNACE = "furnace"
@@ -62,7 +63,6 @@ CHEST = "chest"
 
 BROWN_MUSHROOM = "brown_mushroom"
 RED_MUSHROOM = "red_mushroom"
-
 
 DEAD_BUSH = "deadbush"
 
@@ -91,6 +91,13 @@ pickups = [
     CRAFTING_TABLE
 ]
 
+
+def get_variants(item):
+    return [item] + VARIANTS.get(item, [])
+
+
+VARIANTS = {WOODEN_FENCE: [ACACIA_FENCE]}
+
 traversable = [AIR, PLANT, TALL_GRASS, FLOWER_YELLOW, FLOWER_RED, WATER]
-narrow = [WOODEN_FENCE]
-unclimbable = [WOODEN_FENCE]
+narrow = get_variants(WOODEN_FENCE)
+unclimbable = get_variants(WOODEN_FENCE)

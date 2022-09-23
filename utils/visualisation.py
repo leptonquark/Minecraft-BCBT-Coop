@@ -1,6 +1,5 @@
 import graphviz
 import pydot
-# from graphviz2drawio import graphviz2drawio
 from py_trees.composites import Selector
 
 from bt.actions import Action
@@ -9,10 +8,11 @@ from bt.sequence import Sequence
 from utils.file import create_file_and_write
 
 
-def render_tree(root):
-    tree_dot = tree_to_dot(root)
+def render_tree(tree):
+    tree_dot = tree_to_dot(tree.root)
     src = graphviz.Source(tree_dot)
     src.render('tree.gv', format='png', view=True)
+
 
 def tree_to_dot(root):
     graph = pydot.Dot(graph_type='digraph', ordering="out", )
@@ -58,7 +58,7 @@ def tree_to_drawio_csv(tree):
     }
     csv = [f"# {key}: {value}" for key, value in graph_attributes.items()]
     csv.append("id,step,shape,fontsize,spacingbottom,refs")
-    csv += subtree_to_csv(tree, None)
+    csv += subtree_to_csv(tree.root, None)
 
     return "\n".join(csv)
 

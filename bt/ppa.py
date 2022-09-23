@@ -4,6 +4,8 @@ from py_trees.composites import Selector
 
 import bt.actions as actions
 import bt.conditions as conditions
+from bt.receiver import InverseReceiver
+from bt.sender import StopSender, Sender
 from bt.sequence import Sequence
 from items.gathering import get_gathering_tier_by_material, get_pickaxe
 from items.recipes import get_recipe, RecipeType
@@ -32,14 +34,14 @@ def condition_to_ppa_tree(agent, condition):
                 return MeltPPA(agent, condition.item, condition.amount)
             else:
                 return CraftPPA(agent, condition.item, condition.amount)
-    elif isinstance(condition, conditions.HasItemEquipped):
-        return EquipPPA(agent, condition.item)
     elif isinstance(condition, conditions.HasPickupNearby):
         source = get_loot_source(condition.item)
         if source is None:
             return MinePPA(agent, condition.item)
         else:
             return HuntPPA(agent, condition.item)
+    elif isinstance(condition, conditions.HasItemEquipped):
+        return EquipPPA(agent, condition.item)
     elif isinstance(condition, conditions.IsBlockWithinReach):
         return GoToBlockPPA(agent, condition.block_type)
     elif isinstance(condition, conditions.IsPositionWithinReach):
@@ -65,29 +67,16 @@ class PPA:
         self.name = ""
         self.post_condition = None
         self.pre_conditions = []
-        self.action = None
+        self.actions = None
 
     def as_tree(self):
-        if self.action is None:
+        if self.actions is None:
             return None
 
-        if len(self.pre_conditions) > 0:
-            sub_tree = Sequence(
-                name=f"Precondition Handler {self.name}",
-                children=self.pre_conditions + [self.action]
-            )
-        else:
-            sub_tree = self.action
+        tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
         if self.post_condition is not None:
-            tree = Selector(
-                name=f"Postcondition Handler {self.name}",
-                children=[self.post_condition, sub_tree]
-            )
-        else:
-            tree = sub_tree
-
+            tree = Selector(name=f"Postcondition Handler {self.name}", children=[self.post_condition, tree])
         tree.name = f"PPA {self.name}"
-
         return tree
 
 
@@ -106,7 +95,7 @@ class CraftPPA(PPA):
             for ingredient in recipe.ingredients:
                 ingredient_amount = craft_amount * ingredient.amount
                 self.pre_conditions.append(conditions.HasItem(agent, ingredient.item, ingredient_amount))
-        self.action = actions.Craft(agent, item, craft_amount)
+        self.actions = [actions.Craft(agent, item, craft_amount)]
 
 
 class MeltPPA(PPA):
@@ -122,7 +111,7 @@ class MeltPPA(PPA):
             for ingredient in recipe.ingredients:
                 ingredient_amount = math.ceil(amount / recipe.output_amount) * ingredient.amount
                 self.pre_conditions.append(conditions.HasItem(agent, ingredient.item, ingredient_amount))
-        self.action = actions.Melt(agent, item, amount)
+        self.actions = [actions.Melt(agent, item, amount)]
 
 
 class PickupPPA(PPA):
@@ -131,7 +120,7 @@ class PickupPPA(PPA):
         self.name = f"Pick up {material}"
         self.post_condition = conditions.HasItem(agent, material, amount)
         self.pre_conditions = [conditions.HasPickupNearby(agent, material)]
-        self.action = actions.PickupItem(agent, material)
+        self.actions = [actions.PickupItem(agent, material)]
 
 
 class CraftPickaxePPA(PPA):
@@ -146,7 +135,7 @@ class CraftPickaxePPA(PPA):
                 self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
             for ingredient in recipe.ingredients:
                 self.pre_conditions.append(conditions.HasItem(agent, ingredient.item, ingredient.amount))
-        self.action = actions.Craft(agent, minimum_pickaxe, 1)
+        self.actions = [actions.Craft(agent, minimum_pickaxe, 1)]
 
 
 class ExplorePPA(PPA):
@@ -154,7 +143,7 @@ class ExplorePPA(PPA):
         super(ExplorePPA, self).__init__()
         self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
-        self.action = actions.DigDownwardsToMaterial(agent, material)
+        self.actions = [actions.DigDownwardsToMaterial(agent, material)]
 
 
 class GoToBlockPPA(PPA):
@@ -163,7 +152,7 @@ class GoToBlockPPA(PPA):
         self.name = f"Go to {material}"
         self.post_condition = conditions.IsBlockWithinReach(agent, material)
         self.pre_conditions = [conditions.IsBlockObservable(agent, material)]
-        self.action = actions.GoToBlock(agent, material)
+        self.actions = [actions.GoToBlock(agent, material)]
 
 
 class MinePPA(PPA):
@@ -176,7 +165,7 @@ class MinePPA(PPA):
         tier = get_gathering_tier_by_material(material)
         if tier is not None:
             self.pre_conditions.insert(0, conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier))
-        self.action = actions.MineMaterial(agent, material)
+        self.actions = [actions.MineMaterial(agent, material)]
 
 
 class HuntPPA(PPA):
@@ -189,7 +178,7 @@ class HuntPPA(PPA):
         tool = get_hunting_tool(mob)
         if tool is not None:
             self.pre_conditions.insert(0, conditions.HasItemEquipped(agent, tool))
-        self.action = actions.AttackAnimal(agent, mob)
+        self.actions = [actions.AttackAnimal(agent, mob)]
 
 
 class GoToAnimalPPA(PPA):
@@ -198,7 +187,7 @@ class GoToAnimalPPA(PPA):
         self.name = f"Go to {animal}"
         self.post_condition = conditions.IsAnimalWithinReach(agent, animal)
         self.pre_conditions = [conditions.IsAnimalObservable(agent, animal)]
-        self.action = actions.GoToAnimal(agent, animal)
+        self.actions = [actions.GoToAnimal(agent, animal)]
 
 
 class LookForAnimalPPA(PPA):
@@ -206,7 +195,7 @@ class LookForAnimalPPA(PPA):
         super(LookForAnimalPPA, self).__init__()
         self.name = f"Look for {animal}"
         self.post_condition = conditions.IsAnimalObservable(agent, animal)
-        self.action = actions.RunForwardTowardsAnimal(agent, animal)
+        self.actions = [actions.RunForwardTowardsAnimal(agent, animal)]
 
 
 class EquipPPA(PPA):
@@ -215,7 +204,7 @@ class EquipPPA(PPA):
         self.name = f"Equip {item}"
         self.agent = agent
         self.post_condition = conditions.HasItemEquipped(agent, item)
-        self.action = actions.Equip(agent, item)
+        self.actions = [actions.Equip(agent, item)]
         self.pre_conditions = [conditions.HasItem(agent, item)]
 
 
@@ -225,7 +214,7 @@ class EquipPickaxePPA(PPA):
         self.name = f"Equip Pickaxe of tier {tier}"
         self.agent = agent
         self.post_condition = conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier)
-        self.action = actions.EquipBestPickAxe(agent, tier)
+        self.actions = [actions.EquipBestPickAxe(agent, tier)]
         self.pre_conditions = [conditions.HasPickaxeByMinimumTier(agent, tier)]
 
 
@@ -233,13 +222,33 @@ class PlaceBlockPPA(PPA):
     def __init__(self, agent, block, position):
         super(PlaceBlockPPA, self).__init__()
         self.name = f"Place Block {block} at position {position}"
+        self.channel = f"place_{block}_{position}"
         self.agent = agent
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
         self.pre_conditions = [
             conditions.HasItemEquipped(agent, block),
-            conditions.IsPositionWithinReach(agent, position)
+            Sender(agent.blackboard, self.channel, self.agent.name),
+            conditions.IsPositionWithinReach(agent, position),
+
         ]
-        self.action = actions.PlaceBlockAtPosition(agent, block, position)
+        self.actions = [
+            actions.PlaceBlockAtPosition(agent, block, position),
+            StopSender(agent.blackboard, self.channel)
+        ]
+
+    def as_tree(self):
+        if self.actions is None:
+            return None
+
+        receiver = InverseReceiver(self.agent.blackboard, self.channel, [False, self.agent.name])
+
+        tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
+        if self.post_condition is not None:
+            tree = Selector(name=f"Postcondition Handler {self.name}", children=[
+                Sequence(children=[self.post_condition, StopSender(self.agent.blackboard, self.channel)]), receiver,
+                tree])
+        tree.name = f"PPA {self.name}"
+        return tree
 
 
 class GoToPositionPPA(PPA):
@@ -248,4 +257,17 @@ class GoToPositionPPA(PPA):
         self.name = f"Go to position {position}"
         self.agent = agent
         self.post_condition = conditions.IsPositionWithinReach(agent, position)
-        self.action = actions.GoToPosition(agent, position)
+        self.actions = [actions.GoToPosition(agent, position)]
+
+
+ppa_maps = {
+    conditions.HasItemEquipped: EquipPPA,
+    conditions.IsBlockWithinReach: GoToBlockPPA,
+    conditions.IsPositionWithinReach: GoToPositionPPA,
+    conditions.IsBlockObservable: ExplorePPA,
+    conditions.IsAnimalWithinReach: GoToAnimalPPA,
+    conditions.IsAnimalObservable: LookForAnimalPPA,
+    conditions.IsBlockAtPosition: PlaceBlockPPA,
+    conditions.HasBestPickaxeByMinimumTierEquipped: EquipPickaxePPA,
+    conditions.HasPickaxeByMinimumTier: CraftPickaxePPA
+}

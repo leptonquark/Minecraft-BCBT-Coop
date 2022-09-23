@@ -1,6 +1,3 @@
-import inspect
-import sys
-
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
@@ -148,15 +145,4 @@ class IsBlockAtPosition(Condition):
         self.position = position
 
     def verify(self):
-        is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
-        return is_block_at_position
-
-
-def list_conditions():
-    condition_module = sys.modules[__name__]
-    conditions = []
-    for conditionName, conditionObject in inspect.getmembers(condition_module):
-        if inspect.isclass(conditionObject) and (
-                conditionObject is not Condition and issubclass(conditionObject, Condition)):
-            conditions.append(conditionName)
-    return conditions
+        return self.agent.observer.is_block_at_position(self.position, self.block)

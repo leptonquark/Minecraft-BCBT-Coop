@@ -1,6 +1,4 @@
-import codecs
 import json
-import os
 
 from utils.file import create_file_and_write, read_from_file
 
