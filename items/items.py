@@ -91,10 +91,6 @@ pickups = [
     CRAFTING_TABLE
 ]
 
-VARIANTS = {
-    "fence": ["acacia_fence"]
-}
-
 traversable = [AIR, PLANT, TALL_GRASS, FLOWER_YELLOW, FLOWER_RED, WATER]
 narrow = [WOODEN_FENCE]
 unclimbable = [WOODEN_FENCE]

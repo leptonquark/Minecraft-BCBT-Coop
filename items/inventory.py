@@ -1,7 +1,7 @@
 from items import items
 from items.gathering import get_sufficient_pickaxes, get_gathering_tier_by_pickaxe
-from items.items import VARIANTS
-from items.recipes import get_ingredients, get_recipe
+
+from items.recipes import get_ingredients
 
 NO_SELECTION = -1
 HOTBAR_SIZE = 9
@@ -23,10 +23,7 @@ def fill_inventory(info, size):
     for i in range(size):
         amount = info[f"InventorySlot_{i}_size"]
         item = info[f"InventorySlot_{i}_item"]
-        variant = info.get(f"InventorySlot_{i}_variant", None)
-        if item == items.LOG_2:
-            item = items.LOG
-        inventory.append(InventorySlot(item, amount, variant))
+        inventory.append(InventorySlot(item, amount))
     return inventory
 
 
@@ -68,30 +65,17 @@ class Inventory:
         if self.inventory is None:
             return 0
         else:
-            variants = [item] + VARIANTS.get(item, [])
-            return sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item in variants)
+            return sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item == item)
 
     def find_item(self, item):
         for i, inventory_slot in enumerate(self.inventory):
             if inventory_slot.item == item:
                 return i
-        return None
+        return -1
 
     def has_ingredients(self, item):
         ingredients = get_ingredients(item)
         return all(self.has_item(ingredient.item, ingredient.amount) for ingredient in ingredients)
-
-    def get_variants(self, item):
-        variants = []
-        recipe = get_recipe(item)
-
-        for ingredient in recipe.ingredients:
-            item_position = self.find_item(ingredient.item)
-            if item_position is not None:
-                variant = self.inventory[item_position].variant
-                if variant is not None:
-                    variants.append(variant)
-        return variants
 
     def get_fuel(self):
         return next((fuel for fuel in fuels if self.has_item(fuel)), None)
@@ -113,10 +97,9 @@ class Inventory:
 
 
 class InventorySlot:
-    def __init__(self, item, amount, variant):
+    def __init__(self, item, amount):
         self.item = item
         self.amount = amount
-        self.variant = variant
 
     def __str__(self):
         return f"InventorySlot: {self.amount}x {self.item}"

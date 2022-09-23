@@ -7,7 +7,6 @@ from items.inventory import HOTBAR_SIZE
 from malmoutils.interface import MalmoInterface
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
-PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
@@ -79,11 +78,6 @@ class MinerAgent:
         self.interface.pitch(pitch_req)
         return pitch_req == 0
 
-    def pitch_upwards(self):
-        pitch_req = self.observer.get_pitch_change(PITCH_UPWARDS)
-        self.interface.pitch(pitch_req)
-        return pitch_req == 0
-
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
@@ -103,14 +97,8 @@ class MinerAgent:
         self.interface.turn(intensity)
 
     def craft(self, item, amount=1):
-        variants = self.inventory.get_variants(item)
-        if len(variants) > 0:
-            variant = variants[0]
-        else:
-            variant = None
-
         for _ in range(amount):
-            self.interface.craft(item, variant)
+            self.interface.craft(item)
 
     def melt(self, item, fuel, amount=1):
         fuel_position = self.inventory.find_item(fuel)

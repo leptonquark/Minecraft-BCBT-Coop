@@ -2,7 +2,6 @@ import time
 
 from malmo.MalmoPython import AgentHost, MissionRecordSpec, MissionSpec, ClientPool, ClientInfo
 
-import items.items
 from utils.network import get_ports, get_ip
 
 CRAFT_SLEEP = 0.1
@@ -65,15 +64,8 @@ class MalmoInterface:
         self.agent_host.sendCommand(f"hotbar.{position + 1} 0")  # release
         time.sleep(HOT_BAR_SLEEP)
 
-    def craft(self, item, variant=None):
-        print(item, variant)
-        if variant is None:
-            self.agent_host.sendCommand(f"craft {item}")
-        else:
-            if item == items.items.WOODEN_FENCE:
-                self.agent_host.sendCommand(f"craft {variant}_{item}")
-            else:
-                self.agent_host.sendCommand(f"craft {item} {variant}")
+    def craft(self, item):
+        self.agent_host.sendCommand(f"craft {item}")
         time.sleep(CRAFT_SLEEP)
 
     def swap_items(self, position1, position2):
