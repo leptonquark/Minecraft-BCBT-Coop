@@ -6,3 +6,4 @@ tk
 stable-baselines3
 gym~=0.18.3
 pydot~=1.4.2
+Kivy~=2.1.0
