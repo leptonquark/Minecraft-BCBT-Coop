@@ -15,6 +15,7 @@ class MultiAgentProcess(mp.Process):
         self.goals = goals
         self.blackboard = blackboard
         self.role = role
+        self.pipe = mp.Pipe()
 
     def run(self):
         agent_name = self.mission_data.agent_names[self.role]
@@ -37,9 +38,9 @@ class MultiAgentProcess(mp.Process):
         while world_state is not None and world_state.is_mission_running and not tree.all_goals_achieved():
             world_state = agent.get_next_world_state()
             observation = Observation(world_state.observations, self.mission_data)
+            self.pipe[1].send(observation.abs_pos)
             agent.set_observation(observation)
             tree.tick()
-            tree.print_tip()
             # tree.print_tree()
             last_delta = check_timeout(agent, world_state, last_delta)
         print(f"Mission is running: {world_state.is_mission_running}")
