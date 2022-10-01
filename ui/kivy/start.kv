@@ -1,75 +1,85 @@
-BoxLayout:
-    orientation: 'vertical'
+<StartScreen>:
+    name: "StartScreen"
     BoxLayout:
-        canvas:
-            Color:
-                rgb: 0.19, 0.19, 0.19
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        padding: 10
-        orientation: 'horizontal'
-        Label:
-            halign: 'left'
-            valign: 'middle'
-            text: 'Amount of Players:'
-            text_size: self.size
-        AnchorLayout:
-            anchor_x: 'right'
-            anchor_y: 'center'
-            NumberInput:
-                id: amount
-                background_color: (0.11, 0.11, 0.11, 1)
-                foreground_color: (1, 1, 1, 1)
-                cursor_color: (1, 1, 1, 1)
-                text: '2'
-                size_hint: (.2, None)
-                height: 30
-                multiline: False
+        orientation: 'vertical'
+        BoxLayout:
+            canvas:
+                Color:
+                    rgb: 0.19, 0.19, 0.19
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            padding: 10
+            orientation: 'horizontal'
+            Label:
                 halign: 'left'
                 valign: 'middle'
-    Widget:
-        id: separator
-        size_hint_y: None
-        height: 1
-        canvas:
-            Color:
-                rgb: 0, 0, 0
-            Rectangle:
-                pos: self.pos
-                size: self.size
-    BoxLayout:
-        canvas:
-            Color:
-                rgb: 0.19, 0.19, 0.19
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        padding: 10
-        orientation: 'horizontal'
-        Label:
-            halign: 'left'
-            valign: 'middle'
-            text: 'Experiment:'
-            text_size: self.size
-        AnchorLayout:
-            anchor_x: 'right'
-            anchor_y: 'center'
-            Button:
-                background_color : (0.11, 0.11, 0.11, 1)
-                background_normal: ''
-                text: 'Wooden Fence'
-                size_hint: (None, None)
-                height: 30
-                width: 120
-                multiline: False
+                text: 'Amount of Players:'
+                text_size: self.size
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+                NumberInput:
+                    id: amount
+                    background_color: (0.11, 0.11, 0.11, 1)
+                    foreground_color: (1, 1, 1, 1)
+                    cursor_color: (1, 1, 1, 1)
+                    text: '2'
+                    size_hint: (.2, None)
+                    height: 30
+                    multiline: False
+                    halign: 'left'
+                    valign: 'middle'
+        Widget:
+            id: separator
+            size_hint_y: None
+            height: 1
+            canvas:
+                Color:
+                    rgb: 0, 0, 0
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        BoxLayout:
+            canvas:
+                Color:
+                    rgb: 0.19, 0.19, 0.19
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            padding: 10
+            orientation: 'horizontal'
+            Label:
                 halign: 'left'
                 valign: 'middle'
-    Button:
-        id: start_bot
-        text: 'Start Bot'
-        on_press: app.start_bot(int(amount.text))
-    Button:
-        id: exit
-        text: 'Exit'
-        on_press: app.stop()
+                text: 'Experiment:'
+                text_size: self.size
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+                Button:
+                    background_color : (0.11, 0.11, 0.11, 1)
+                    background_normal: ''
+                    text: 'Wooden Fence'
+                    size_hint: (None, None)
+                    height: 30
+                    width: 120
+                    multiline: False
+                    halign: 'left'
+                    valign: 'middle'
+        Button:
+            id: start_bot
+            text: 'Start Bot'
+            on_press: root.start_bot(int(amount.text))
+        Button:
+            id: exit
+            text: 'Exit'
+            on_press: app.stop()
+<DashboardScreen>:
+    name: "DashboardScreen"
+    canvas.before:
+        Color:
+            rgba: (1, 1, 1, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
