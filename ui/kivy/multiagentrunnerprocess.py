@@ -6,7 +6,7 @@ from multiagents.multiagentrunner import MultiAgentRunner
 
 class MultiAgentRunnerProcess(mp.Process):
 
-    def __init__(self, agent_names, goals, on_position):
+    def __init__(self, agent_names, goals):
         super(MultiAgentRunnerProcess, self).__init__()
         self.n_clients = len(agent_names)
         self.multi_agent_runner = MultiAgentRunner(agent_names, goals)

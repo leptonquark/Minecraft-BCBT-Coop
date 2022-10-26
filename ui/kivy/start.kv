@@ -70,7 +70,7 @@
         Button:
             id: start_bot
             text: 'Start Bot'
-            on_press: root.start_bot(int(amount.text))
+            on_press: root.start_bot()
         Button:
             id: exit
             text: 'Exit'
@@ -79,7 +79,7 @@
     name: "DashboardScreen"
     canvas.before:
         Color:
-            rgba: (1, 1, 1, 1)
+            rgba:  (0.36, 0.36, 0.36, 1)
         Rectangle:
             pos: self.pos
             size: self.size

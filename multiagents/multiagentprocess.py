@@ -28,7 +28,7 @@ class MultiAgentProcess(mp.Process):
             agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.goals)
-        tree.print_tree()
+#        tree.print_tree()
 
         last_delta = time.time()
         start = time.time()
@@ -41,7 +41,6 @@ class MultiAgentProcess(mp.Process):
             self.pipe[1].send(observation.abs_pos)
             agent.set_observation(observation)
             tree.tick()
-            # tree.print_tree()
             last_delta = check_timeout(agent, world_state, last_delta)
         print(f"Mission is running: {world_state.is_mission_running}")
         print(f"All goals achieved: {tree.all_goals_achieved()}")

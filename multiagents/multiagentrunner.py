@@ -28,6 +28,5 @@ class MultiAgentRunner:
             for i, pipe in enumerate(pipes):
                 if pipe[0].poll():
                     position = pipe[0].recv()
-                    # print(f"Agent {i} position: {position}")
                     if on_position:
                         on_position((i, position))

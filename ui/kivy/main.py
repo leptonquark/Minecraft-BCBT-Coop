@@ -1,4 +1,5 @@
 from goals.blueprint import Blueprint, BlueprintType
+from ui.kivy.colors import get_color
 from ui.kivy.multiagentrunnerprocess import MultiAgentRunnerProcess
 from utils.names import get_names
 
@@ -39,15 +40,13 @@ if __name__ == '__main__':
 
 
     class StartScreen(Screen):
-        def start_bot(self, amount):
+        def start_bot(self):
             self.manager.current = "DashboardScreen"
-            """
-            """
 
 
     TRACKING_ICON_SIZE = 10
     X_RANGE = (100, 150)
-    Z_RANGE = (-50, 50)
+    Z_RANGE = (-25, 25)
 
 
     class DashboardScreen(Screen):
@@ -55,6 +54,7 @@ if __name__ == '__main__':
         def __init__(self, **kw):
             super(DashboardScreen, self).__init__(**kw)
             self.positions = {}
+            self.blueprint_positions = []
             self.n_agents = 0
 
         def on_enter(self):
@@ -73,11 +73,13 @@ if __name__ == '__main__':
             print(f"Starting Minecraft with {amount} clients...")
 
             goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
+            if type(goals) is Blueprint:
+                self.blueprint_positions = goals.positions
 
-            runner_process = MultiAgentRunnerProcess(agent_names, goals, lambda position: self.on_position(position))
+            runner_process = MultiAgentRunnerProcess(agent_names, goals)
             runner_process.start()
 
-            Clock.schedule_interval(lambda _: self.listen_to_pipe(runner_process.pipe), 1 / 30)
+            Clock.schedule_interval(lambda _: self.listen_to_pipe(runner_process.pipe), 1 / 60)
 
         def listen_to_pipe(self, pipe):
             if pipe[0].poll():
@@ -85,28 +87,35 @@ if __name__ == '__main__':
                 unit = value[0]
                 pos_x = value[1][0]
                 pos_z = value[1][2]
-                scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
-                scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
 
-                self.positions[unit] = (scaled_x, scaled_z)
+                self.positions[unit] = (pos_x, pos_z)
 
                 self.update_canvas()
 
         def update_canvas(self, *args):
             self.canvas.clear()
             with self.canvas:
-                Color(1, 0, 0, 1)
                 for i in range(self.n_agents):
+                    Color(*get_color(i))
                     position = self.positions.get(i)
+                    width = self.size[0]
+                    height = self.size[1]
                     if position is not None:
-                        scaled_x = position[0]
-                        scaled_z = position[1]
-
-                        width = self.size[0]
-                        height = self.size[1]
+                        pos_x = position[0]
+                        pos_z = position[1]
+                        scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
+                        scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
                         frame_x = self.center_x - width / 2 + scaled_x * width
                         frame_z = self.center_y - height / 2 + scaled_z * height
                         Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
-
+                Color(0, 0, 1, 1)
+                for blueprint_position in self.blueprint_positions:
+                    pos_x = blueprint_position[0]
+                    pos_z = blueprint_position[2]
+                    scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
+                    scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
+                    frame_x = self.center_x - width / 2 + scaled_x * width
+                    frame_z = self.center_y - height / 2 + scaled_z * height
+                    Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
 
     StartApp().run()
