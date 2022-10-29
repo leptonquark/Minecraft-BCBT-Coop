@@ -1,6 +1,7 @@
-from goals.blueprint import Blueprint, BlueprintType
+from goals.blueprint.blueprint import Blueprint, BlueprintType
+from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULT
+from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.kivy.colors import get_color
-from ui.kivy.multiagentrunnerprocess import MultiAgentRunnerProcess
 from utils.names import get_names
 
 TITLE = "Minecraft Coop AI Experiment"
@@ -55,6 +56,7 @@ if __name__ == '__main__':
             super(DashboardScreen, self).__init__(**kw)
             self.positions = {}
             self.blueprint_positions = []
+            self.blueprint_results = []
             self.n_agents = 0
 
         def on_enter(self):
@@ -84,11 +86,13 @@ if __name__ == '__main__':
         def listen_to_pipe(self, pipe):
             if pipe[0].poll():
                 value = pipe[0].recv()
+                player_position = value[1][PLAYER_POSITION]
                 unit = value[0]
-                pos_x = value[1][0]
-                pos_z = value[1][2]
-
+                pos_x = player_position[0]
+                pos_z = player_position[2]
                 self.positions[unit] = (pos_x, pos_z)
+                if BLUEPRINT_RESULT in value[1]:
+                    self.blueprint_results = value[1][BLUEPRINT_RESULT]
 
                 self.update_canvas()
 
@@ -108,8 +112,11 @@ if __name__ == '__main__':
                         frame_x = self.center_x - width / 2 + scaled_x * width
                         frame_z = self.center_y - height / 2 + scaled_z * height
                         Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
-                Color(0, 0, 1, 1)
-                for blueprint_position in self.blueprint_positions:
+                for i, blueprint_position in enumerate(self.blueprint_positions):
+                    if self.blueprint_results and self.blueprint_results[i]:
+                        Color(0, 1, 0, 1)
+                    else:
+                        Color(0, 0, 1, 1)
                     pos_x = blueprint_position[0]
                     pos_z = blueprint_position[2]
                     scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])

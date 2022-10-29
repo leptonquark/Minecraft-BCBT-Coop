@@ -3,7 +3,7 @@ import xml.etree.ElementTree as Et
 
 import numpy as np
 
-from goals.blueprint import Blueprint
+from goals.blueprint.blueprint import Blueprint
 from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
