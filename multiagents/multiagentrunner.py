@@ -12,7 +12,7 @@ class MultiAgentRunner:
         self.goals = goals
         self.agent_names = agent_names
 
-    def run_mission_async(self, on_position=None):
+    def run_mission_async(self, on_agent_data=None):
         manager = mp.Manager()
         blackboard = manager.dict()
         mission_data = MissionData(self.goals, self.agent_names)
@@ -28,5 +28,5 @@ class MultiAgentRunner:
             for i, pipe in enumerate(pipes):
                 if pipe[0].poll():
                     position = pipe[0].recv()
-                    if on_position:
-                        on_position((i, position))
+                    if on_agent_data:
+                        on_agent_data((i, position))

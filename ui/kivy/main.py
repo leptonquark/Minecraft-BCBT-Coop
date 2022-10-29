@@ -1,6 +1,6 @@
 from goals.blueprint.blueprint import Blueprint, BlueprintType
 from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULT
-from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
+from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess, AGENT_DATA
 from ui.kivy.colors import get_color
 from utils.names import get_names
 
@@ -86,13 +86,15 @@ if __name__ == '__main__':
         def listen_to_pipe(self, pipe):
             if pipe[0].poll():
                 value = pipe[0].recv()
-                player_position = value[1][PLAYER_POSITION]
-                unit = value[0]
+                print(value)
+                agent_data = value[AGENT_DATA]
+                player_position = agent_data[1][PLAYER_POSITION]
+                unit = agent_data[0]
                 pos_x = player_position[0]
                 pos_z = player_position[2]
                 self.positions[unit] = (pos_x, pos_z)
-                if BLUEPRINT_RESULT in value[1]:
-                    self.blueprint_results = value[1][BLUEPRINT_RESULT]
+                if BLUEPRINT_RESULT in agent_data[1]:
+                    self.blueprint_results = agent_data[1][BLUEPRINT_RESULT]
 
                 self.update_canvas()
 
@@ -102,27 +104,26 @@ if __name__ == '__main__':
                 for i in range(self.n_agents):
                     Color(*get_color(i))
                     position = self.positions.get(i)
-                    width = self.size[0]
-                    height = self.size[1]
                     if position is not None:
-                        pos_x = position[0]
-                        pos_z = position[1]
-                        scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
-                        scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
-                        frame_x = self.center_x - width / 2 + scaled_x * width
-                        frame_z = self.center_y - height / 2 + scaled_z * height
+                        frame_x, frame_z = self.get_frame_position(position[0], position[1])
                         Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
                 for i, blueprint_position in enumerate(self.blueprint_positions):
                     if self.blueprint_results and self.blueprint_results[i]:
                         Color(0, 1, 0, 1)
                     else:
                         Color(0, 0, 1, 1)
-                    pos_x = blueprint_position[0]
-                    pos_z = blueprint_position[2]
-                    scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
-                    scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
-                    frame_x = self.center_x - width / 2 + scaled_x * width
-                    frame_z = self.center_y - height / 2 + scaled_z * height
+                    frame_x, frame_z = self.get_frame_position(blueprint_position[0], blueprint_position[2])
                     Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
+
+        def get_frame_position(self, pos_x, pos_z):
+            width = self.size[0]
+            height = self.size[1]
+
+            scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
+            scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
+            frame_x = self.center_x - width / 2 + scaled_x * width
+            frame_z = self.center_y - height / 2 + scaled_z * height
+            return frame_x, frame_z
+
 
     StartApp().run()

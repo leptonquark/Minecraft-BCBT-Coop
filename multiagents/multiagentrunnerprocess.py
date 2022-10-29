@@ -1,7 +1,10 @@
 import multiprocessing as mp
 
-from malmoutils.minecraft import run_minecraft
-from multiagents.multiagentrunner import MultiAgentRunner
+from multiagents.multiagentprocess import MultiAgentProcess
+from world.missiondata import MissionData
+
+AGENT_DATA = "agent_data"
+BLACKBOARD = "blackboard"
 
 
 class MultiAgentRunnerProcess(mp.Process):
@@ -9,12 +12,29 @@ class MultiAgentRunnerProcess(mp.Process):
     def __init__(self, agent_names, goals):
         super(MultiAgentRunnerProcess, self).__init__()
         self.n_clients = len(agent_names)
-        self.multi_agent_runner = MultiAgentRunner(agent_names, goals)
         self.pipe = mp.Pipe()
+        self.goals = goals
+        self.agent_names = agent_names
 
     def run(self):
-        run_minecraft(n_clients=self.n_clients)
-        self.multi_agent_runner.run_mission_async(on_position=lambda position: self.on_position(position))
+        manager = mp.Manager()
+        blackboard = manager.dict()
+        mission_data = MissionData(self.goals, self.agent_names)
+        processes = [
+            MultiAgentProcess(mission_data, self.goals, blackboard, i)
+            for i in range(len(self.agent_names))
+        ]
+        for process in processes:
+            process.start()
 
-    def on_position(self, position):
-        self.pipe[1].send(position)
+        pipes = [process.pipe for process in processes]
+        while True:
+            for i, pipe in enumerate(pipes):
+                if pipe[0].poll():
+                    pipe_data = pipe[0].recv()
+                    agent_data = (i, pipe_data)
+                    data = {
+                        AGENT_DATA: agent_data,
+                        BLACKBOARD: blackboard.copy()
+                    }
+                    self.pipe[1].send(data)

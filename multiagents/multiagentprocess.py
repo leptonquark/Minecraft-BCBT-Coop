@@ -54,7 +54,6 @@ class MultiAgentProcess(mp.Process):
 
     def send_info(self, observation):
         data = {PLAYER_POSITION: observation.abs_pos}
-
         if self.blueprint_validator:
             blueprint_result = self.blueprint_validator.validate(observation)
             data[BLUEPRINT_RESULT] = blueprint_result
