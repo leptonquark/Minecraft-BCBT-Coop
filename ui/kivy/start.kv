@@ -75,6 +75,7 @@
             id: exit
             text: 'Exit'
             on_press: app.stop()
+
 <DashboardScreen>:
     name: "DashboardScreen"
     BoxLayout:
@@ -84,8 +85,33 @@
             height: 600
             width: 300
             size_hint: (None, None)
+            background_color : (0.11, 0.11, 0.11, 1)
+            canvas:
+                Color:
+                    rgb: 0.19, 0.19, 0.19
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            padding: 10
+            Label:
+                halign: 'left'
+                valign: 'top'
+                text: '[b]Blackboard[/b]'
+                markup: True
+                height: 50
+                text_size: self.width, self.height
+                font_size: 24
+                size_hint: (1, None)
+            Label:
+                id: 'blackboard'
+                halign: 'left'
+                valign: 'top'
+                markup: True
+                height: 30
+                text_size: self.width, self.height
+
         RelativeLayout:
-            Widget:
+            Map:
                 id: map
                 canvas.before:
                     Color:
@@ -103,6 +129,10 @@
                     Label:
                         halign: 'left'
                         valign: 'top'
-                        text: 'Map'
-                        height: 30
+                        text: '[b]Map[/b]'
+                        height: 50
+                        markup: True
                         text_size: self.width, self.height
+                        font_size: 24
+
+

@@ -1,3 +1,4 @@
+
 from goals.blueprint.blueprint import Blueprint, BlueprintType
 from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULT
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess, AGENT_DATA
@@ -7,13 +8,15 @@ from utils.names import get_names
 TITLE = "Minecraft Coop AI Experiment"
 
 if __name__ == '__main__':
+    # The imports need to be done here for Kivy to support Multiprocessing without automatically opening new windows.
     from kivy.app import App
     from kivy.clock import Clock
     from kivy.graphics import Color, Ellipse
     from kivy.lang import Builder
-    from kivy.core.window import Window
     from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
     from kivy.uix.textinput import TextInput
+    from kivy.core.window import Window
+    from kivy.uix.widget import Widget
 
     Window.borderless = False
     Window.size = (300, 300)
@@ -51,25 +54,28 @@ if __name__ == '__main__':
 
 
     class DashboardScreen(Screen):
+        def on_enter(self):
+            Window.size = (900, 600)
+            self.start_bot()
 
-        def __init__(self, **kw):
-            super(DashboardScreen, self).__init__(**kw)
+        def start_bot(self):
+            amount = int(self.manager.get_screen("StartScreen").ids['amount'].text)
+            self.ids.map.start_bot(amount)
+
+
+    class Map(Widget):
+        def __init__(self, **kwargs):
+            super(Map, self).__init__(**kwargs)
             self.positions = {}
             self.blueprint_positions = []
             self.blueprint_results = []
             self.n_agents = 0
 
-        def on_enter(self):
-            Window.size = (600, 600)
             self.bind(pos=self.update_canvas)
             self.bind(size=self.update_canvas)
             self.update_canvas()
-            self.start_bot()
 
-            print("oh")
-
-        def start_bot(self):
-            amount = int(self.manager.get_screen("StartScreen").ids['amount'].text)
+        def start_bot(self, amount):
             self.n_agents = amount
             agent_names = get_names(amount)
             print(f"Starting Minecraft with {amount} clients...")
@@ -77,10 +83,8 @@ if __name__ == '__main__':
             goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
             if type(goals) is Blueprint:
                 self.blueprint_positions = goals.positions
-
             runner_process = MultiAgentRunnerProcess(agent_names, goals)
             runner_process.start()
-
             Clock.schedule_interval(lambda _: self.listen_to_pipe(runner_process.pipe), 1 / 60)
 
         def listen_to_pipe(self, pipe):
@@ -95,12 +99,11 @@ if __name__ == '__main__':
                 self.positions[unit] = (pos_x, pos_z)
                 if BLUEPRINT_RESULT in agent_data[1]:
                     self.blueprint_results = agent_data[1][BLUEPRINT_RESULT]
-
                 self.update_canvas()
 
         def update_canvas(self, *args):
-            self.ids.map.canvas.clear()
-            with self.ids.map.canvas:
+            self.canvas.clear()
+            with self.canvas:
                 for i in range(self.n_agents):
                     Color(*get_color(i))
                     position = self.positions.get(i)
@@ -116,14 +119,13 @@ if __name__ == '__main__':
                     Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
 
         def get_frame_position(self, pos_x, pos_z):
-            width = self.ids.map.size[0]
-            height = self.ids.map.size[1]
+            width = self.size[0]
+            height = self.size[1]
 
             scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
             scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
-            frame_x = self.ids.map.center_x - width / 2 + scaled_x * width
-            frame_z = self.ids.map.center_y - height / 2 + scaled_z * height
+            frame_x = self.center_x - width / 2 + scaled_x * width
+            frame_z = self.center_y - height / 2 + scaled_z * height
             return frame_x, frame_z
-
 
     StartApp().run()
