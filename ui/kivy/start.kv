@@ -77,9 +77,32 @@
             on_press: app.stop()
 <DashboardScreen>:
     name: "DashboardScreen"
-    canvas.before:
-        Color:
-            rgba:  (0.36, 0.36, 0.36, 1)
-        Rectangle:
-            pos: self.pos
-            size: self.size
+    BoxLayout:
+        orientation: 'horizontal'
+        BoxLayout:
+            orientation: 'vertical'
+            height: 600
+            width: 300
+            size_hint: (None, None)
+        RelativeLayout:
+            Widget:
+                id: map
+                canvas.before:
+                    Color:
+                        rgba:  (0.36, 0.36, 0.36, 1)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                height: 600
+                width: 600
+            BoxLayout:
+                padding: 10
+                AnchorLayout:
+                    anchor_x: 'left'
+                    anchor_y: 'top'
+                    Label:
+                        halign: 'left'
+                        valign: 'top'
+                        text: 'Map'
+                        height: 30
+                        text_size: self.width, self.height

@@ -99,8 +99,8 @@ if __name__ == '__main__':
                 self.update_canvas()
 
         def update_canvas(self, *args):
-            self.canvas.clear()
-            with self.canvas:
+            self.ids.map.canvas.clear()
+            with self.ids.map.canvas:
                 for i in range(self.n_agents):
                     Color(*get_color(i))
                     position = self.positions.get(i)
@@ -116,13 +116,13 @@ if __name__ == '__main__':
                     Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
 
         def get_frame_position(self, pos_x, pos_z):
-            width = self.size[0]
-            height = self.size[1]
+            width = self.ids.map.size[0]
+            height = self.ids.map.size[1]
 
             scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
             scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
-            frame_x = self.center_x - width / 2 + scaled_x * width
-            frame_z = self.center_y - height / 2 + scaled_z * height
+            frame_x = self.ids.map.center_x - width / 2 + scaled_x * width
+            frame_z = self.ids.map.center_y - height / 2 + scaled_z * height
             return frame_x, frame_z
 
 
