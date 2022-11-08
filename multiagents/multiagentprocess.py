@@ -9,8 +9,7 @@ from malmoutils.world_state import check_timeout
 from world.observation import Observation
 
 PLAYER_POSITION = "player_position"
-BLUEPRINT_RESULT = "blueprint_result"
-
+BLUEPRINT_RESULTS = "blueprint_results"
 
 class MultiAgentProcess(mp.Process):
 
@@ -56,5 +55,5 @@ class MultiAgentProcess(mp.Process):
         data = {PLAYER_POSITION: observation.abs_pos}
         if self.blueprint_validator:
             blueprint_result = self.blueprint_validator.validate(observation)
-            data[BLUEPRINT_RESULT] = blueprint_result
+            data[BLUEPRINT_RESULTS] = blueprint_result
         self.pipe[1].send(data)

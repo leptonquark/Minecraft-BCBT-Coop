@@ -1,7 +1,6 @@
-
 from goals.blueprint.blueprint import Blueprint, BlueprintType
-from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULT
-from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess, AGENT_DATA
+from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULTS
+from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess, AGENT_DATA, BLACKBOARD
 from ui.kivy.colors import get_color
 from utils.names import get_names
 
@@ -60,7 +59,32 @@ if __name__ == '__main__':
 
         def start_bot(self):
             amount = int(self.manager.get_screen("StartScreen").ids['amount'].text)
-            self.ids.map.start_bot(amount)
+            agent_names = get_names(amount)
+            print(f"Starting Minecraft with {amount} clients...")
+
+            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
+            self.ids.map.set_goals(goals)
+            runner_process = MultiAgentRunnerProcess(agent_names, goals)
+            runner_process.start()
+            Clock.schedule_interval(lambda _: self.listen_to_pipe(runner_process.pipe), 1 / 60)
+
+        def listen_to_pipe(self, pipe):
+            if pipe[0].poll():
+                value = pipe[0].recv()
+                self.on_agent_data(value[AGENT_DATA])
+                self.on_blackboard(value[BLACKBOARD])
+
+        def on_agent_data(self, agent_data):
+            player_position = agent_data[1][PLAYER_POSITION]
+            unit = agent_data[0]
+            pos_x = player_position[0]
+            pos_z = player_position[2]
+            positions = (pos_x, pos_z)
+            blueprint_results = agent_data[1].get(BLUEPRINT_RESULTS)
+            self.ids.map.set_data(unit, positions, blueprint_results)
+
+        def on_blackboard(self, blackboard):
+            self.ids.blackboard.text = ", \n".join(f"{key}: {value}" for key, value in blackboard.items())
 
 
     class Map(Widget):
@@ -69,44 +93,25 @@ if __name__ == '__main__':
             self.positions = {}
             self.blueprint_positions = []
             self.blueprint_results = []
-            self.n_agents = 0
-
             self.bind(pos=self.update_canvas)
             self.bind(size=self.update_canvas)
             self.update_canvas()
 
-        def start_bot(self, amount):
-            self.n_agents = amount
-            agent_names = get_names(amount)
-            print(f"Starting Minecraft with {amount} clients...")
-
-            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
+        def set_goals(self, goals):
             if type(goals) is Blueprint:
                 self.blueprint_positions = goals.positions
-            runner_process = MultiAgentRunnerProcess(agent_names, goals)
-            runner_process.start()
-            Clock.schedule_interval(lambda _: self.listen_to_pipe(runner_process.pipe), 1 / 60)
 
-        def listen_to_pipe(self, pipe):
-            if pipe[0].poll():
-                value = pipe[0].recv()
-                print(value)
-                agent_data = value[AGENT_DATA]
-                player_position = agent_data[1][PLAYER_POSITION]
-                unit = agent_data[0]
-                pos_x = player_position[0]
-                pos_z = player_position[2]
-                self.positions[unit] = (pos_x, pos_z)
-                if BLUEPRINT_RESULT in agent_data[1]:
-                    self.blueprint_results = agent_data[1][BLUEPRINT_RESULT]
-                self.update_canvas()
+        def set_data(self, unit, positions, blueprint_results=None):
+            self.positions[unit] = positions
+            if blueprint_results:
+                self.blueprint_results = blueprint_results
+            self.update_canvas()
 
         def update_canvas(self, *args):
             self.canvas.clear()
             with self.canvas:
-                for i in range(self.n_agents):
+                for i, position in self.positions.items():
                     Color(*get_color(i))
-                    position = self.positions.get(i)
                     if position is not None:
                         frame_x, frame_z = self.get_frame_position(position[0], position[1])
                         Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
@@ -127,5 +132,6 @@ if __name__ == '__main__':
             frame_x = self.center_x - width / 2 + scaled_x * width
             frame_z = self.center_y - height / 2 + scaled_z * height
             return frame_x, frame_z
+
 
     StartApp().run()
