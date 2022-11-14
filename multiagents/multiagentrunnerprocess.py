@@ -3,16 +3,20 @@ import multiprocessing as mp
 from multiagents.multiagentprocess import MultiAgentProcess
 from world.missiondata import MissionData
 
+AGENT_DATA = "agent_data"
+BLACKBOARD = "blackboard"
 
-class MultiAgentRunner:
 
-    def __init__(self, agent_names, goals=None):
-        if goals is None:
-            goals = []
+class MultiAgentRunnerProcess(mp.Process):
+
+    def __init__(self, agent_names, goals):
+        super(MultiAgentRunnerProcess, self).__init__()
+        self.n_clients = len(agent_names)
+        self.pipe = mp.Pipe()
         self.goals = goals
         self.agent_names = agent_names
 
-    def run_mission_async(self, on_agent_data=None):
+    def run(self):
         manager = mp.Manager()
         blackboard = manager.dict()
         mission_data = MissionData(self.goals, self.agent_names)
@@ -27,6 +31,10 @@ class MultiAgentRunner:
         while True:
             for i, pipe in enumerate(pipes):
                 if pipe[0].poll():
-                    position = pipe[0].recv()
-                    if on_agent_data:
-                        on_agent_data((i, position))
+                    pipe_data = pipe[0].recv()
+                    agent_data = (i, pipe_data)
+                    data = {
+                        AGENT_DATA: agent_data,
+                        BLACKBOARD: blackboard.copy()
+                    }
+                    self.pipe[1].send(data)

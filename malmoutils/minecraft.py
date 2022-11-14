@@ -13,3 +13,7 @@ def run_minecraft(n_clients=None):
     else:
         ports = get_ports(n_clients)
         malmo.minecraftbootstrap.launch_minecraft(ports)
+
+
+if __name__ == "__main__":
+    run_minecraft(2)

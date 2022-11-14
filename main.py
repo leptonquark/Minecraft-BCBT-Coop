@@ -1,4 +1,4 @@
-from goals.blueprint import Blueprint, BlueprintType
+from goals.blueprint.blueprint import Blueprint, BlueprintType
 from malmoutils.minecraft import run_minecraft
 from multiagents.multiagentrunner import MultiAgentRunner
 

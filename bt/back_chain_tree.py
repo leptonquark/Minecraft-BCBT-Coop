@@ -4,8 +4,8 @@ from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
 from bt.ppa import back_chain_recursive
 from bt.sequence import Sequence
-from goals.agentless_condition import AgentlessCondition
-from goals.blueprint import Blueprint
+from goals.agentlesscondition import AgentlessCondition
+from goals.blueprint.blueprint import Blueprint
 from utils.pickle import tree_to_state, state_to_tree
 from utils.string import tree_to_string
 
