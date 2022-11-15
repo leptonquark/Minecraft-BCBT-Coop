@@ -3,6 +3,7 @@ import time
 from malmo.MalmoPython import AgentHost, MissionRecordSpec, MissionSpec, ClientPool, ClientInfo
 
 import items.items
+from items import variants
 from utils.network import get_ports, get_ip
 
 CRAFT_SLEEP = 0.1
@@ -66,7 +67,7 @@ class MalmoInterface:
         time.sleep(HOT_BAR_SLEEP)
 
     def craft(self, item, variant=None):
-        if variant is None:
+        if variant is None or variant == variants.OAK:
             self.agent_host.sendCommand(f"craft {item}")
         else:
             if item == items.items.WOODEN_FENCE:
