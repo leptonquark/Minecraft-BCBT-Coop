@@ -136,17 +136,17 @@ if __name__ == '__main__':
                         Color(0, 0, 1, 1)
                     frame_x, frame_z = self.get_frame_position(blueprint_position[0], blueprint_position[2])
                     Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
+                    self.add_name([frame_x, frame_z], str(blueprint_position), 8)
 
-        def add_name(self, position, name):
-            label = Label(text=name, font_size=NAME_FONT_SIZE)
+        def add_name(self, position, name, font_size=NAME_FONT_SIZE):
+            label = Label(text=name, font_size=font_size)
             label.refresh()
             text = label.texture
             pos_x = position[0] - 0.4 * text.size[0]
             pos_z = position[1] + NAME_MARGIN_BOTTOM
             pos = [pos_x, pos_z]
             Color(1, 1, 1, 1)
-            with self.canvas:
-                Rectangle(size=text.size, pos=pos, texture=text)
+            Rectangle(size=text.size, pos=pos, texture=text)
 
         def get_frame_position(self, pos_x, pos_z):
             width = self.size[0]

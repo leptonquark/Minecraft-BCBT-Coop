@@ -222,7 +222,7 @@ class PlaceBlockPPA(PPA):
     def __init__(self, agent, block, position):
         super(PlaceBlockPPA, self).__init__()
         self.name = f"Place Block {block} at position {position}"
-        self.channel = f"place_{block}_{position}"
+        self.channel = f"Place {block} at {position}"
         self.agent = agent
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
         self.pre_conditions = [
@@ -245,7 +245,8 @@ class PlaceBlockPPA(PPA):
         tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
         if self.post_condition is not None:
             tree = Selector(name=f"Postcondition Handler {self.name}", children=[
-                Sequence(children=[self.post_condition, StopSender(self.agent.blackboard, self.channel)]), receiver,
+                Sequence(children=[self.post_condition, StopSender(self.agent.blackboard, self.channel)]),
+                receiver,
                 tree])
         tree.name = f"PPA {self.name}"
         return tree
