@@ -58,23 +58,47 @@ class Inventory:
         for inventory_slot in self.inventory:
             yield inventory_slot
 
-    def has_item(self, item, amount=1):
-        return self.get_item_amount(item) >= amount
+    def has_ingredient(self, ingredient):
+        return self.get_item_amount(ingredient.item) >= ingredient.amount
+
+    def has_item(self, item, amount=1, same_variant=False):
+        return self.get_item_amount(item, same_variant) >= amount
 
     def has_item_equipped(self, item):
         return self.inventory[self.current_selection].item == item
 
-    def get_item_amount(self, item):
+    def get_item_amount(self, item, same_variant=False):
         if self.inventory is None:
             return 0
         else:
             variants = get_variants(item)
-            return sum(inventory_slot.amount for inventory_slot in self.inventory if inventory_slot.item in variants)
+            if same_variant:
+                # There are two types of variants. One defined by me and uses the variant table,
+                # and one defined by Minecraft and is contained in the slot information.
+                # If {same_variant} is true we should return the max amount of the same variant.
+                return max(self.get_max_slot_variant_amount(item_variant) for item_variant in variants)
+
+            else:
+                return sum(slot.amount for slot in self.inventory if slot.item in variants)
+
+    def get_max_slot_variant_amount(self, item_variant):
+        variant_amount = {}
+        for slot in self.inventory:
+            if slot.item == item_variant:
+                variant_amount[slot.variant] = variant_amount.get(slot.variant, 0) + slot.amount
+        return max(amount for amount in variant_amount.values()) if variant_amount else 0
 
     def find_item(self, item):
         variants = get_variants(item)
         for i, inventory_slot in enumerate(self.inventory):
             if inventory_slot.item in variants:
+                return i
+        return None
+
+    def find_item_by_min_amount(self, item, amount, same_variant=False):
+        variants = get_variants(item)
+        for i, inventory_slot in enumerate(self.inventory):
+            if inventory_slot.item in variants and (not same_variant or inventory_slot.amount >= amount):
                 return i
         return None
 
@@ -87,7 +111,7 @@ class Inventory:
         recipe = get_recipe(item)
 
         for ingredient in recipe.ingredients:
-            item_position = self.find_item(ingredient.item)
+            item_position = self.find_item_by_min_amount(ingredient.item, ingredient.amount, ingredient.same_variant)
             if item_position is not None:
                 variant = self.inventory[item_position].variant
                 if variant is not None:
@@ -120,7 +144,7 @@ class InventorySlot:
         self.variant = variant
 
     def __str__(self):
-        return f"InventorySlot: {self.amount}x {self.item}"
+        return f"InventorySlot: {self.amount}x {self.item} : {self.variant}"
 
     def __repr__(self):
         return str(self)

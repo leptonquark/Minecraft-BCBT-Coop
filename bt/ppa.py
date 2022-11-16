@@ -28,12 +28,12 @@ def condition_to_ppa_tree(agent, condition):
     if isinstance(condition, conditions.HasItem):
         recipe = get_recipe(condition.item)
         if recipe is None:
-            return PickupPPA(agent, condition.item, condition.amount)
+            return PickupPPA(agent, condition.item, condition.amount, condition.same_variant)
         else:
             if recipe.recipe_type == RecipeType.Melting:
-                return MeltPPA(agent, condition.item, condition.amount)
+                return MeltPPA(agent, condition.item, condition.amount, condition.same_variant)
             else:
-                return CraftPPA(agent, condition.item, condition.amount)
+                return CraftPPA(agent, condition.item, condition.amount, condition.same_variant)
     elif isinstance(condition, conditions.HasPickupNearby):
         source = get_loot_source(condition.item)
         if source is None:
@@ -82,10 +82,10 @@ class PPA:
 
 class CraftPPA(PPA):
 
-    def __init__(self, agent, item, amount=1):
+    def __init__(self, agent, item, amount=1, same_variant=False):
         super(CraftPPA, self).__init__()
         self.name = f"Craft {amount}x {item}"
-        self.post_condition = conditions.HasItem(agent, item, amount)
+        self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
         recipe = get_recipe(item)
         craft_amount = amount
         if recipe is not None:
@@ -94,31 +94,33 @@ class CraftPPA(PPA):
                 self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
             for ingredient in recipe.ingredients:
                 ingredient_amount = craft_amount * ingredient.amount
-                self.pre_conditions.append(conditions.HasItem(agent, ingredient.item, ingredient_amount))
+                has_item = conditions.HasItem(agent, ingredient.item, ingredient_amount, ingredient.same_variant)
+                self.pre_conditions.append(has_item)
         self.actions = [actions.Craft(agent, item, craft_amount)]
 
 
 class MeltPPA(PPA):
 
-    def __init__(self, agent, item, amount=1):
+    def __init__(self, agent, item, amount=1, same_variant=False):
         super(MeltPPA, self).__init__()
         self.name = f"Melt {amount}x {item}"
-        self.post_condition = conditions.HasItem(agent, item, amount)
+        self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
         recipe = get_recipe(item)
         if recipe is not None:
             if recipe.station:
                 self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
             for ingredient in recipe.ingredients:
                 ingredient_amount = math.ceil(amount / recipe.output_amount) * ingredient.amount
-                self.pre_conditions.append(conditions.HasItem(agent, ingredient.item, ingredient_amount))
+                has_item = conditions.HasItem(agent, ingredient.item, ingredient_amount, ingredient.same_variant)
+                self.pre_conditions.append(has_item)
         self.actions = [actions.Melt(agent, item, amount)]
 
 
 class PickupPPA(PPA):
-    def __init__(self, agent, material, amount):
+    def __init__(self, agent, material, amount, same_variant=False):
         super(PickupPPA, self).__init__()
         self.name = f"Pick up {material}"
-        self.post_condition = conditions.HasItem(agent, material, amount)
+        self.post_condition = conditions.HasItem(agent, material, amount, same_variant)
         self.pre_conditions = [conditions.HasPickupNearby(agent, material)]
         self.actions = [actions.PickupItem(agent, material)]
 

@@ -1,4 +1,5 @@
 from enum import Enum
+
 from items import items
 from items.ingredient import Ingredient
 
@@ -44,9 +45,9 @@ recipes = {
         station=items.CRAFTING_TABLE
     ),
     items.WOODEN_FENCE: Recipe(
-        [Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 4)],
+        [Ingredient(items.STICKS, 2), Ingredient(items.PLANKS, 4, same_variant=True)],
         output_amount=3,
-        station=items.CRAFTING_TABLE
+        station=items.CRAFTING_TABLE,
     )
 }
 

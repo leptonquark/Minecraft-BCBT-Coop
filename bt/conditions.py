@@ -18,14 +18,15 @@ class Condition(Behaviour):
 
 
 class HasItem(Condition):
-    def __init__(self, agent, item, amount=1):
+    def __init__(self, agent, item, amount=1, same_variant=False):
         super(HasItem, self).__init__(f"Has Item {amount}x {item}")
         self.agent = agent
         self.item = item
         self.amount = amount
+        self.same_variant = same_variant
 
     def verify(self):
-        return self.agent.inventory.has_item(self.item, self.amount)
+        return self.agent.inventory.has_item(self.item, self.amount, self.same_variant)
 
 
 class HasItemEquipped(Condition):
