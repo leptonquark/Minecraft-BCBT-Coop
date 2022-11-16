@@ -1,3 +1,5 @@
+import multiprocessing as mp
+
 from goals.blueprint.blueprint import Blueprint, BlueprintType
 from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULTS
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess, AGENT_DATA, BLACKBOARD
@@ -54,6 +56,13 @@ if __name__ == '__main__':
 
 
     class DashboardScreen(Screen):
+
+        def __init__(self, **kwargs):
+            super(DashboardScreen, self).__init__(**kwargs)
+            self.process = None
+            self.listen_event = None
+            self.running_event = None
+
         def on_enter(self):
             Window.size = (900, 600)
             self.start_bot()
@@ -66,9 +75,18 @@ if __name__ == '__main__':
             goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
             self.ids.map.set_goals(goals)
             self.ids.map.set_agent_names(agent_names)
-            runner_process = MultiAgentRunnerProcess(agent_names, goals)
-            runner_process.start()
-            Clock.schedule_interval(lambda _: self.listen_to_pipe(runner_process.pipe), 1 / 60)
+            self.running_event = mp.Event()
+            self.running_event.set()
+            self.process = MultiAgentRunnerProcess(self.running_event, agent_names, goals)
+            self.process.start()
+            self.listen_event = Clock.schedule_interval(lambda _: self.listen_to_pipe(self.process.pipe), 1 / 60)
+
+        def restart_bot(self):
+            if self.process:
+                self.running_event.clear()
+            if self.listen_event:
+                self.listen_event.cancel()
+            self.start_bot()
 
         def listen_to_pipe(self, pipe):
             if pipe[0].poll():
@@ -139,14 +157,15 @@ if __name__ == '__main__':
                     self.add_name([frame_x, frame_z], str(blueprint_position), 8)
 
         def add_name(self, position, name, font_size=NAME_FONT_SIZE):
-            label = Label(text=name, font_size=font_size)
-            label.refresh()
-            text = label.texture
-            pos_x = position[0] - 0.4 * text.size[0]
-            pos_z = position[1] + NAME_MARGIN_BOTTOM
-            pos = [pos_x, pos_z]
-            Color(1, 1, 1, 1)
-            Rectangle(size=text.size, pos=pos, texture=text)
+            with self.canvas:
+                label = Label(text=name, font_size=font_size)
+                label.refresh()
+                text = label.texture
+                pos_x = position[0] - 0.4 * text.size[0]
+                pos_z = position[1] + NAME_MARGIN_BOTTOM
+                pos = [pos_x, pos_z]
+                Color(1, 1, 1, 1)
+                Rectangle(size=text.size, pos=pos, texture=text)
 
         def get_frame_position(self, pos_x, pos_z):
             width = self.size[0]

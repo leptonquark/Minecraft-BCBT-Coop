@@ -109,7 +109,6 @@
                 markup: True
                 height: 30
                 text_size: self.width, self.height
-
         RelativeLayout:
             Map:
                 id: map
@@ -134,5 +133,20 @@
                         markup: True
                         text_size: self.width, self.height
                         font_size: 24
+    AnchorLayout:
+        anchor_x: 'left'
+        anchor_y: 'bottom'
+        size_hint: (None, None)
+        height: 60
+        width: 60
+        padding: 10
+        Button:
+            id: start_bot
+            canvas:
+                Rectangle:
+                    source: "restart.png"
+                    size: self.size
+                    pos: self.pos
+            on_press: root.restart_bot()
 
 
