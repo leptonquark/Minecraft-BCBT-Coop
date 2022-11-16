@@ -10,6 +10,7 @@ GATHERING_REACH = 2.5
 YAW_TOLERANCE = 15
 PITCH_TOLERANCE = 3
 MAX_PITCH = 0.8
+PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
 
 
 class Observer:
@@ -159,7 +160,12 @@ class Observer:
             return None
 
     def has_pickup_nearby(self, wanted):
-        return any(pickup.name == wanted for pickup in self.observation.pickups)
+        for pickup in self.observation.pickups:
+            if pickup.name == wanted:
+                distance = np.linalg.norm(self.observation.pickups[0].position - self.observation.abs_pos)
+                if distance < PICKUP_NEARBY_DISTANCE_TOLERANCE:
+                    return True
+        return False
 
     def get_pickup_position(self, wanted):
         for pickup in self.observation.pickups:
