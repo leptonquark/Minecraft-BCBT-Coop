@@ -6,8 +6,8 @@ from utils import vectors
 from utils.vectors import get_los_face
 
 DELTA_ANGLES = 45
-GATHERING_REACH = 2.5
-YAW_TOLERANCE = 15
+GATHERING_REACH = 3
+YAW_TOLERANCE = 5
 PITCH_TOLERANCE = 3
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
