@@ -16,6 +16,7 @@ class MultiAgentRunnerProcess(mp.Process):
         self.agent_names = agent_names
 
         self.agent_positions = [None] * len(agent_names)
+        self.completion_times: List[Optional[float]] = [None] * len(agent_names)
         self.blueprint_result = None
 
     def run(self):
@@ -35,12 +36,24 @@ class MultiAgentRunnerProcess(mp.Process):
             for i, pipe in enumerate(pipes):
                 if pipe[0].poll():
                     agent_data = pipe[0].recv()
-                    self.agent_positions[i] = agent_data.position
-                    if agent_data.blueprint_result:
-                        self.blueprint_result = agent_data.blueprint_result
-                    data = MultiAgentRunnerState(self.agent_positions, self.blueprint_result, blackboard.copy())
-                    self.pipe[1].send(data)
+                    self.cache_agent_data(agent_data, i)
+                    self.pipe[1].send(self.get_state(blackboard))
         print("All MultiAgentProcesses has stopped")
+
+    def cache_agent_data(self, agent_data, i):
+        self.agent_positions[i] = agent_data.position
+        if agent_data.blueprint_result:
+            self.blueprint_result = agent_data.blueprint_result
+        self.completion_times[i] = agent_data.completion_time
+
+    def get_state(self, blackboard):
+        if all(self.completion_times):
+            completion_time = max(self.completion_times)
+        else:
+            completion_time = None
+        data = MultiAgentRunnerState(self.agent_positions, self.blueprint_result, blackboard.copy(),
+                                     completion_time)
+        return data
 
 
 @dataclass
@@ -48,3 +61,4 @@ class MultiAgentRunnerState:
     agent_positions: List[Optional[List[float]]]
     blueprint_result: Optional[List[bool]]
     blackboard: Dict[str, str]
+    completion_time: Optional[float]

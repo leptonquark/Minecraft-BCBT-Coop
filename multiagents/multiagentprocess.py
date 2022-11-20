@@ -41,16 +41,20 @@ class MultiAgentProcess(mp.Process):
         start = time.time()
 
         world_state = agent.get_next_world_state()
+        observation = None
         while self.is_running(world_state, tree):
             world_state = agent.get_next_world_state()
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
-            self.send_info(observation)
+            self.send_info(observation, None)
             tree.tick()
             last_delta = check_timeout(agent, world_state, last_delta)
+        completion_time = time.time() - start
+
         print(f"Mission is running: {world_state.is_mission_running}")
         print(f"All goals achieved: {tree.all_goals_achieved()}")
         print(f"Total time: {time.time() - start} \n")
+        self.send_info(observation, completion_time)
 
     def is_running(self, world_state, tree):
         if self.running and not self.running.is_set():
@@ -64,20 +68,22 @@ class MultiAgentProcess(mp.Process):
             return False
         return True
 
-    def send_info(self, observation):
-        self.pipe[1].send(self.get_data(observation))
+    def send_info(self, observation, completion_time):
+        if observation:
+            self.pipe[1].send(self.get_data(observation, completion_time))
 
-    def get_data(self, observation):
+    def get_data(self, observation, completion_time):
         player_position = observation.abs_pos
         if self.blueprint_validator:
             blueprint_result = self.blueprint_validator.validate(observation)
-            return MultiAgentState(self.role, player_position, blueprint_result)
+            return MultiAgentState(self.role, completion_time, player_position, blueprint_result)
         else:
-            return MultiAgentState(self.role, player_position, None)
+            return MultiAgentState(self.role, completion_time, player_position, None)
 
 
 @dataclass
 class MultiAgentState:
     role: int
+    completion_time: Optional[float]
     position: List[float]
     blueprint_result: Optional[List[bool]]

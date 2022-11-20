@@ -21,8 +21,9 @@ if __name__ == '__main__':
         running_event.set()
         process = MultiAgentRunnerProcess(running_event, agent_names, goals)
         process.start()
+        value = None
         while process.is_alive():
             if process.pipe[0].poll():
                 value = process.pipe[0].recv()
-        length = time.time() - start_time
+        length = value.completion_time if value else -1
         print(f"Total time: {length}")
