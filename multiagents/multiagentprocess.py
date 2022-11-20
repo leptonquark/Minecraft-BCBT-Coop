@@ -1,5 +1,7 @@
 import multiprocessing as mp
 import time
+from dataclasses import dataclass
+from typing import List, Optional
 
 from bt.back_chain_tree import BackChainTree
 from goals.blueprint.blueprint import Blueprint
@@ -71,11 +73,11 @@ class MultiAgentProcess(mp.Process):
             blueprint_result = self.blueprint_validator.validate(observation)
             return MultiAgentState(self.role, player_position, blueprint_result)
         else:
-            return MultiAgentState(self.role, player_position)
+            return MultiAgentState(self.role, player_position, None)
 
 
+@dataclass
 class MultiAgentState:
-    def __init__(self, role, player_position, blueprint_result=None):
-        self.role = role
-        self.position = player_position
-        self.blueprint_result = blueprint_result
+    role: int
+    position: List[float]
+    blueprint_result: Optional[List[bool]]

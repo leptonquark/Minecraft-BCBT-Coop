@@ -1,4 +1,6 @@
 import multiprocessing as mp
+from dataclasses import dataclass
+from typing import List, Dict, Optional
 
 from multiagents.multiagentprocess import MultiAgentProcess
 from world.missiondata import MissionData
@@ -41,8 +43,8 @@ class MultiAgentRunnerProcess(mp.Process):
         print("All MultiAgentProcesses has stopped")
 
 
+@dataclass
 class MultiAgentRunnerState:
-    def __init__(self, agent_positions, blueprint_result, blackboard):
-        self.agent_positions = agent_positions
-        self.blueprint_result = blueprint_result
-        self.blackboard = blackboard
+    agent_positions: List[Optional[List[float]]]
+    blueprint_result: Optional[List[bool]]
+    blackboard: Dict[str, str]
