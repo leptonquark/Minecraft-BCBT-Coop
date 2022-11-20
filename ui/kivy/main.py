@@ -1,8 +1,7 @@
 import multiprocessing as mp
 
 from goals.blueprint.blueprint import Blueprint, BlueprintType
-from multiagents.multiagentprocess import PLAYER_POSITION, BLUEPRINT_RESULTS
-from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess, AGENT_DATA, BLACKBOARD
+from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.kivy.colors import get_color
 from utils.names import get_names
 
@@ -91,19 +90,13 @@ if __name__ == '__main__':
         def listen_to_pipe(self, pipe):
             if pipe[0].poll():
                 value = pipe[0].recv()
-                self.on_agent_data(value[AGENT_DATA])
-                self.on_blackboard(value[BLACKBOARD])
+                self.set_map_data(value.agent_positions, value.blueprint_result)
+                self.set_blackboard_data(value.blackboard)
 
-        def on_agent_data(self, agent_data):
-            player_position = agent_data[1][PLAYER_POSITION]
-            unit = agent_data[0]
-            pos_x = player_position[0]
-            pos_z = player_position[2]
-            positions = (pos_x, pos_z)
-            blueprint_results = agent_data[1].get(BLUEPRINT_RESULTS)
-            self.ids.map.set_data(unit, positions, blueprint_results)
+        def set_map_data(self, agent_positions, blueprint_result):
+            self.ids.map.set_data(agent_positions, blueprint_result)
 
-        def on_blackboard(self, blackboard):
+        def set_blackboard_data(self, blackboard):
             self.ids.blackboard.text = ", \n".join(f"{key}: {value}" for key, value in blackboard.items())
 
 
@@ -118,7 +111,7 @@ if __name__ == '__main__':
             self.agent_names = []
             self.blueprint_positions = []
             self.blueprint_results = []
-            self.positions = {}
+            self.agent_positions = []
 
             self.bind(pos=self.update_canvas)
             self.bind(size=self.update_canvas)
@@ -132,21 +125,31 @@ if __name__ == '__main__':
             if type(goals) is Blueprint:
                 self.blueprint_positions = goals.positions
 
-        def set_data(self, unit, positions, blueprint_results=None):
-            self.positions[unit] = positions
-            if blueprint_results:
-                self.blueprint_results = blueprint_results
+        def set_data(self, agent_positions, blueprint_result):
+            self.agent_positions = agent_positions
+            if blueprint_result:
+                self.blueprint_results = blueprint_result
             self.update_canvas()
 
         def update_canvas(self, *args):
             self.canvas.clear()
+            self.add_agent_positions()
+            self.add_blueprint_positions()
+
+        def add_agent_positions(self):
+            for role, agent_position in enumerate(self.agent_positions):
+                if agent_position is not None:
+                    self.add_agent_position(role, agent_position)
+
+        def add_agent_position(self, role, agent_position):
             with self.canvas:
-                for i, position in self.positions.items():
-                    Color(*get_color(i))
-                    if position is not None:
-                        frame_x, frame_z = self.get_frame_position(position[0], position[1])
-                        Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
-                        self.add_name([frame_x, frame_z], self.agent_names[i])
+                Color(*get_color(role))
+                frame_x, frame_z = self.get_frame_position(agent_position[0], agent_position[2])
+                Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
+                self.add_name([frame_x, frame_z], self.agent_names[role])
+
+        def add_blueprint_positions(self):
+            with self.canvas:
                 for i, blueprint_position in enumerate(self.blueprint_positions):
                     if self.blueprint_results and self.blueprint_results[i]:
                         Color(0, 1, 0, 1)

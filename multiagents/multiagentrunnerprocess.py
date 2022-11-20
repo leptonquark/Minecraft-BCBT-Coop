@@ -3,19 +3,18 @@ import multiprocessing as mp
 from multiagents.multiagentprocess import MultiAgentProcess
 from world.missiondata import MissionData
 
-AGENT_DATA = "agent_data"
-BLACKBOARD = "blackboard"
-
 
 class MultiAgentRunnerProcess(mp.Process):
 
     def __init__(self, running, agent_names, goals):
         super(MultiAgentRunnerProcess, self).__init__()
         self.running = running
-        self.n_clients = len(agent_names)
         self.pipe = mp.Pipe()
         self.goals = goals
         self.agent_names = agent_names
+
+        self.agent_positions = [None] * len(agent_names)
+        self.blueprint_result = None
 
     def run(self):
         manager = mp.Manager()
@@ -27,16 +26,23 @@ class MultiAgentRunnerProcess(mp.Process):
         ]
         for process in processes:
             process.start()
+
         pipes = [process.pipe for process in processes]
 
         while any(process.is_alive() for process in processes):
             for i, pipe in enumerate(pipes):
                 if pipe[0].poll():
-                    pipe_data = pipe[0].recv()
-                    agent_data = (i, pipe_data)
-                    data = {
-                        AGENT_DATA: agent_data,
-                        BLACKBOARD: blackboard.copy()
-                    }
+                    agent_data = pipe[0].recv()
+                    self.agent_positions[i] = agent_data.position
+                    if agent_data.blueprint_result:
+                        self.blueprint_result = agent_data.blueprint_result
+                    data = MultiAgentRunnerState(self.agent_positions, self.blueprint_result, blackboard.copy())
                     self.pipe[1].send(data)
         print("All MultiAgentProcesses has stopped")
+
+
+class MultiAgentRunnerState:
+    def __init__(self, agent_positions, blueprint_result, blackboard):
+        self.agent_positions = agent_positions
+        self.blueprint_result = blueprint_result
+        self.blackboard = blackboard

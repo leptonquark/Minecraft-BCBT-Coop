@@ -8,9 +8,6 @@ from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
 from world.observation import Observation
 
-PLAYER_POSITION = "player_position"
-BLUEPRINT_RESULTS = "blueprint_results"
-
 
 class MultiAgentProcess(mp.Process):
 
@@ -66,8 +63,19 @@ class MultiAgentProcess(mp.Process):
         return True
 
     def send_info(self, observation):
-        data = {PLAYER_POSITION: observation.abs_pos}
+        self.pipe[1].send(self.get_data(observation))
+
+    def get_data(self, observation):
+        player_position = observation.abs_pos
         if self.blueprint_validator:
             blueprint_result = self.blueprint_validator.validate(observation)
-            data[BLUEPRINT_RESULTS] = blueprint_result
-        self.pipe[1].send(data)
+            return MultiAgentState(self.role, player_position, blueprint_result)
+        else:
+            return MultiAgentState(self.role, player_position)
+
+
+class MultiAgentState:
+    def __init__(self, role, player_position, blueprint_result=None):
+        self.role = role
+        self.position = player_position
+        self.blueprint_result = blueprint_result
