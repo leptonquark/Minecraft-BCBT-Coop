@@ -10,6 +10,7 @@ from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
 from world.observation import Observation
 
+MAX_TIME = 300
 
 class MultiAgentProcess(mp.Process):
 
@@ -38,25 +39,25 @@ class MultiAgentProcess(mp.Process):
         tree = BackChainTree(agent, self.goals)
 
         last_delta = time.time()
-        start = time.time()
+        start_time = time.time()
 
         world_state = agent.get_next_world_state()
         observation = None
-        while self.is_running(world_state, tree):
+        while self.is_running(world_state, tree, start_time):
             world_state = agent.get_next_world_state()
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             self.send_info(observation, None)
             tree.tick()
             last_delta = check_timeout(agent, world_state, last_delta)
-        completion_time = time.time() - start
+        completion_time = time.time() - start_time
 
         print(f"Mission is running: {world_state.is_mission_running}")
         print(f"All goals achieved: {tree.all_goals_achieved()}")
-        print(f"Total time: {time.time() - start} \n")
+        print(f"Total time: {completion_time} \n")
         self.send_info(observation, completion_time)
 
-    def is_running(self, world_state, tree):
+    def is_running(self, world_state, tree, start_time):
         if self.running and not self.running.is_set():
             print("Process was terminated")
             return False
@@ -65,6 +66,9 @@ class MultiAgentProcess(mp.Process):
             return False
         if tree.all_goals_achieved():
             print("All goals were achieved")
+            return False
+        if MAX_TIME and time.time() - start_time > MAX_TIME:
+            print("Mission timed out")
             return False
         return True
 
