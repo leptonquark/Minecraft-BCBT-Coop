@@ -11,6 +11,7 @@ from world.observation import Observation
 PLAYER_POSITION = "player_position"
 BLUEPRINT_RESULTS = "blueprint_results"
 
+
 class MultiAgentProcess(mp.Process):
 
     def __init__(self, running, mission_data, goals, blackboard, role):
@@ -24,7 +25,6 @@ class MultiAgentProcess(mp.Process):
         self.blueprint_validator = None
         if role == 0 and type(self.goals) is Blueprint:
             self.blueprint_validator = BlueprintValidator(self.goals)
-
 
     def run(self):
         agent_name = self.mission_data.agent_names[self.role]
@@ -54,7 +54,7 @@ class MultiAgentProcess(mp.Process):
         print(f"Total time: {time.time() - start} \n")
 
     def is_running(self, world_state, tree):
-        if not self.running.is_set():
+        if self.running and not self.running.is_set():
             print("Process was terminated")
             return False
         if world_state is None or not world_state.is_mission_running:

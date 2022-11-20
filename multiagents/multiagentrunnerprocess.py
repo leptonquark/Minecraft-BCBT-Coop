@@ -39,3 +39,4 @@ class MultiAgentRunnerProcess(mp.Process):
                         BLACKBOARD: blackboard.copy()
                     }
                     self.pipe[1].send(data)
+        print("All MultiAgentProcesses has stopped")
