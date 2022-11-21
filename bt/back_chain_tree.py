@@ -11,9 +11,9 @@ from utils.string import tree_to_string
 
 
 class BackChainTree:
-    def __init__(self, agent, goals):
+    def __init__(self, agent, goals, collaborative):
         self.agent = agent
-        self.root = self.back_chain(goals)
+        self.root = self.back_chain(goals, collaborative)
 
     def __getstate__(self):
         state = {'agent': self.agent, 'root': tree_to_state(self.root)}
@@ -23,7 +23,7 @@ class BackChainTree:
         self.agent = state['agent']
         self.root = state_to_tree(state['root'])
 
-    def back_chain(self, goals):
+    def back_chain(self, goals, collaborative):
         children = [JumpIfStuck(self.agent)]
         if isinstance(goals, Blueprint):
             goals = goals.as_conditions(self.agent)
@@ -34,7 +34,7 @@ class BackChainTree:
                 if isinstance(goal, AgentlessCondition):
                     goal = goal.as_condition(self.agent)
                 if isinstance(goal, Condition):
-                    goal_ppa_tree = back_chain_recursive(self.agent, goal)
+                    goal_ppa_tree = back_chain_recursive(self.agent, goal, collaborative)
                     if goal_ppa_tree is not None:
                         goal_ppa_tree.setup_with_descendants()
                         children.append(goal_ppa_tree)

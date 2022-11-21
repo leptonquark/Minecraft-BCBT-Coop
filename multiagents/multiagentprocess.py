@@ -13,18 +13,17 @@ from world.observation import Observation
 MAX_TIME = 300
 
 class MultiAgentProcess(mp.Process):
-
-    def __init__(self, running, mission_data, goals, blackboard, role):
+    def __init__(self, running, mission_data, blackboard, role):
         super(MultiAgentProcess, self).__init__()
         self.running = running
         self.mission_data = mission_data
-        self.goals = goals
         self.blackboard = blackboard
         self.role = role
-        self.pipe = mp.Pipe()
         self.blueprint_validator = None
-        if role == 0 and type(self.goals) is Blueprint:
-            self.blueprint_validator = BlueprintValidator(self.goals)
+        goals = self.mission_data.goals
+        if role == 0 and type(goals) is Blueprint:
+            self.blueprint_validator = BlueprintValidator(goals)
+        self.pipe = mp.Pipe()
 
     def run(self):
         agent_name = self.mission_data.agent_names[self.role]
@@ -36,7 +35,7 @@ class MultiAgentProcess(mp.Process):
         if self.mission_data.night_vision:
             agent.activate_night_vision()
 
-        tree = BackChainTree(agent, self.goals)
+        tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.collaborative)
 
         last_delta = time.time()
         start_time = time.time()

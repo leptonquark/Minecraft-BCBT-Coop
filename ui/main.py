@@ -2,7 +2,7 @@ import multiprocessing as mp
 
 from goals.blueprint.blueprint import Blueprint, BlueprintType
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
-from ui.kivy.colors import get_color
+from ui.colors import get_color
 from utils.names import get_names
 
 TITLE = "Minecraft Coop AI Experiment"
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             self.ids.map.set_agent_names(agent_names)
             self.running_event = mp.Event()
             self.running_event.set()
-            self.process = MultiAgentRunnerProcess(self.running_event, agent_names, goals)
+            self.process = MultiAgentRunnerProcess(self.running_event, agent_names, goals, False)
             self.process.start()
             self.listen_event = Clock.schedule_interval(lambda _: self.listen_to_pipe(self.process.pipe), 1 / 60)
 

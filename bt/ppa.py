@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 from py_trees.composites import Selector
 
@@ -13,18 +14,18 @@ from mobs.animals import get_loot_source
 from mobs.hunting import get_hunting_tool
 
 
-def back_chain_recursive(agent, condition):
-    ppa = condition_to_ppa_tree(agent, condition)
+def back_chain_recursive(agent, condition, collaborative) -> Optional[Sequence]:
+    ppa = condition_to_ppa_tree(agent, condition, collaborative)
     if ppa is not None:
         for i, pre_condition in enumerate(ppa.pre_conditions):
-            ppa_condition_tree = back_chain_recursive(agent, ppa.pre_conditions[i])
+            ppa_condition_tree = back_chain_recursive(agent, ppa.pre_conditions[i], collaborative)
             if ppa_condition_tree is not None:
                 ppa.pre_conditions[i] = ppa_condition_tree
         return ppa.as_tree()
     return None
 
 
-def condition_to_ppa_tree(agent, condition):
+def condition_to_ppa_tree(agent, condition, collaborative=False):
     if isinstance(condition, conditions.HasItem):
         recipe = get_recipe(condition.item)
         if recipe is None:
@@ -53,7 +54,10 @@ def condition_to_ppa_tree(agent, condition):
     elif isinstance(condition, conditions.IsAnimalObservable):
         return LookForAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsBlockAtPosition):
-        return PlaceBlockPPA(agent, condition.block, condition.position)
+        if collaborative:
+            return PlaceBlockPPACollaborative(agent, condition.block, condition.position)
+        else:
+            return PlaceBlockPPA(agent, condition.block, condition.position)
     elif isinstance(condition, conditions.HasBestPickaxeByMinimumTierEquipped):
         return EquipPickaxePPA(agent, condition.tier)
     elif isinstance(condition, conditions.HasPickaxeByMinimumTier):
@@ -224,6 +228,19 @@ class PlaceBlockPPA(PPA):
     def __init__(self, agent, block, position):
         super(PlaceBlockPPA, self).__init__()
         self.name = f"Place Block {block} at position {position}"
+        self.agent = agent
+        self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
+        self.pre_conditions = [
+            conditions.HasItemEquipped(agent, block),
+            conditions.IsPositionWithinReach(agent, position)
+        ]
+        self.actions = [actions.PlaceBlockAtPosition(agent, block, position)]
+
+
+class PlaceBlockPPACollaborative(PPA):
+    def __init__(self, agent, block, position):
+        super(PlaceBlockPPACollaborative, self).__init__()
+        self.name = f"Place Block {block} at position {position}"
         self.channel = f"Place {block} at {position}"
         self.agent = agent
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
@@ -261,16 +278,3 @@ class GoToPositionPPA(PPA):
         self.agent = agent
         self.post_condition = conditions.IsPositionWithinReach(agent, position)
         self.actions = [actions.GoToPosition(agent, position)]
-
-
-ppa_maps = {
-    conditions.HasItemEquipped: EquipPPA,
-    conditions.IsBlockWithinReach: GoToBlockPPA,
-    conditions.IsPositionWithinReach: GoToPositionPPA,
-    conditions.IsBlockObservable: ExplorePPA,
-    conditions.IsAnimalWithinReach: GoToAnimalPPA,
-    conditions.IsAnimalObservable: LookForAnimalPPA,
-    conditions.IsBlockAtPosition: PlaceBlockPPA,
-    conditions.HasBestPickaxeByMinimumTierEquipped: EquipPickaxePPA,
-    conditions.HasPickaxeByMinimumTier: CraftPickaxePPA
-}

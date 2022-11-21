@@ -8,12 +8,13 @@ from world.missiondata import MissionData
 
 class MultiAgentRunnerProcess(mp.Process):
 
-    def __init__(self, running, agent_names, goals):
+    def __init__(self, running, agent_names, goals, collaborative):
         super(MultiAgentRunnerProcess, self).__init__()
         self.running = running
         self.pipe = mp.Pipe()
         self.goals = goals
         self.agent_names = agent_names
+        self.collaborative = collaborative
 
         self.agent_positions = [None] * len(agent_names)
         self.completion_times: List[Optional[float]] = [None] * len(agent_names)
@@ -22,10 +23,10 @@ class MultiAgentRunnerProcess(mp.Process):
     def run(self):
         manager = mp.Manager()
         blackboard = manager.dict()
-        mission_data = MissionData(self.goals, self.agent_names)
+        mission_data = MissionData(self.goals, self.collaborative, self.agent_names)
         processes = [
-            MultiAgentProcess(self.running, mission_data, self.goals, blackboard, i)
-            for i in range(len(self.agent_names))
+            MultiAgentProcess(self.running, mission_data, blackboard, role)
+            for role in range(len(self.agent_names))
         ]
         for process in processes:
             process.start()

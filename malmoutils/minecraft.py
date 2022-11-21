@@ -16,4 +16,4 @@ def run_minecraft(n_clients=None):
 
 
 if __name__ == "__main__":
-    run_minecraft(3)
+    run_minecraft(1)
