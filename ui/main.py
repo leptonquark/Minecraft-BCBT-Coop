@@ -15,6 +15,7 @@ if __name__ == '__main__':
     from kivy.core.window import Window
     from kivy.graphics import Color, Ellipse, Rectangle
     from kivy.lang import Builder
+    from kivy.storage.jsonstore import JsonStore
     from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
     from kivy.uix.textinput import TextInput
     from kivy.uix.widget import Widget
@@ -44,7 +45,32 @@ if __name__ == '__main__':
             return screen_manager
 
 
+    AMOUNT_OF_AGENTS = "amountOfAgents"
+    AMOUNT = "amount"
+    AMOUNT_OF_AGENTS_DEFAULT = 2
+
+
     class StartScreen(Screen):
+
+        def __init__(self, **kwargs):
+            super(StartScreen, self).__init__(**kwargs)
+            self.store = JsonStore("config.json")
+
+        def on_enter(self, *args):
+            self.initialize_amount_of_agents()
+
+        def initialize_amount_of_agents(self):
+            if AMOUNT_OF_AGENTS in self.store and AMOUNT in self.store[AMOUNT_OF_AGENTS]:
+                amount_of_agents = self.store[AMOUNT_OF_AGENTS][AMOUNT]
+            else:
+                amount_of_agents = AMOUNT_OF_AGENTS_DEFAULT
+            self.ids.amount.text = str(amount_of_agents)
+            self.ids.amount.bind(text=self.on_amount_of_agents)
+
+        def on_amount_of_agents(self, _, amount):
+            if amount.isnumeric():
+                self.store[AMOUNT_OF_AGENTS] = {AMOUNT: int(amount)}
+
         def start_bot(self):
             self.manager.current = "DashboardScreen"
 
