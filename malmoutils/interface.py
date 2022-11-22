@@ -48,6 +48,9 @@ class MalmoInterface:
     def turn(self, speed):
         self.agent_host.sendCommand(f"turn {speed}")
 
+    def strafe(self, speed):
+        self.agent_host.sendCommand(f"strafe {speed}")
+
     def pitch(self, speed):
         self.agent_host.sendCommand(f"pitch {speed}")
 

@@ -5,14 +5,17 @@ import numpy as np
 from items import effects
 from items.inventory import HOTBAR_SIZE
 from malmoutils.interface import MalmoInterface
+from utils.vectors import RelativeDirection
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
+
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
 NO_MOVE_SPEED_DISTANCE_EPSILON = 1
 NO_MOVE_SPEED_TURN_DIRECTION_EPSILON = 0.1
+STRAFE_SPEED = 0.3
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
@@ -81,6 +84,12 @@ class MinerAgent:
         self.interface.pitch(pitch_req)
         return pitch_req == 0
 
+    def strafe_by_direction(self, direction):
+        if direction == RelativeDirection.Right:
+            self.interface.strafe(STRAFE_SPEED)
+        else:
+            self.interface.strafe(-STRAFE_SPEED)
+
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
@@ -98,6 +107,9 @@ class MinerAgent:
 
     def turn(self, intensity):
         self.interface.turn(intensity)
+
+    def strafe(self, intensity):
+        self.interface.strafe(intensity)
 
     def craft(self, item, amount=1):
         variants = self.inventory.get_variants(item)
