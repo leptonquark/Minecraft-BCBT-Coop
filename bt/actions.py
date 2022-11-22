@@ -6,7 +6,7 @@ from items import items
 from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH, PLACING_REACH
 from utils.vectors import Direction, directionVector, down, up
-from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
+from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction, get_position_flat_center
 
 DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
 
@@ -266,9 +266,10 @@ class GoToPosition(GoToObject):
         self.position = position
 
     def update(self):
-        self.go_to_position(self.position)
+        position_center = get_position_flat_center(self.position)
+        self.go_to_position(position_center)
 
-        has_arrived = self.agent.observer.is_position_within_reach(self.position, ATTACK_REACH)
+        has_arrived = self.agent.observer.is_position_within_reach(position_center, PLACING_REACH)
         return Status.SUCCESS if has_arrived else Status.RUNNING
 
 
@@ -350,8 +351,7 @@ class PlaceBlockAtPosition(Action):
         self.position_below = position + down
 
     def update(self):
-        distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
-        position_center = get_position_center(self.position_below)
+        position_center = get_position_flat_center(self.position_below)
         has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
 
         if not has_arrived:
@@ -361,6 +361,7 @@ class PlaceBlockAtPosition(Action):
         self.agent.jump(False)
         self.agent.move(0)
 
+        distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
         pitching = self.agent.pitch_towards(distance)
         turning = self.agent.turn_towards(distance)
 
