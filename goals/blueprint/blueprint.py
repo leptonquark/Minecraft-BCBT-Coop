@@ -66,18 +66,18 @@ class Blueprint:
                 ])
             )
         elif blueprint_type == BlueprintType.PointGrid:
+            delta = 5
             return Blueprint(
                 material=items.WOODEN_FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
-                    [0, 0, 5],
-                    [0, 0, -5],
-                    [5, 0, 0],
-                    [5, 0, 5],
-                    [5, 0, -5],
-                    [-5, 0, 0],
-                    [-5, 0, 5],
-                    [-5, 0, -5],
-
+                    [0, 0, delta],
+                    [0, 0, -delta],
+                    [delta, 0, 0],
+                    [delta, 0, delta],
+                    [delta, 0, -delta],
+                    [-delta, 0, 0],
+                    [-delta, 0, delta],
+                    [-delta, 0, -delta],
                 ])
             )

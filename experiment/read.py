@@ -4,7 +4,7 @@ import pandas as pd
 CAPSIZE = 10
 WIDTH = 0.25
 
-df = pd.read_csv("output2.csv")
+df = pd.read_csv("output3.csv")
 
 stats = df.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
 stats.columns = ["time_mean", "time_std"]

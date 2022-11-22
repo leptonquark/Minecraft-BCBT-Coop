@@ -37,7 +37,7 @@ if __name__ == '__main__':
                         value = process.pipe[0].recv()
                 completion_time = value.completion_time if value else -1
                 print(f"Total time: {completion_time}")
-                output.append(f"{run}, {collaborative}, {n_agents}, {i}, {completion_time}")
+                output.append(f"{run},{collaborative},{n_agents},{i},{completion_time}")
                 print(output)
                 run += 1
     with open('output.txt', 'w') as file:
