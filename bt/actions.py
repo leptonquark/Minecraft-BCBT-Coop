@@ -164,8 +164,12 @@ class GoToObject(Action):
     def mine_forward(self, vertical_distance, wanted_direction):
         distance_to_block = directionVector[wanted_direction] + vertical_distance * up
         block_position = self.agent.observer.get_abs_pos_discrete() + distance_to_block
-
-        if not self.agent.observer.is_looking_at_discrete_position(block_position):
+        block_center = get_position_flat_center(block_position)
+        distance_to_block = self.agent.observer.get_distance_to_position(block_center)
+        self.agent.turn(0)
+        self.agent.pitch(0)
+        self.agent.move(0)
+        if not self.agent.observer.is_looking_at_discrete_position(block_center):
             turning = self.agent.turn_towards(distance_to_block)
             pitching = self.agent.pitch_towards(distance_to_block)
 
@@ -173,9 +177,6 @@ class GoToObject(Action):
                 self.agent.attack(False)
                 self.agent.move(0)
                 return
-        self.agent.turn(0)
-        self.agent.pitch(0)
-        self.agent.move(0)
 
         self.agent.attack(True)
 
