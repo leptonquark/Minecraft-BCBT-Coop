@@ -17,9 +17,10 @@ if __name__ == '__main__':
 
     output = []
 
-    for collaborative in [False, True]:
-        for i in range(n_test_runs):
-            for n_agents in range(1, agents_max + 1):
+    run = 0
+    for n_agents in range(1, agents_max + 1):
+        for collaborative in [False, True]:
+            for i in range(n_test_runs):
                 start_time = time.time()
                 amount = n_agents
                 agent_names = get_names(amount)
@@ -36,7 +37,8 @@ if __name__ == '__main__':
                         value = process.pipe[0].recv()
                 completion_time = value.completion_time if value else -1
                 print(f"Total time: {completion_time}")
-                output.append(f"{collaborative}, {n_agents}, {i}, {completion_time}")
+                output.append(f"{run}, {collaborative}, {n_agents}, {i}, {completion_time}")
                 print(output)
-    with open('output1.txt', 'w') as file:
+                run += 1
+    with open('output.txt', 'w') as file:
         file.write('\n'.join(output))
