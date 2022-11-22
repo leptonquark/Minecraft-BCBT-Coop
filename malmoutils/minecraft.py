@@ -1,3 +1,5 @@
+import argparse
+
 import malmo.minecraftbootstrap
 
 # TODO: Remove Hardcoded line and move to a config file
@@ -16,4 +18,10 @@ def run_minecraft(n_clients=None):
 
 
 if __name__ == "__main__":
-    run_minecraft(3)
+    parser = argparse.ArgumentParser(description='A bootstrap for starting Minecraft.')
+
+    parser.add_argument("-c", "--clients", help="How many clients do you want to start?", default=2, type=int)
+
+    args = parser.parse_args()
+
+    run_minecraft(args.clients)
