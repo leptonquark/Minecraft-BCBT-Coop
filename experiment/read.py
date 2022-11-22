@@ -2,14 +2,11 @@ import pandas as pd
 
 df = pd.read_csv("output2.csv")
 
-agents_values = df.agents.unique()
-collaborative_values = df.collaborative.unique()
-
-for collaborative in collaborative_values:
-    for agents in agents_values:
-        filtered = df[(df.agents == agents) & (df.collaborative == collaborative)]
-        mean = filtered.time.mean()
-        without_extremes = filtered[filtered.time < 300]
-        we_mean = without_extremes.time.mean()
-        print(f"Collaborative: {collaborative}, Agents {agents}, Avg Time: {mean}, Avg Time (w.o. extremes): {we_mean}")
-print(df.mean())
+stats = df.groupby(['collaborative', 'agents']).agg({"time": ["mean", "std"]})
+stats.columns = ["time_mean", "time_std"]
+df_we = df[df.time < 300]
+stats_we = df_we.groupby(['collaborative', 'agents']).agg({"time": ["mean", "std"]})
+stats_we.columns = ["time_mean_we", "time_std_we"]
+stats_full = pd.concat([stats, stats_we], axis=1)
+stats_full = stats_full.reset_index()
+print(stats_full)
