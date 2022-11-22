@@ -6,11 +6,12 @@ from items import effects
 from items.inventory import HOTBAR_SIZE
 from malmoutils.interface import MalmoInterface
 from utils.vectors import RelativeDirection
-from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
+from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
 
+BLOCKED_BY_NARROW_THRESHOLD = 0.5
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
 NO_MOVE_SPEED_DISTANCE_EPSILON = 1
@@ -83,6 +84,23 @@ class MinerAgent:
         pitch_req = self.observer.get_pitch_change(PITCH_UPWARDS)
         self.interface.pitch(pitch_req)
         return pitch_req == 0
+
+    def avoid_narrow(self, flat_distance):
+        flat_center = get_position_flat_center(self.observer.get_abs_pos_discrete())
+        distance_to_center = self.observer.get_distance_to_position(flat_center)
+        flat_distance_to_center = np.copy(distance_to_center)
+        flat_distance_to_center[1] = 0
+        normalized_flat_distance = flat_distance / np.linalg.norm(flat_distance)
+        normalized_flat_distance_to_center = flat_distance_to_center / np.linalg.norm(flat_distance_to_center)
+        block_factor = np.dot(normalized_flat_distance_to_center, normalized_flat_distance)
+        if block_factor >= BLOCKED_BY_NARROW_THRESHOLD:
+            distance_perpendicular = np.array([normalized_flat_distance[2], 0, -normalized_flat_distance[0]])
+            go_right = np.dot(distance_perpendicular, normalized_flat_distance_to_center) > 0
+            direction = RelativeDirection.Right if go_right else RelativeDirection.Left
+            self.strafe_by_direction(direction)
+            return True
+        else:
+            return False
 
     def strafe_by_direction(self, direction):
         if direction == RelativeDirection.Right:

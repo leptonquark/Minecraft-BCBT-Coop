@@ -5,11 +5,10 @@ from py_trees.common import Status
 from items import items
 from items.items import traversable, narrow, unclimbable
 from utils.constants import ATTACK_REACH, PLACING_REACH
-from utils.vectors import Direction, directionVector, down, up, RelativeDirection
+from utils.vectors import Direction, directionVector, down, up
 from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction, get_position_flat_center
 
 DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
-BLOCKED_BY_NARROW_THRESHOLD = 0.5
 
 # TODO: Move agent setter to here
 class Action(Behaviour):
@@ -125,22 +124,10 @@ class GoToObject(Action):
         upper_free = self.agent.observer.upper_surroundings[current_direction] in traversable
 
         self.agent.strafe(0)
-
         at_narrow = self.agent.observer.lower_surroundings[Direction.Zero] in narrow
         if at_narrow:
-            flat_center = get_position_flat_center(self.agent.observer.get_abs_pos_discrete())
-            distance_to_center = self.agent.observer.get_distance_to_position(flat_center)
-            flat_distance_to_center = np.copy(distance_to_center)
-            flat_distance_to_center[1] = 0
-            normalized_flat_distance = flat_distance / np.linalg.norm(flat_distance)
-            normalized_flat_distance_to_center = flat_distance_to_center / np.linalg.norm(flat_distance_to_center)
-            block_factor = np.dot(normalized_flat_distance_to_center, normalized_flat_distance)
-            if block_factor >= BLOCKED_BY_NARROW_THRESHOLD:
-                distance_perpendicular = np.array([normalized_flat_distance[2], 0, -normalized_flat_distance[0]])
-                go_right = np.dot(distance_perpendicular, normalized_flat_distance_to_center) > 0
-                print(go_right)
-                direction = RelativeDirection.Right if go_right else RelativeDirection.Left
-                self.agent.strafe_by_direction(direction)
+            avoiding = self.agent.avoid_narrow(flat_distance)
+            if avoiding:
                 return
 
         if at_same_discrete_position_horizontally or (lower_free and upper_free):
