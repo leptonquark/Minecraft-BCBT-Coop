@@ -3,30 +3,26 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional
 
 from multiagents.multiagentprocess import MultiAgentProcess
-from world.missiondata import MissionData
 
 
 class MultiAgentRunnerProcess(mp.Process):
 
-    def __init__(self, running, agent_names, goals, collaborative):
+    def __init__(self, running, mission_data):
         super(MultiAgentRunnerProcess, self).__init__()
         self.running = running
         self.pipe = mp.Pipe()
-        self.goals = goals
-        self.agent_names = agent_names
-        self.collaborative = collaborative
+        self.mission_data = mission_data
 
-        self.agent_positions = [None] * len(agent_names)
-        self.completion_times: List[Optional[float]] = [None] * len(agent_names)
+        self.agent_positions = [None] * mission_data.n_agents
+        self.completion_times: List[Optional[float]] = [None] * mission_data.n_agents
         self.blueprint_result = None
 
     def run(self):
         manager = mp.Manager()
         blackboard = manager.dict()
-        mission_data = MissionData(self.goals, self.collaborative, self.agent_names)
         processes = [
-            MultiAgentProcess(self.running, mission_data, blackboard, role)
-            for role in range(len(self.agent_names))
+            MultiAgentProcess(self.running, self.mission_data, blackboard, role)
+            for role in range(self.mission_data.n_agents)
         ]
         for process in processes:
             process.start()
@@ -63,3 +59,4 @@ class MultiAgentRunnerState:
     blueprint_result: Optional[List[bool]]
     blackboard: Dict[str, str]
     completion_time: Optional[float]
+

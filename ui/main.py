@@ -4,6 +4,7 @@ from goals.blueprint.blueprint import Blueprint, BlueprintType
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
 from utils.names import get_names
+from world.missiondata import MissionData
 
 TITLE = "Minecraft Coop AI Experiment"
 
@@ -14,7 +15,6 @@ if __name__ == '__main__':
     from kivy.core.text import Label
     from kivy.core.window import Window
     from kivy.graphics import Color, Ellipse, Rectangle
-    from kivy.lang import Builder
     from kivy.storage.jsonstore import JsonStore
     from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
     from kivy.uix.textinput import TextInput
@@ -37,7 +37,6 @@ if __name__ == '__main__':
     class StartApp(App):
 
         def build(self):
-            Builder.load_file('start.kv')
             self.title = "Minecraft Coop AI Experiment"
             screen_manager = ScreenManager(transition=FadeTransition())
             screen_manager.add_widget(StartScreen())
@@ -45,12 +44,13 @@ if __name__ == '__main__':
             return screen_manager
 
 
-    START_SCREEN = "startScreen"
     AMOUNT_OF_AGENTS = "amountOfAgents"
     COLLABORATIVE = "collaborative"
+    RESET = "reset"
 
     AMOUNT_OF_AGENTS_DEFAULT = 2
     COLLABORATIVE_DEFAULT = True
+    RESET_DEFAULT = True
 
 
     class StartScreen(Screen):
@@ -61,30 +61,35 @@ if __name__ == '__main__':
 
         def on_enter(self, *args):
             self.initialize_amount_of_agents()
-            self.initialize_collaborative()
+            self.initialize_checkbox(self.ids.collaborative, COLLABORATIVE, COLLABORATIVE_DEFAULT)
+            self.initialize_checkbox(self.ids.reset, RESET, RESET_DEFAULT)
 
         def initialize_amount_of_agents(self):
-            if START_SCREEN in self.store and AMOUNT_OF_AGENTS in self.store[START_SCREEN]:
-                amount_of_agents = self.store[START_SCREEN][AMOUNT_OF_AGENTS]
+            if AMOUNT_OF_AGENTS in self.store and AMOUNT_OF_AGENTS in self.store[AMOUNT_OF_AGENTS]:
+                amount_of_agents = self.store[AMOUNT_OF_AGENTS][AMOUNT_OF_AGENTS]
             else:
                 amount_of_agents = AMOUNT_OF_AGENTS_DEFAULT
+                self.store[AMOUNT_OF_AGENTS] = {AMOUNT_OF_AGENTS: AMOUNT_OF_AGENTS_DEFAULT}
+
             self.ids.amount.text = str(amount_of_agents)
             self.ids.amount.bind(text=self.on_amount_of_agents)
 
         def on_amount_of_agents(self, _, amount):
             if amount.isnumeric():
-                self.store[START_SCREEN] = {AMOUNT_OF_AGENTS: int(amount)}
+                self.store[AMOUNT_OF_AGENTS] = {AMOUNT_OF_AGENTS: int(amount)}
 
-        def initialize_collaborative(self):
-            if START_SCREEN in self.store and COLLABORATIVE in self.store[START_SCREEN]:
-                collaborative = self.store[START_SCREEN][COLLABORATIVE]
+        def initialize_checkbox(self, widget, key, default):
+            if key in self.store and key in self.store[key]:
+                collaborative = self.store[key][key]
             else:
-                collaborative = COLLABORATIVE_DEFAULT
-            self.ids.collaborative.active = collaborative
-            self.ids.collaborative.bind(active=self.on_collaborative)
+                collaborative = default
+                self.store[key] = {key: default}
 
-        def on_collaborative(self, _, collaborative):
-            self.store[START_SCREEN] = {COLLABORATIVE: collaborative}
+            widget.active = collaborative
+            widget.bind(active=lambda _, selected: self.store_value(key, selected))
+
+        def store_value(self, key, value):
+            self.store[key] = {key: value}
 
         def start_bot(self):
             self.manager.current = "DashboardScreen"
@@ -108,19 +113,24 @@ if __name__ == '__main__':
             self.start_bot()
 
         def start_bot(self):
+            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
+
             start_screen = self.manager.get_screen("StartScreen")
             amount = int(start_screen.ids['amount'].text)
             agent_names = get_names(amount)
             collaborative = start_screen.ids['collaborative'].active
+            reset = start_screen.ids['reset'].active
+            mission_data = MissionData(goals, collaborative, reset, agent_names)
             descriptor = "collaborative" if collaborative else "independent"
             print(f"Starting Minecraft with {descriptor} {amount} clients...")
 
-            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
             self.ids.map.set_goals(goals)
             self.ids.map.set_agent_names(agent_names)
+
             self.running_event = mp.Event()
             self.running_event.set()
-            self.process = MultiAgentRunnerProcess(self.running_event, agent_names, goals, collaborative)
+
+            self.process = MultiAgentRunnerProcess(self.running_event, mission_data)
             self.process.start()
             self.listen_event = Clock.schedule_interval(lambda _: self.listen_to_pipe(self.process.pipe), 1 / 60)
 

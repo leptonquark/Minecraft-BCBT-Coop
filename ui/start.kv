@@ -8,17 +8,8 @@
             AnchorLayout:
                 anchor_x: 'right'
                 anchor_y: 'center'
-                NumberInput:
+                StartScreenRowNumberInput:
                     id: amount
-                    background_color: (0.11, 0.11, 0.11, 1)
-                    foreground_color: (1, 1, 1, 1)
-                    cursor_color: (1, 1, 1, 1)
-                    text: '2'
-                    size_hint: (.2, None)
-                    height: 30
-                    multiline: False
-                    halign: 'left'
-                    valign: 'middle'
         Separator:
         StartScreenRow:
             StartScreenRowLabel:
@@ -26,17 +17,9 @@
             AnchorLayout:
                 anchor_x: 'right'
                 anchor_y: 'center'
-                Button:
+                StartScreenRowButton:
                     id: experiment
-                    background_color : (0.11, 0.11, 0.11, 1)
-                    background_normal: ''
                     text: 'Wooden Fence'
-                    size_hint: (None, None)
-                    height: 30
-                    width: 120
-                    multiline: False
-                    halign: 'left'
-                    valign: 'middle'
         Separator:
         StartScreenRow:
             StartScreenRowLabel:
@@ -44,13 +27,17 @@
             AnchorLayout:
                 anchor_x: 'right'
                 anchor_y: 'center'
-                CheckBox:
+                StartScreenRowCheckBox:
                     id: collaborative
-                    size_hint: (None, None)
-                    halign: 'right'
-                    valign: 'middle'
-                    height: 20
-                    width: 20
+        Separator:
+        StartScreenRow:
+            StartScreenRowLabel:
+                text: 'Reset:'
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+                StartScreenRowCheckBox:
+                    id: reset
         Button:
             id: start_bot
             text: 'Start Bot'
@@ -85,6 +72,34 @@
     halign: 'left'
     valign: 'middle'
     text_size: self.size
+
+<StartScreenRowButton@Button>:
+    background_color : (0.11, 0.11, 0.11, 1)
+    background_normal: ''
+    size_hint: (None, None)
+    height: 30
+    width: 120
+    multiline: False
+    halign: 'left'
+    valign: 'middle'
+
+<StartScreenRowNumberInput@NumberInput>:
+    background_color: (0.11, 0.11, 0.11, 1)
+    foreground_color: (1, 1, 1, 1)
+    cursor_color: (1, 1, 1, 1)
+    size_hint: (.2, None)
+    height: 30
+    multiline: False
+    halign: 'left'
+    valign: 'middle'
+
+<StartScreenRowCheckBox@CheckBox>:
+    size_hint: (None, None)
+    halign: 'right'
+    valign: 'middle'
+    height: 20
+    width: 20
+
 
 <DashboardScreen>:
     name: "DashboardScreen"

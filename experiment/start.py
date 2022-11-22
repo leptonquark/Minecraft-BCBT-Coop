@@ -8,8 +8,10 @@ import time
 from goals.blueprint.blueprint import Blueprint, BlueprintType
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from utils.names import get_names
+from world.missiondata import MissionData
 
 if __name__ == '__main__':
+    reset = True
     n_test_runs = 15
     agents_max = 3
 
@@ -25,7 +27,8 @@ if __name__ == '__main__':
                 goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
                 running_event = mp.Event()
                 running_event.set()
-                process = MultiAgentRunnerProcess(running_event, agent_names, goals, collaborative)
+                mission_data = MissionData(goals, collaborative, reset, agent_names)
+                process = MultiAgentRunnerProcess(running_event, mission_data)
                 process.start()
                 value = None
                 while process.is_alive():

@@ -20,7 +20,7 @@ def setup_experiment_id():
 
 class MissionData:
 
-    def __init__(self, goals, collaborative, agent_names=None):
+    def __init__(self, goals, collaborative, reset, agent_names=None):
         if agent_names is None:
             agent_names = ["SteveBot"]
         self.agent_names = agent_names
@@ -51,10 +51,9 @@ class MissionData:
             xmlconstants.OBSERVATION_INVENTORY
         ]
 
-        self.force_reset = True
+        self.force_reset = reset
 
-        # self.start_positions = None # [(235.5, 67, 248.5), (255.5, 69, 248.5)] if self.force_reset else None
-        self.start_positions = [[131, 71, 17], [117, 72, 13], [120, 71, 24]]
+        self.start_positions = [[131, 71, 17], [117, 72, 13], [120, 71, 24]] if self.force_reset else None
         self.start_pitch = 18
 
         self.start_time = 6000

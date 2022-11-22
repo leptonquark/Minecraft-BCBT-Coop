@@ -4,7 +4,7 @@ from py_trees.common import Status
 
 from items import items
 from items.items import traversable, narrow, unclimbable
-from utils.constants import ATTACK_REACH
+from utils.constants import ATTACK_REACH, PLACING_REACH
 from utils.vectors import Direction, directionVector, down, up
 from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction
 
@@ -352,7 +352,7 @@ class PlaceBlockAtPosition(Action):
     def update(self):
         distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
 
-        if not self.agent.observer.is_position_within_reach(self.position_below, ATTACK_REACH):
+        if not self.agent.observer.is_position_within_reach(self.position_below, PLACING_REACH):
             return Status.FAILURE
 
         # Look at
