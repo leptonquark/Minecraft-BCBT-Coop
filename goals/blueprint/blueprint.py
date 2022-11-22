@@ -31,7 +31,7 @@ class Blueprint:
     def get_blueprint(blueprint_type, start_position):
         if blueprint_type == BlueprintType.Fence:
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
                     [0, 0, 1],
@@ -51,12 +51,12 @@ class Blueprint:
             length = 9
             positions = [[0, 0, i] for i in range(length)]
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array(positions)
             )
         elif blueprint_type == BlueprintType.PointCross:
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
                     [0, 0, 5],
@@ -68,7 +68,7 @@ class Blueprint:
         elif blueprint_type == BlueprintType.PointGrid:
             delta = 5
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
                     [0, 0, delta],

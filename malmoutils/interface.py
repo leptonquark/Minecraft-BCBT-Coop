@@ -73,7 +73,7 @@ class MalmoInterface:
         if variant is None or variant == variants.OAK:
             self.agent_host.sendCommand(f"craft {item}")
         else:
-            if item == items.items.WOODEN_FENCE:
+            if item == items.items.FENCE:
                 self.agent_host.sendCommand(f"craft {variant}_{item}")
             else:
                 self.agent_host.sendCommand(f"craft {item} {variant}")
