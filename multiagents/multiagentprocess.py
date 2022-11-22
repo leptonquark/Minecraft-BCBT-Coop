@@ -48,6 +48,7 @@ class MultiAgentProcess(mp.Process):
             agent.set_observation(observation)
             self.send_info(observation, None)
             tree.tick()
+            tree.print_tip()
             last_delta = check_timeout(agent, world_state, last_delta)
         completion_time = time.time() - start_time
 

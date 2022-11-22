@@ -2,7 +2,7 @@ from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 from utils.constants import ATTACK_REACH, PLACING_REACH
-from world.observer import get_position_center
+from world.observer import get_position_center, get_position_flat_center
 
 
 # TODO: Move agent setter to here
@@ -112,7 +112,7 @@ class IsPositionWithinReach(Condition):
         self.position = position
 
     def verify(self):
-        position_center = get_position_center(self.position)
+        position_center = get_position_flat_center(self.position)
         has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
         return has_arrived
 

@@ -351,8 +351,10 @@ class PlaceBlockAtPosition(Action):
 
     def update(self):
         distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
+        position_center = get_position_center(self.position_below)
+        has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
 
-        if not self.agent.observer.is_position_within_reach(self.position_below, PLACING_REACH):
+        if not has_arrived:
             return Status.FAILURE
 
         # Look at

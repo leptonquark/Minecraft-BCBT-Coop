@@ -39,9 +39,6 @@ class MinerAgent:
         self.observer = None
         self.inventory = None
 
-    def get_agent_host(self):
-        return self.interface.agent_host
-
     def set_observation(self, observation):
         if observation:
             self.inventory = observation.inventory

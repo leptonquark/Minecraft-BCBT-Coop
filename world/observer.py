@@ -222,8 +222,8 @@ def get_position_center(block_position):
     return np.around(block_position) + vectors.center
 
 
-def round_move(move):
-    return np.round(move).astype("int32")
+def get_position_flat_center(block_position):
+    return np.around(block_position) + vectors.flat_center
 
 
 def get_horizontal_distance(distance):
@@ -242,11 +242,6 @@ def get_wanted_direction(move):
         else:
             wanted_direction = vectors.Direction.West
     return wanted_direction
-
-
-def get_yaw_from_direction(direction):
-    return vectors.directionAngle[direction]
-
 
 def get_yaw_from_vector(move):
     flat_move = np.copy(move)

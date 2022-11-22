@@ -17,7 +17,7 @@ from mobs.hunting import get_hunting_tool
 def back_chain_recursive(agent, condition, collaborative) -> Optional[Sequence]:
     ppa = condition_to_ppa_tree(agent, condition, collaborative)
     if ppa is not None:
-        for i, pre_condition in enumerate(ppa.pre_conditions):
+        for i in range(len(ppa.pre_conditions)):
             ppa_condition_tree = back_chain_recursive(agent, ppa.pre_conditions[i], collaborative)
             if ppa_condition_tree is not None:
                 ppa.pre_conditions[i] = ppa_condition_tree

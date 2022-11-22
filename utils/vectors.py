@@ -49,11 +49,6 @@ def radians_to_degrees(rad):
     return rad * half_circle / np.pi
 
 
-def degrees_to_radians(deg):
-    half_circle = CIRCLE_DEGREES / 2
-    return deg * np.pi / half_circle
-
-
 # TODO: Make this work for non-full-size-blocks.
 # Calculate which face of the cube we are looking at. In case of corners it will be prioritized by x, y then z.
 def get_los_face(los_pos, yaw, pitch):

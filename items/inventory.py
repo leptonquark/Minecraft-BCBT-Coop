@@ -31,7 +31,7 @@ def fill_inventory(info, size):
 
 
 def get_selection_from_info(info):
-    return info.get(Inventory.KEY_CURRENT_SELECTION, 0)
+    return info.get(Inventory.KEY_CURRENT_SELECTION, NO_SELECTION)
 
 
 class Inventory:
@@ -57,9 +57,6 @@ class Inventory:
     def __iter__(self):
         for inventory_slot in self.inventory:
             yield inventory_slot
-
-    def has_ingredient(self, ingredient):
-        return self.get_item_amount(ingredient.item) >= ingredient.amount
 
     def has_item(self, item, amount=1, same_variant=False):
         return self.get_item_amount(item, same_variant) >= amount

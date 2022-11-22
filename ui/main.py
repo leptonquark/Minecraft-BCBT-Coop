@@ -37,7 +37,7 @@ if __name__ == '__main__':
     class StartApp(App):
 
         def build(self):
-            self.title = "Minecraft Coop AI Experiment"
+            self.title = TITLE
             screen_manager = ScreenManager(transition=FadeTransition())
             screen_manager.add_widget(StartScreen())
             screen_manager.add_widget(DashboardScreen())
