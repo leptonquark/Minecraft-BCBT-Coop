@@ -61,6 +61,7 @@ class MalmoInterface:
         self.agent_host.sendCommand(f"attack {active:d}")
 
     def discrete_use(self):
+        time.sleep(DISCRETE_USE_SLEEP)
         self.agent_host.sendCommand("use")
         time.sleep(DISCRETE_USE_SLEEP)
 

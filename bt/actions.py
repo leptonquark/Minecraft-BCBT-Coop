@@ -375,6 +375,7 @@ class PlaceBlockAtPosition(Action):
         if pitching or turning:
             return Status.RUNNING
 
+        self.agent.attack(False)
         if not self.agent.observer.is_looking_at_discrete_position(self.position_below):
             self.agent.attack(True)
             return Status.RUNNING
