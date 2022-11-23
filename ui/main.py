@@ -47,10 +47,12 @@ if __name__ == '__main__':
     AMOUNT_OF_AGENTS = "amountOfAgents"
     COLLABORATIVE = "collaborative"
     RESET = "reset"
+    FLAT_WORLD = "flat_world"
 
     AMOUNT_OF_AGENTS_DEFAULT = 2
     COLLABORATIVE_DEFAULT = True
     RESET_DEFAULT = True
+    FLAT_WORLD_DEFAULT = False
 
 
     class StartScreen(Screen):
@@ -63,6 +65,7 @@ if __name__ == '__main__':
             self.initialize_amount_of_agents()
             self.initialize_checkbox(self.ids.collaborative, COLLABORATIVE, COLLABORATIVE_DEFAULT)
             self.initialize_checkbox(self.ids.reset, RESET, RESET_DEFAULT)
+            self.initialize_checkbox(self.ids.flat_world, FLAT_WORLD, FLAT_WORLD_DEFAULT)
 
         def initialize_amount_of_agents(self):
             if AMOUNT_OF_AGENTS in self.store and AMOUNT_OF_AGENTS in self.store[AMOUNT_OF_AGENTS]:
@@ -95,11 +98,6 @@ if __name__ == '__main__':
             self.manager.current = "DashboardScreen"
 
 
-    TRACKING_ICON_SIZE = 10
-    X_RANGE = (100, 150)
-    Z_RANGE = (-25, 25)
-
-
     class DashboardScreen(Screen):
 
         def __init__(self, **kwargs):
@@ -108,24 +106,30 @@ if __name__ == '__main__':
             self.listen_event = None
             self.running_event = None
 
+
         def on_enter(self):
             Window.size = (900, 600)
             self.start_bot()
 
         def start_bot(self):
-            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
 
             start_screen = self.manager.get_screen("StartScreen")
             amount = int(start_screen.ids['amount'].text)
             agent_names = get_names(amount)
             collaborative = start_screen.ids['collaborative'].active
             reset = start_screen.ids['reset'].active
-            mission_data = MissionData(goals, collaborative, reset, agent_names)
-            descriptor = "collaborative" if collaborative else "independent"
-            print(f"Starting Minecraft with {descriptor} {amount} clients...")
+            flat_world = start_screen.ids['flat_world'].active
 
-            self.ids.map.set_goals(goals)
-            self.ids.map.set_agent_names(agent_names)
+            y_start = 9 if flat_world else 71
+            delta = 15 if flat_world else 5
+            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, y_start, 9], delta)
+            mission_data = MissionData(goals, collaborative, reset, flat_world, agent_names)
+
+            descriptor = "collaborative" if collaborative else "independent"
+            generator = "FWG" if flat_world else "DWG"
+            print(f"Starting Minecraft with {descriptor} {amount} clients using {generator}...")
+
+            self.ids.map.set_mission_data(mission_data)
 
             self.running_event = mp.Event()
             self.running_event.set()
@@ -156,6 +160,9 @@ if __name__ == '__main__':
 
     NAME_MARGIN_BOTTOM = 20
     NAME_FONT_SIZE = 16
+    TRACKING_ICON_SIZE = 10
+    X_RANGE_DEFAULT = (100, 150)
+    Z_RANGE_DEFAULT = (-25, 25)
 
 
     class Map(Widget):
@@ -166,18 +173,21 @@ if __name__ == '__main__':
             self.blueprint_positions = []
             self.blueprint_results = []
             self.agent_positions = []
+            self.x_range = X_RANGE_DEFAULT
+            self.z_range = Z_RANGE_DEFAULT
 
             self.bind(pos=self.update_canvas)
             self.bind(size=self.update_canvas)
 
             self.update_canvas()
 
-        def set_agent_names(self, agent_names):
-            self.agent_names = agent_names
-
-        def set_goals(self, goals):
-            if type(goals) is Blueprint:
-                self.blueprint_positions = goals.positions
+        def set_mission_data(self, mission_data):
+            self.agent_names = mission_data.agent_names
+            if type(mission_data.goals) is Blueprint:
+                self.blueprint_positions = mission_data.goals.positions
+            if mission_data.flat_world:
+                self.x_range = (75, 175)
+                self.z_range = (-50, 50)
 
         def set_data(self, agent_positions, blueprint_result):
             self.agent_positions = agent_positions
@@ -228,8 +238,8 @@ if __name__ == '__main__':
             width = self.size[0]
             height = self.size[1]
 
-            scaled_x = (pos_x - X_RANGE[0]) / (X_RANGE[1] - X_RANGE[0])
-            scaled_z = (pos_z - Z_RANGE[0]) / (Z_RANGE[1] - Z_RANGE[0])
+            scaled_x = (pos_x - self.x_range[0]) / (self.x_range[1] - self.x_range[0])
+            scaled_z = (pos_z - self.z_range[0]) / (self.z_range[1] - self.z_range[0])
             frame_x = self.center_x - width / 2 + scaled_x * width
             frame_z = self.center_y - height / 2 + scaled_z * height
             return frame_x, frame_z

@@ -75,7 +75,7 @@ class Observer:
 
     def get_first_block_downwards(self):
         check_position = np.copy(self.observation.pos_local_grid)
-        while self.observation.grid_local[tuple(check_position)] in traversable:
+        while check_position[1] >= 0 and self.observation.grid_local[tuple(check_position)] in traversable:
             check_position -= vectors.up
         return self.get_abs_pos_discrete() - self.observation.pos_local_grid + check_position
 
@@ -238,6 +238,7 @@ def get_wanted_direction(move):
         else:
             wanted_direction = vectors.Direction.West
     return wanted_direction
+
 
 def get_yaw_from_vector(move):
     flat_move = np.copy(move)

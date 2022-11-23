@@ -1,10 +1,6 @@
 malmo~=0.37.0.0
 py-trees
-graphviz~=0.17
 numpy~=1.21.1
-stable-baselines3
-gym~=0.18.3
-pydot~=1.4.2
 Kivy~=2.1.0
 pandas
 matplotlib

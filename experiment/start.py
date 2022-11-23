@@ -12,23 +12,28 @@ from world.missiondata import MissionData
 
 if __name__ == '__main__':
     reset = True
+    flat_world = True
     n_test_runs = 15
     agents_max = 3
 
-    output = []
+    output = ["collaborative,agents,internal_id,time"]
 
     run = 0
-    for n_agents in range(1, agents_max + 1):
+    start_time = time.time()
+    for n_agents in range(3, agents_max + 1):
         for collaborative in [False, True]:
             for i in range(n_test_runs):
                 start_time = time.time()
                 amount = n_agents
                 agent_names = get_names(amount)
                 print(f"Starting Minecraft with {amount} clients...")
-                goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
+                if flat_world:
+                    goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9])
+                else:
+                    goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
                 running_event = mp.Event()
                 running_event.set()
-                mission_data = MissionData(goals, collaborative, reset, agent_names)
+                mission_data = MissionData(goals, collaborative, reset, flat_world, agent_names)
                 process = MultiAgentRunnerProcess(running_event, mission_data)
                 process.start()
                 value = None
@@ -40,5 +45,6 @@ if __name__ == '__main__':
                 output.append(f"{run},{collaborative},{n_agents},{i},{completion_time}")
                 print(output)
                 run += 1
+    print(f"Total time all experiments: {time.time() - start_time}")
     with open('output.txt', 'w') as file:
         file.write('\n'.join(output))
