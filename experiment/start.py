@@ -5,7 +5,7 @@
 import multiprocessing as mp
 import time
 
-from goals.blueprint.blueprint import Blueprint, BlueprintType
+from experiment.configurations import config_default_world_generator, config_flat_world_generator
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from utils.names import get_names
 from world.missiondata import MissionData
@@ -28,12 +28,12 @@ if __name__ == '__main__':
                 agent_names = get_names(amount)
                 print(f"Starting Minecraft with {amount} clients...")
                 if flat_world:
-                    goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9])
+                    config = config_flat_world_generator
                 else:
-                    goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9])
+                    config = config_default_world_generator
                 running_event = mp.Event()
                 running_event.set()
-                mission_data = MissionData(goals, collaborative, reset, flat_world, agent_names)
+                mission_data = MissionData(config, collaborative, reset, flat_world)
                 process = MultiAgentRunnerProcess(running_event, mission_data)
                 process.start()
                 value = None

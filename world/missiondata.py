@@ -20,12 +20,12 @@ def setup_experiment_id():
 
 class MissionData:
 
-    def __init__(self, goals, collaborative, reset, flat_world, agent_names=None):
+    def __init__(self, config, collaborative, reset, agent_names=None):
         if agent_names is None:
             agent_names = ["SteveBot"]
         self.agent_names = agent_names
         self.collaborative = collaborative
-        self.goals = goals
+        self.goals = config.goals
 
         self.experiment_id = setup_experiment_id()
 
@@ -53,14 +53,9 @@ class MissionData:
 
         self.force_reset = reset
 
-        self.flat_world = flat_world
+        self.flat_world = config.flat_world
 
-        # TODO: Create an experiment config file for these instead
-        if flat_world:
-            start_positions = [[101, 10, 9], [132, 10, -21], [162, 10, 9]]
-        else:
-            start_positions = [[131, 72, 17], [117, 72, 13], [120, 72, 24]]
-        self.start_positions = start_positions if self.force_reset else None
+        self.start_positions = config.start_positions if self.force_reset else None
 
         self.start_pitch = 18
 
@@ -75,8 +70,8 @@ class MissionData:
         self.grid_local = GridSpecification("me", np.array([[-20, 20], [-20, 20], [-20, 20]]), False)
 
         self.grids_global = []
-        if isinstance(goals, Blueprint):
-            self.grids_global.append(goals.get_required_grid("global"))
+        if isinstance(self.goals, Blueprint):
+            self.grids_global.append(self.goals.get_required_grid("global"))
 
         self.start_inventory = None
 

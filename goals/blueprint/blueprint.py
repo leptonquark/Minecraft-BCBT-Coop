@@ -13,7 +13,9 @@ class BlueprintType(Enum):
     PointCross = 2
     PointGrid = 3
 
+
 DELTA_DEFAULT = 5
+
 
 class Blueprint:
 

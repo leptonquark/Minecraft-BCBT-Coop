@@ -1,6 +1,7 @@
 import multiprocessing as mp
 
-from goals.blueprint.blueprint import Blueprint, BlueprintType
+from experiment.configurations import config_default_world_generator, config_flat_world_generator
+from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
 from utils.names import get_names
@@ -120,10 +121,8 @@ if __name__ == '__main__':
             reset = start_screen.ids['reset'].active
             flat_world = start_screen.ids['flat_world'].active
 
-            y_start = 9 if flat_world else 71
-            delta = 15 if flat_world else 5
-            goals = Blueprint.get_blueprint(BlueprintType.PointGrid, [132, y_start, 9], delta)
-            mission_data = MissionData(goals, collaborative, reset, flat_world, agent_names)
+            config = config_flat_world_generator if flat_world else config_default_world_generator
+            mission_data = MissionData(config, collaborative, reset, agent_names)
 
             descriptor = "collaborative" if collaborative else "independent"
             generator = "FWG" if flat_world else "DWG"
