@@ -84,13 +84,7 @@ class Observer:
 
     def is_block_at_position(self, position, block):
         variants = get_variants(block)
-        if self.is_position_local(position):
-            return self.get_block_at_position_from_local(position) in variants
         return self.get_block_at_position_from_global(position) in variants
-
-    def is_position_local(self, position):
-        grid_pos = self.observation.pos_local_grid + self.get_rounded_distance_to_position(position)
-        return np.all(grid_pos >= 0) and np.all(grid_pos < self.observation.grid_size_local)
 
     def get_block_at_position_from_local(self, position):
         distance = self.get_rounded_distance_to_position(position)
@@ -160,16 +154,18 @@ class Observer:
             return None
 
     def has_pickup_nearby(self, wanted):
+        variants = get_variants(wanted)
         for pickup in self.observation.pickups:
-            if pickup.name == wanted:
-                distance = np.linalg.norm(self.observation.pickups[0].position - self.observation.abs_pos)
+            if pickup.name in variants:
+                distance = np.linalg.norm(pickup.position - self.observation.abs_pos)
                 if distance < PICKUP_NEARBY_DISTANCE_TOLERANCE:
                     return True
         return False
 
     def get_pickup_position(self, wanted):
+        variants = get_variants(wanted)
         for pickup in self.observation.pickups:
-            if pickup.name == wanted:
+            if pickup.name in variants:
                 return pickup.get_centralized_position()
         return None
 
