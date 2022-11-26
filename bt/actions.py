@@ -364,6 +364,10 @@ class PlaceBlockAtPosition(Action):
         if not has_arrived:
             return Status.FAILURE
 
+        if all(self.position == self.agent.observer.get_abs_pos_discrete()):
+            self.agent.move_backward()
+            return Status.RUNNING
+
         # Look at
         self.agent.jump(False)
         self.agent.move(0)

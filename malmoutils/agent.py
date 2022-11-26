@@ -17,9 +17,12 @@ MIN_MOVE_SPEED = 0.05
 NO_MOVE_SPEED_DISTANCE_EPSILON = 1
 NO_MOVE_SPEED_TURN_DIRECTION_EPSILON = 0.1
 STRAFE_SPEED = 0.3
+MOVE_BACKWARD_SPEED = -0.2
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
+
+WORLD_STATE_TIMEOUT = 10
 
 
 def get_move_speed(horizontal_distance, turn_direction):
@@ -59,6 +62,10 @@ class MinerAgent:
 
         pitch_req = self.observer.get_pitch_change(0)
         self.interface.pitch(pitch_req)
+
+    def move_backward(self):
+        self.interface.attack(False)
+        self.interface.move(MOVE_BACKWARD_SPEED)
 
     def turn_towards(self, distance):
         turn_direction = self.get_turn_direction(distance)
@@ -195,7 +202,11 @@ class MinerAgent:
     def get_next_world_state(self):
         observations = None
         world_state = None
+        start_time = time.time()
         while observations is None or len(observations) == 0:
             world_state = self.get_world_state()
             observations = world_state.observations
+            if time.time() - start_time > WORLD_STATE_TIMEOUT:
+                print("Getting World State timed out")
+                return None
         return world_state
