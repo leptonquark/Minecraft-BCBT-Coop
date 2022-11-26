@@ -169,7 +169,7 @@ class GoToObject(Action):
         self.agent.turn(0)
         self.agent.pitch(0)
         self.agent.move(0)
-        if not self.agent.observer.is_looking_at_discrete_position(block_center):
+        if not self.agent.observer.is_looking_at_discrete_position(block_position):
             turning = self.agent.turn_towards(distance_to_block)
             pitching = self.agent.pitch_towards(distance_to_block)
 
