@@ -4,8 +4,9 @@ import numpy as np
 
 from items import effects
 from items.inventory import HOTBAR_SIZE
+from items.items import unclimbable, traversable
 from malmoutils.interface import MalmoInterface
-from utils.vectors import RelativeDirection
+from utils.vectors import RelativeDirection, directionVector, up, Direction
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center
 
 PITCH_UPWARDS = -90
@@ -75,8 +76,8 @@ class MinerAgent:
         move_speed = get_move_speed(horizontal_distance, turn_direction)
         self.interface.move(move_speed)
 
-        pitch_req = self.observer.get_pitch_change(0)
-        self.interface.pitch(pitch_req)
+        # pitch_req = self.observer.get_pitch_change(0)
+        # self.interface.pitch(pitch_req)
 
     def move_backward(self):
         self.interface.attack(False)
@@ -129,6 +130,55 @@ class MinerAgent:
             self.interface.strafe(STRAFE_SPEED)
         else:
             self.interface.strafe(-STRAFE_SPEED)
+
+    def mine_forward(self, vertical_distance, wanted_direction):
+        distance_to_block = directionVector[wanted_direction] + vertical_distance * up
+        block_position = self.observer.get_abs_pos_discrete() + distance_to_block
+        block_center = get_position_flat_center(block_position)
+        distance_to_block = self.observer.get_distance_to_position(block_center)
+        self.turn(0)
+        self.pitch(0)
+        self.move(0)
+        if not self.observer.is_looking_at_discrete_position(block_position):
+            turning = self.turn_towards(distance_to_block)
+            pitching = self.pitch_towards(distance_to_block)
+
+            if turning or pitching:
+                self.attack(False)
+                self.move(0)
+                return
+
+        self.attack(True)
+
+    def mine_upwards(self):
+        self.move(0)
+        looking_upwards = self.pitch_upwards()
+        self.attack(looking_upwards)
+
+    def mine_downwards(self):
+        self.move(0)
+        looking_downwards = self.pitch_downwards()
+        self.attack(looking_downwards)
+
+    def can_jump(self, current_direction):
+        climbable_below = self.observer.lower_surroundings[current_direction] not in unclimbable
+
+        free_above = self.observer.upper_upper_surroundings[Direction.Zero] in traversable
+        free_above_direction = self.observer.upper_upper_surroundings[current_direction] in traversable
+
+        return climbable_below and free_above and free_above_direction
+
+    def jump_forward(self, wanted_direction):
+        self.attack(False)
+        self.pitch(0)
+
+        turn_direction = self.get_turn_direction(directionVector[wanted_direction])
+        self.turn(turn_direction)
+        if turn_direction != 0:
+            self.move(0)
+        else:
+            self.move(1)
+            self.jump(True)
 
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
