@@ -51,8 +51,23 @@ class MinerAgent:
             self.inventory = observation.inventory
             self.observer = Observer(observation)
 
-    def get_world_state(self):
-        return self.interface.get_world_state()
+    def jump(self, active):
+        self.interface.jump(active)
+
+    def attack(self, active):
+        self.interface.attack(active)
+
+    def move(self, intensity):
+        self.interface.move(intensity)
+
+    def pitch(self, intensity):
+        self.interface.pitch(intensity)
+
+    def turn(self, intensity):
+        self.interface.turn(intensity)
+
+    def strafe(self, intensity):
+        self.interface.strafe(intensity)
 
     def move_forward(self, horizontal_distance, turn_direction):
         self.interface.attack(False)
@@ -117,24 +132,6 @@ class MinerAgent:
 
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
-
-    def jump(self, active):
-        self.interface.jump(active)
-
-    def attack(self, active):
-        self.interface.attack(active)
-
-    def move(self, intensity):
-        self.interface.move(intensity)
-
-    def pitch(self, intensity):
-        self.interface.pitch(intensity)
-
-    def turn(self, intensity):
-        self.interface.turn(intensity)
-
-    def strafe(self, intensity):
-        self.interface.strafe(intensity)
 
     def craft(self, item, amount=1):
         variants = self.inventory.get_variants(item)
@@ -204,7 +201,7 @@ class MinerAgent:
         world_state = None
         start_time = time.time()
         while observations is None or len(observations) == 0:
-            world_state = self.get_world_state()
+            world_state = self.interface.get_world_state()
             observations = world_state.observations
             if time.time() - start_time > WORLD_STATE_TIMEOUT:
                 print("Getting World State timed out")
