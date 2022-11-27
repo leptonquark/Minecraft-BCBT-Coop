@@ -4,12 +4,14 @@ import pandas as pd
 CAPSIZE = 10
 WIDTH = 0.25
 
-files = ["output5.csv", "output6.csv"]
+files = ["output10.csv", "output11.csv"]
 flat_world = False
 without_edges = False
 
 dfs = [pd.read_csv(file) for file in files]
 df = pd.concat(dfs)
+
+print(df.time.mean())
 
 stats = df.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
 stats.columns = ["time_mean", "time_std"]

@@ -43,12 +43,14 @@ class MultiAgentProcess(mp.Process):
         world_state = agent.get_next_world_state()
         observation = None
         while self.is_running(world_state, tree, start_time):
+            t_t = time.time()
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             self.send_info(observation, None)
             tree.tick()
             last_delta = check_timeout(agent, world_state, last_delta)
             world_state = agent.get_next_world_state()
+            print(time.time() - t_t)
         completion_time = time.time() - start_time
 
         print(f"Mission is running: {world_state.is_mission_running}")
