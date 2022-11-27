@@ -77,7 +77,10 @@ class PPA:
         if self.actions is None:
             return None
 
-        tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
+        if len(self.pre_conditions) == 0 and len(self.actions) == 1:
+            tree = self.actions[0]
+        else:
+            tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
         if self.post_condition is not None:
             tree = Selector(name=f"Postcondition Handler {self.name}", children=[self.post_condition, tree])
         tree.name = f"PPA {self.name}"

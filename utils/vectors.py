@@ -13,6 +13,11 @@ class Direction(Enum):
     East = 4
 
 
+class RelativeDirection(Enum):
+    Left = 0
+    Right = 1
+
+
 class BlockFace(Enum):
     NoFace = 0
     Up = 1

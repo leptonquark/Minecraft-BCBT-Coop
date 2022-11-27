@@ -14,6 +14,9 @@ class BlueprintType(Enum):
     PointGrid = 3
 
 
+DELTA_DEFAULT = 5
+
+
 class Blueprint:
 
     def __init__(self, material, positions):
@@ -28,10 +31,10 @@ class Blueprint:
         return [IsBlockAtPosition(agent, self.material, position) for position in self.positions]
 
     @staticmethod
-    def get_blueprint(blueprint_type, start_position):
+    def get_blueprint(blueprint_type, start_position, delta=None):
         if blueprint_type == BlueprintType.Fence:
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
                     [0, 0, 1],
@@ -51,12 +54,12 @@ class Blueprint:
             length = 9
             positions = [[0, 0, i] for i in range(length)]
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array(positions)
             )
         elif blueprint_type == BlueprintType.PointCross:
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
                     [0, 0, 5],
@@ -66,18 +69,18 @@ class Blueprint:
                 ])
             )
         elif blueprint_type == BlueprintType.PointGrid:
+            delta = delta if delta else DELTA_DEFAULT
             return Blueprint(
-                material=items.WOODEN_FENCE,
+                material=items.FENCE,
                 positions=np.array(start_position) + np.array([
                     [0, 0, 0],
-                    [0, 0, 5],
-                    [0, 0, -5],
-                    [5, 0, 0],
-                    [5, 0, 5],
-                    [5, 0, -5],
-                    [-5, 0, 0],
-                    [-5, 0, 5],
-                    [-5, 0, -5],
-
+                    [0, 0, delta],
+                    [0, 0, -delta],
+                    [delta, 0, 0],
+                    [delta, 0, delta],
+                    [delta, 0, -delta],
+                    [-delta, 0, 0],
+                    [-delta, 0, delta],
+                    [-delta, 0, -delta],
                 ])
             )

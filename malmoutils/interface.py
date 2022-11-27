@@ -11,7 +11,7 @@ DISCRETE_USE_SLEEP = 0.1
 HOT_BAR_SLEEP = 0.1
 
 MAX_RETRIES = 15
-MAX_RESPONSE_TIME = 60
+MAX_RESPONSE_TIME = 180
 
 
 def setup_pool(n_agents):
@@ -48,6 +48,9 @@ class MalmoInterface:
     def turn(self, speed):
         self.agent_host.sendCommand(f"turn {speed}")
 
+    def strafe(self, speed):
+        self.agent_host.sendCommand(f"strafe {speed}")
+
     def pitch(self, speed):
         self.agent_host.sendCommand(f"pitch {speed}")
 
@@ -58,6 +61,7 @@ class MalmoInterface:
         self.agent_host.sendCommand(f"attack {active:d}")
 
     def discrete_use(self):
+        time.sleep(DISCRETE_USE_SLEEP)
         self.agent_host.sendCommand("use")
         time.sleep(DISCRETE_USE_SLEEP)
 
@@ -70,7 +74,7 @@ class MalmoInterface:
         if variant is None or variant == variants.OAK:
             self.agent_host.sendCommand(f"craft {item}")
         else:
-            if item == items.items.WOODEN_FENCE:
+            if item == items.items.FENCE:
                 self.agent_host.sendCommand(f"craft {variant}_{item}")
             else:
                 self.agent_host.sendCommand(f"craft {item} {variant}")

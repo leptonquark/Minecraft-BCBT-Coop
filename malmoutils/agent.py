@@ -4,18 +4,26 @@ import numpy as np
 
 from items import effects
 from items.inventory import HOTBAR_SIZE
+from items.items import unclimbable, traversable
 from malmoutils.interface import MalmoInterface
-from world.observer import get_horizontal_distance, get_wanted_pitch, Observer
+from utils.vectors import RelativeDirection, directionVector, up, Direction
+from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
+
+BLOCKED_BY_NARROW_THRESHOLD = 0.5
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
 NO_MOVE_SPEED_DISTANCE_EPSILON = 1
 NO_MOVE_SPEED_TURN_DIRECTION_EPSILON = 0.1
+STRAFE_SPEED = 0.3
+MOVE_BACKWARD_SPEED = -0.2
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
+
+WORLD_STATE_TIMEOUT = 10
 
 
 def get_move_speed(horizontal_distance, turn_direction):
@@ -44,8 +52,23 @@ class MinerAgent:
             self.inventory = observation.inventory
             self.observer = Observer(observation)
 
-    def get_world_state(self):
-        return self.interface.get_world_state()
+    def jump(self, active):
+        self.interface.jump(active)
+
+    def attack(self, active):
+        self.interface.attack(active)
+
+    def move(self, intensity):
+        self.interface.move(intensity)
+
+    def pitch(self, intensity):
+        self.interface.pitch(intensity)
+
+    def turn(self, intensity):
+        self.interface.turn(intensity)
+
+    def strafe(self, intensity):
+        self.interface.strafe(intensity)
 
     def move_forward(self, horizontal_distance, turn_direction):
         self.interface.attack(False)
@@ -53,8 +76,12 @@ class MinerAgent:
         move_speed = get_move_speed(horizontal_distance, turn_direction)
         self.interface.move(move_speed)
 
-        pitch_req = self.observer.get_pitch_change(0)
-        self.interface.pitch(pitch_req)
+        # pitch_req = self.observer.get_pitch_change(0)
+        # self.interface.pitch(pitch_req)
+
+    def move_backward(self):
+        self.interface.attack(False)
+        self.interface.move(MOVE_BACKWARD_SPEED)
 
     def turn_towards(self, distance):
         turn_direction = self.get_turn_direction(distance)
@@ -81,23 +108,80 @@ class MinerAgent:
         self.interface.pitch(pitch_req)
         return pitch_req == 0
 
+    def avoid_narrow(self, flat_distance):
+        flat_center = get_position_flat_center(self.observer.get_abs_pos_discrete())
+        distance_to_center = self.observer.get_distance_to_position(flat_center)
+        flat_distance_to_center = np.copy(distance_to_center)
+        flat_distance_to_center[1] = 0
+        normalized_flat_distance = flat_distance / np.linalg.norm(flat_distance)
+        normalized_flat_distance_to_center = flat_distance_to_center / np.linalg.norm(flat_distance_to_center)
+        block_factor = np.dot(normalized_flat_distance_to_center, normalized_flat_distance)
+        if block_factor >= BLOCKED_BY_NARROW_THRESHOLD:
+            distance_perpendicular = np.array([normalized_flat_distance[2], 0, -normalized_flat_distance[0]])
+            go_right = np.dot(distance_perpendicular, normalized_flat_distance_to_center) > 0
+            direction = RelativeDirection.Right if go_right else RelativeDirection.Left
+            self.strafe_by_direction(direction)
+            return True
+        else:
+            return False
+
+    def strafe_by_direction(self, direction):
+        if direction == RelativeDirection.Right:
+            self.interface.strafe(STRAFE_SPEED)
+        else:
+            self.interface.strafe(-STRAFE_SPEED)
+
+    def mine_forward(self, vertical_distance, wanted_direction):
+        distance_to_block = directionVector[wanted_direction] + vertical_distance * up
+        block_position = self.observer.get_abs_pos_discrete() + distance_to_block
+        block_center = get_position_flat_center(block_position)
+        distance_to_block = self.observer.get_distance_to_position(block_center)
+        self.turn(0)
+        self.pitch(0)
+        self.move(0)
+        if not self.observer.is_looking_at_discrete_position(block_position):
+            turning = self.turn_towards(distance_to_block)
+            pitching = self.pitch_towards(distance_to_block)
+
+            if turning or pitching:
+                self.attack(False)
+                self.move(0)
+                return
+
+        self.attack(True)
+
+    def mine_upwards(self):
+        self.move(0)
+        looking_upwards = self.pitch_upwards()
+        self.attack(looking_upwards)
+
+    def mine_downwards(self):
+        self.move(0)
+        looking_downwards = self.pitch_downwards()
+        self.attack(looking_downwards)
+
+    def can_jump(self, current_direction):
+        climbable_below = self.observer.lower_surroundings[current_direction] not in unclimbable
+
+        free_above = self.observer.upper_upper_surroundings[Direction.Zero] in traversable
+        free_above_direction = self.observer.upper_upper_surroundings[current_direction] in traversable
+
+        return climbable_below and free_above and free_above_direction
+
+    def jump_forward(self, wanted_direction):
+        self.attack(False)
+        self.pitch(0)
+
+        turn_direction = self.get_turn_direction(directionVector[wanted_direction])
+        self.turn(turn_direction)
+        if turn_direction != 0:
+            self.move(0)
+        else:
+            self.move(1)
+            self.jump(True)
+
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
-
-    def jump(self, active):
-        self.interface.jump(active)
-
-    def attack(self, active):
-        self.interface.attack(active)
-
-    def move(self, intensity):
-        self.interface.move(intensity)
-
-    def pitch(self, intensity):
-        self.interface.pitch(intensity)
-
-    def turn(self, intensity):
-        self.interface.turn(intensity)
 
     def craft(self, item, amount=1):
         variants = self.inventory.get_variants(item)
@@ -165,7 +249,11 @@ class MinerAgent:
     def get_next_world_state(self):
         observations = None
         world_state = None
+        start_time = time.time()
         while observations is None or len(observations) == 0:
-            world_state = self.get_world_state()
+            world_state = self.interface.get_world_state()
             observations = world_state.observations
+            if time.time() - start_time > WORLD_STATE_TIMEOUT:
+                print("Getting World State timed out")
+                return None
         return world_state

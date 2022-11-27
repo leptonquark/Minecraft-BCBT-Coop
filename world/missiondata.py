@@ -8,8 +8,8 @@ from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
 
-DESERT_SEED = "400009"
-PLAIN_SEED = "4000020"
+SEED = "4000020"
+FLAT_WORLD_GENERATOR_STRING = "3;1*minecraft:bedrock,7*minecraft:dirt,1*minecraft:grass;35;decoration"
 
 
 def setup_experiment_id():
@@ -20,12 +20,12 @@ def setup_experiment_id():
 
 class MissionData:
 
-    def __init__(self, goals, collaborative, reset, agent_names=None):
+    def __init__(self, config, collaborative, reset, agent_names=None):
         if agent_names is None:
             agent_names = ["SteveBot"]
         self.agent_names = agent_names
         self.collaborative = collaborative
-        self.goals = goals
+        self.goals = config.goals
 
         self.experiment_id = setup_experiment_id()
 
@@ -33,7 +33,7 @@ class MissionData:
 
         self.n_agents = len(agent_names)
 
-        self.seed = PLAIN_SEED
+        self.seed = SEED
         self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
@@ -53,7 +53,10 @@ class MissionData:
 
         self.force_reset = reset
 
-        self.start_positions = [[131, 71, 17], [117, 72, 13], [120, 71, 24]] if self.force_reset else None
+        self.flat_world = config.flat_world
+
+        self.start_positions = config.start_positions if self.force_reset else None
+
         self.start_pitch = 18
 
         self.start_time = 6000
@@ -67,8 +70,8 @@ class MissionData:
         self.grid_local = GridSpecification("me", np.array([[-20, 20], [-20, 20], [-20, 20]]), False)
 
         self.grids_global = []
-        if isinstance(goals, Blueprint):
-            self.grids_global.append(goals.get_required_grid("global"))
+        if isinstance(self.goals, Blueprint):
+            self.grids_global.append(self.goals.get_required_grid("global"))
 
         self.start_inventory = None
 
@@ -109,11 +112,17 @@ class MissionData:
 
     def initialize_server_handlers(self, server_section):
         server_handlers = Et.SubElement(server_section, xmlconstants.ELEMENT_SERVER_HANDLERS)
-        default_world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_WORLD_GENERATOR)
-        default_world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
-
-        xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
-        default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
+        if self.flat_world:
+            default_world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_FLAT_WORLD_GENERATOR)
+            default_world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
+            xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
+            default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
+            default_world_generator.set(xmlconstants.ATTRIBUTE_FLAT_WORLD_GENERATOR_STRING, FLAT_WORLD_GENERATOR_STRING)
+        else:
+            default_world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DEFAULT_WORLD_GENERATOR)
+            default_world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
+            xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
+            default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
 
     def initialize_agent_section(self, mission):
         for i in range(self.n_agents):
