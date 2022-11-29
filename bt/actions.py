@@ -229,14 +229,15 @@ class MineMaterial(Action):
 
     def update(self):
         discrete_position = self.agent.observer.get_closest_block(self.material)
+        position_center = get_position_center(discrete_position)
 
         if discrete_position is None:
             return Status.FAILURE
 
-        if not self.agent.observer.is_position_within_reach(get_position_center(discrete_position)):
+        if not self.agent.observer.is_position_within_reach(position_center):
             return Status.FAILURE
 
-        distance = self.agent.observer.get_distance_to_discrete_position(discrete_position)
+        distance = self.agent.observer.get_distance_to_position(position_center)
         if not self.agent.observer.is_looking_at_discrete_position(discrete_position):
             self.agent.attack(False)
             pitching = self.agent.pitch_towards(distance)
@@ -298,7 +299,7 @@ class PlaceBlockAtPosition(Action):
         self.position_below = position + down
 
     def update(self):
-        position_center = get_position_flat_center(self.position_below)
+        position_center = get_position_flat_center(self.position)
         has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
 
         if not has_arrived:

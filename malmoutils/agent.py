@@ -24,6 +24,7 @@ FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
 WORLD_STATE_TIMEOUT = 300
+EYE_HEIGHT = 1.62
 
 
 def get_move_speed(horizontal_distance, turn_direction):
@@ -92,8 +93,8 @@ class MinerAgent:
         return self.observer.get_turn_direction(distance)
 
     def pitch_towards(self, distance):
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
+        horizontal_distance = get_horizontal_distance(distance)
+        wanted_pitch = get_wanted_pitch(horizontal_distance, -EYE_HEIGHT + distance[1])
         pitch_req = self.observer.get_pitch_change(wanted_pitch)
         self.interface.pitch(pitch_req)
         return pitch_req != 0
