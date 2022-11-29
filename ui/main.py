@@ -1,6 +1,6 @@
 import multiprocessing as mp
 
-from experiment.configurations import config_default_world_generator, config_flat_world_generator
+import experiment.configurations as config
 from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
@@ -121,8 +121,8 @@ if __name__ == '__main__':
             reset = start_screen.ids['reset'].active
             flat_world = start_screen.ids['flat_world'].active
 
-            config = config_flat_world_generator if flat_world else config_default_world_generator
-            mission_data = MissionData(config, collaborative, reset, agent_names)
+            configuration = config.config_flat_world_generator if flat_world else config.config_default_world_generator
+            mission_data = MissionData(configuration, collaborative, reset, agent_names)
 
             descriptor = "collaborative" if collaborative else "independent"
             generator = "FWG" if flat_world else "DWG"

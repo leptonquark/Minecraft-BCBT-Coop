@@ -314,7 +314,7 @@ class PlaceBlockAtPosition(Action):
         self.agent.jump(False)
         self.agent.move(0)
 
-        distance = self.agent.observer.get_distance_to_discrete_position(self.position_below)
+        distance = self.agent.observer.get_distance_to_position(position_center)
         pitching = self.agent.pitch_towards(distance)
         turning = self.agent.turn_towards(distance)
 
@@ -375,6 +375,23 @@ class DigDownwardsToMaterial(Action):
                 return Status.RUNNING
 
         self.agent.attack(True)
+
+        return Status.RUNNING
+
+    def terminate(self, new_status):
+        self.agent.stop()
+
+
+class DigForwardToMaterial(GoToObject):
+    def __init__(self, agent):
+        super(DigForwardToMaterial, self).__init__(agent, f"Explore")
+
+    def update(self):
+        self.agent.jump(False)
+
+        position = self.agent.observer.get_abs_pos_discrete() + directionVector[Direction.North]
+
+        self.go_to_position(position)
 
         return Status.RUNNING
 

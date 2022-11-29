@@ -23,7 +23,7 @@ MOVE_BACKWARD_SPEED = -0.2
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
-WORLD_STATE_TIMEOUT = 10
+WORLD_STATE_TIMEOUT = 300
 
 
 def get_move_speed(horizontal_distance, turn_direction):
@@ -76,8 +76,8 @@ class MinerAgent:
         move_speed = get_move_speed(horizontal_distance, turn_direction)
         self.interface.move(move_speed)
 
-        # pitch_req = self.observer.get_pitch_change(0)
-        # self.interface.pitch(pitch_req)
+        pitch_req = self.observer.get_pitch_change(0)
+        self.interface.pitch(pitch_req)
 
     def move_backward(self):
         self.interface.attack(False)
