@@ -5,6 +5,7 @@ if __name__ == '__main__':
     # The imports need to be done here for Kivy to support Multiprocessing without automatically opening new windows.
     from kivy.app import App
     from kivy.core.window import Window
+    from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, FadeTransition
     from ui.dashboard import DashboardScreen
     from ui.start import ConfigurationScreen
@@ -12,6 +13,7 @@ if __name__ == '__main__':
     Window.borderless = False
     Window.size = (400, 300)
 
+    Builder.load_file('ui/start.kv')
 
     class StartApp(App):
 
