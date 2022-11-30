@@ -1,14 +1,10 @@
-import numpy as np
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 from items import items
-from items.items import traversable, narrow
 from utils.constants import ATTACK_REACH, PLACING_REACH
 from utils.vectors import Direction, directionVector, down
-from world.observer import get_position_center, get_horizontal_distance, get_wanted_direction, get_position_flat_center
-
-DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
+from world.observer import get_position_center, get_horizontal_distance, get_position_flat_center
 
 
 # TODO: Move agent setter to here
@@ -102,47 +98,7 @@ class GoToObject(Action):
         self.agent = agent
 
     def go_to_position(self, position):
-        distance = self.agent.observer.get_distance_to_position(position)
-
-        flat_distance = np.copy(distance)
-        flat_distance[1] = 0
-
-        if np.linalg.norm(flat_distance) <= DIG_DOWNWARDS_HORIZONTAL_TOLERANCE:
-            if distance[1] < 0:
-                self.agent.mine_downwards()
-            else:
-                self.agent.mine_upwards()
-            return
-
-        self.agent.turn_towards(distance)
-
-        turn_direction = self.agent.get_turn_direction(distance)
-        current_direction = self.agent.observer.get_current_direction()
-
-        at_same_discrete_position_horizontally = np.all(np.round(flat_distance) == 0)
-
-        lower_free = self.agent.observer.lower_surroundings[current_direction] in traversable + narrow
-        upper_free = self.agent.observer.upper_surroundings[current_direction] in traversable
-
-        self.agent.strafe(0)
-        at_narrow = self.agent.observer.lower_surroundings[Direction.Zero] in narrow
-        if at_narrow:
-            avoiding = self.agent.avoid_narrow(flat_distance)
-            if avoiding:
-                return
-
-        if at_same_discrete_position_horizontally or (lower_free and upper_free):
-            self.agent.move_forward(get_horizontal_distance(distance), turn_direction)
-            return
-
-        wanted_direction = get_wanted_direction(distance)
-        if not upper_free:
-            self.agent.mine_forward(1, wanted_direction)
-        elif not lower_free:
-            if self.agent.can_jump(wanted_direction):
-                self.agent.jump_forward(wanted_direction)
-            else:
-                self.agent.mine_forward(0, wanted_direction)
+        self.agent.go_to_position(position)
 
     def terminate(self, new_status):
         self.agent.stop()

@@ -4,11 +4,12 @@ from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
 from utils import vectors
 from utils.vectors import get_los_face
+from world.observation import LineOfSightHitType
 
 DELTA_ANGLES = 45
 GATHERING_REACH = 3
 YAW_TOLERANCE = 8
-PITCH_TOLERANCE = 1
+PITCH_TOLERANCE = 0.5
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
 
@@ -114,6 +115,9 @@ class Observer:
         return self.observation.los_type == los_type
 
     def is_looking_at_discrete_position(self, discrete_position):
+        if self.observation.los_hit_type != LineOfSightHitType.BLOCK:
+            return False
+
         los_discrete_position = self.get_los_pos_discrete()
 
         return los_discrete_position is not None and np.all(discrete_position == los_discrete_position)

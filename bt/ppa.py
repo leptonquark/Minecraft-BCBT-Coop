@@ -164,7 +164,7 @@ class ExploreForwardPPA(PPA):
         super(ExploreForwardPPA, self).__init__()
         self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
-        self.actions = [actions.DigDownwardsToMaterial(agent, material)]
+        self.actions = [actions.DigForwardToMaterial(agent)]
 
 
 class GoToBlockPPA(PPA):

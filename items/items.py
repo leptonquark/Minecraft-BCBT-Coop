@@ -91,7 +91,8 @@ pickups = [
     FURNACE,
     CRAFTING_TABLE,
     ACACIA_FENCE,
-    FENCE
+    FENCE,
+    OBSIDIAN
 ]
 
 
