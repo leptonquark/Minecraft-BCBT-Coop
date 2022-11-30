@@ -4,14 +4,16 @@ import numpy as np
 
 from items import effects
 from items.inventory import HOTBAR_SIZE
-from items.items import unclimbable, traversable
+from items.items import unclimbable, traversable, narrow
 from malmoutils.interface import MalmoInterface
 from utils.vectors import RelativeDirection, directionVector, up, Direction
-from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center
+from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center, \
+    get_wanted_direction, get_position_center
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
 
+DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
 BLOCKED_BY_NARROW_THRESHOLD = 0.5
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
@@ -23,7 +25,8 @@ MOVE_BACKWARD_SPEED = -0.2
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
-WORLD_STATE_TIMEOUT = 10
+WORLD_STATE_TIMEOUT = None
+EYE_HEIGHT = 1.62
 
 
 def get_move_speed(horizontal_distance, turn_direction):
@@ -76,8 +79,8 @@ class MinerAgent:
         move_speed = get_move_speed(horizontal_distance, turn_direction)
         self.interface.move(move_speed)
 
-        # pitch_req = self.observer.get_pitch_change(0)
-        # self.interface.pitch(pitch_req)
+        pitch_req = self.observer.get_pitch_change(0)
+        self.interface.pitch(pitch_req)
 
     def move_backward(self):
         self.interface.attack(False)
@@ -91,9 +94,52 @@ class MinerAgent:
     def get_turn_direction(self, distance):
         return self.observer.get_turn_direction(distance)
 
+    def go_to_position(self, position):
+        distance = self.observer.get_distance_to_position(position)
+
+        flat_distance = np.copy(distance)
+        flat_distance[1] = 0
+
+        if np.linalg.norm(flat_distance) <= DIG_DOWNWARDS_HORIZONTAL_TOLERANCE:
+            if distance[1] < 0:
+                self.mine_downwards()
+            else:
+                self.mine_upwards()
+            return
+
+        self.turn_towards(distance)
+
+        turn_direction = self.get_turn_direction(distance)
+        current_direction = self.observer.get_current_direction()
+
+        at_same_discrete_position_horizontally = np.all(np.round(flat_distance) == 0)
+
+        lower_free = self.observer.lower_surroundings[current_direction] in traversable + narrow
+        upper_free = self.observer.upper_surroundings[current_direction] in traversable
+
+        self.strafe(0)
+        at_narrow = self.observer.lower_surroundings[Direction.Zero] in narrow
+        if at_narrow:
+            avoiding = self.avoid_narrow(flat_distance)
+            if avoiding:
+                return
+
+        if at_same_discrete_position_horizontally or (lower_free and upper_free):
+            self.move_forward(get_horizontal_distance(distance), turn_direction)
+            return
+
+        wanted_direction = get_wanted_direction(distance)
+        if not upper_free:
+            self.mine_forward(1, wanted_direction)
+        elif not lower_free:
+            if self.can_jump(wanted_direction):
+                self.jump_forward(wanted_direction)
+            else:
+                self.mine_forward(0, wanted_direction)
+
     def pitch_towards(self, distance):
-        mat_horizontal_distance = get_horizontal_distance(distance)
-        wanted_pitch = get_wanted_pitch(mat_horizontal_distance, -1 + distance[1])
+        horizontal_distance = get_horizontal_distance(distance)
+        wanted_pitch = get_wanted_pitch(horizontal_distance, -EYE_HEIGHT + distance[1])
         pitch_req = self.observer.get_pitch_change(wanted_pitch)
         self.interface.pitch(pitch_req)
         return pitch_req != 0
@@ -134,7 +180,7 @@ class MinerAgent:
     def mine_forward(self, vertical_distance, wanted_direction):
         distance_to_block = directionVector[wanted_direction] + vertical_distance * up
         block_position = self.observer.get_abs_pos_discrete() + distance_to_block
-        block_center = get_position_flat_center(block_position)
+        block_center = get_position_center(block_position)
         distance_to_block = self.observer.get_distance_to_position(block_center)
         self.turn(0)
         self.pitch(0)
@@ -253,7 +299,7 @@ class MinerAgent:
         while observations is None or len(observations) == 0:
             world_state = self.interface.get_world_state()
             observations = world_state.observations
-            if time.time() - start_time > WORLD_STATE_TIMEOUT:
+            if WORLD_STATE_TIMEOUT is not None and time.time() - start_time > WORLD_STATE_TIMEOUT:
                 print("Getting World State timed out")
                 return None
         return world_state

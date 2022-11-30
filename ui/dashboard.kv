@@ -1,0 +1,76 @@
+
+
+<DashboardScreen>:
+    name: "DashboardScreen"
+    BoxLayout:
+        orientation: 'horizontal'
+        BoxLayout:
+            orientation: 'vertical'
+            height: 600
+            width: 300
+            size_hint: (None, None)
+            background_color : (0.11, 0.11, 0.11, 1)
+            canvas:
+                Color:
+                    rgb: 0.19, 0.19, 0.19
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            padding: 10
+            Label:
+                halign: 'left'
+                valign: 'top'
+                text: '[b]Blackboard[/b]'
+                markup: True
+                height: 50
+                text_size: self.width, self.height
+                font_size: 24
+                size_hint: (1, None)
+            Label:
+                id: blackboard
+                halign: 'left'
+                valign: 'top'
+                markup: True
+                height: 30
+                text_size: self.width, self.height
+        RelativeLayout:
+            Map:
+                id: map
+                canvas.before:
+                    Color:
+                        rgba:  (0.36, 0.36, 0.36, 1)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                height: 600
+                width: 600
+            BoxLayout:
+                padding: 10
+                AnchorLayout:
+                    anchor_x: 'left'
+                    anchor_y: 'top'
+                    Label:
+                        halign: 'left'
+                        valign: 'top'
+                        text: '[b]Map[/b]'
+                        height: 50
+                        markup: True
+                        text_size: self.width, self.height
+                        font_size: 24
+    AnchorLayout:
+        anchor_x: 'left'
+        anchor_y: 'bottom'
+        size_hint: (None, None)
+        height: 60
+        width: 60
+        padding: 10
+        Button:
+            id: start_bot
+            canvas:
+                Rectangle:
+                    source: "ui/icons/restart.png"
+                    size: self.size
+                    pos: self.pos
+            on_press: root.restart_bot()
+
+

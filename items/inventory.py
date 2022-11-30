@@ -62,7 +62,7 @@ class Inventory:
         return self.get_item_amount(item, same_variant) >= amount
 
     def has_item_equipped(self, item):
-        return self.inventory[self.current_selection].item == item
+        return self.inventory[self.current_selection].item in get_variants(item)
 
     def get_item_amount(self, item, same_variant=False):
         if self.inventory is None:

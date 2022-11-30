@@ -5,6 +5,7 @@ from py_trees.composites import Selector
 
 import bt.actions as actions
 import bt.conditions as conditions
+import items.items
 from bt.receiver import InverseReceiver
 from bt.sender import StopSender, Sender
 from bt.sequence import Sequence
@@ -48,7 +49,10 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
     elif isinstance(condition, conditions.IsPositionWithinReach):
         return GoToPositionPPA(agent, condition.position)
     elif isinstance(condition, conditions.IsBlockObservable):
-        return ExplorePPA(agent, condition.block)
+        if condition.block == items.items.DIAMOND:
+            return ExploreDownwardsPPA(agent, condition.block)
+        else:
+            return ExploreForwardPPA(agent, condition.block)
     elif isinstance(condition, conditions.IsAnimalWithinReach):
         return GoToAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsAnimalObservable):
@@ -147,12 +151,20 @@ class CraftPickaxePPA(PPA):
         self.actions = [actions.Craft(agent, minimum_pickaxe, 1)]
 
 
-class ExplorePPA(PPA):
+class ExploreDownwardsPPA(PPA):
     def __init__(self, agent, material):
-        super(ExplorePPA, self).__init__()
+        super(ExploreDownwardsPPA, self).__init__()
         self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
         self.actions = [actions.DigDownwardsToMaterial(agent, material)]
+
+
+class ExploreForwardPPA(PPA):
+    def __init__(self, agent, material):
+        super(ExploreForwardPPA, self).__init__()
+        self.name = f"Look for {material}"
+        self.post_condition = conditions.IsBlockObservable(agent, material)
+        self.actions = [actions.DigForwardToMaterial(agent)]
 
 
 class GoToBlockPPA(PPA):

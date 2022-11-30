@@ -7,7 +7,7 @@ from items import variants
 from utils.network import get_ports, get_ip
 
 CRAFT_SLEEP = 0.1
-DISCRETE_USE_SLEEP = 0.1
+DISCRETE_USE_SLEEP = 0.15
 HOT_BAR_SLEEP = 0.1
 
 MAX_RETRIES = 15

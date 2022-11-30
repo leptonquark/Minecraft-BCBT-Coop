@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 
 import numpy as np
 
@@ -52,6 +53,34 @@ def get_line_of_sight_type(info):
     return los.get(Observation.LOS_TYPE)
 
 
+def get_line_of_sight_hit_type(info):
+    los = info.get(Observation.LOS)
+    if los is None:
+        return None
+    hit_type = los.get(Observation.LOS_HIT_TYPE)
+    if hit_type == Observation.LOS_HIT_TYPE_BLOCK:
+        return LineOfSightHitType.BLOCK
+    else:
+        return LineOfSightHitType.ITEM
+
+
+class LineOfSightHitType(Enum):
+    BLOCK = 0
+    ITEM = 1
+
+
+def get_grid_by_spec(info, spec):
+    if Observation.GRID_LOCAL in info:
+        grid_observation_list = info.get(spec.name, None)
+        if grid_observation_list:
+            return grid_observation_from_list(grid_observation_list, spec.get_grid_size())
+    return None
+
+
+def get_life(info):
+    return info.get(Observation.LIFE, None)
+
+
 class Observation:
     GRID_LOCAL = "me"
 
@@ -59,8 +88,13 @@ class Observation:
     Y = "YPos"
     Z = "ZPos"
 
+    LIFE = "Life"
+
     LOS = "LineOfSight"
     LOS_TYPE = "type"
+    LOS_HIT_TYPE = "hitType"
+    LOS_HIT_TYPE_ITEM = "item"
+    LOS_HIT_TYPE_BLOCK = "block"
     LOS_X = "x"
     LOS_Y = "y"
     LOS_Z = "z"
@@ -92,6 +126,9 @@ class Observation:
         self.inventory = None
         self.los_pos = None
         self.los_type = None
+        self.los_hit_type = None
+
+        self.life = None
 
         self.animals = None
         self.pickups = None
@@ -108,6 +145,8 @@ class Observation:
         self.info = json.loads(info_json)
         self.inventory = Inventory(self.info)
 
+        self.life = get_life(self.info)
+
         self.pos_local_grid = np.array([int(axis / 2) for axis in self.grid_size_local])
 
         self.abs_pos = get_absolute_position(self.info)
@@ -116,16 +155,11 @@ class Observation:
 
         self.los_pos = get_line_of_sight_position(self.info)
         self.los_type = get_line_of_sight_type(self.info)
+        self.los_hit_type = get_line_of_sight_hit_type(self.info)
 
-        self.grid_local = self.get_grid_local(self.info)
+        self.grid_local = get_grid_by_spec(self.info, self.mission_data.grid_local)
 
         self.setup_entities(self.info)
-
-    def get_grid_local(self, info):
-        if Observation.GRID_LOCAL in info:
-            grid_local_spec = self.mission_data.grid_local
-            return grid_observation_from_list(info[grid_local_spec.name], self.grid_size_local)
-        return None
 
     def setup_entities(self, info):
         if Observation.ENTITIES in info:
@@ -147,7 +181,7 @@ class Observation:
         if grid_spec.name in self.grids_global:
             return self.grids_global[grid_spec.name]
 
-        grid = grid_observation_from_list(self.info[grid_spec.name], grid_spec.get_grid_size())
+        grid = get_grid_by_spec(self.info, grid_spec)
         self.grids_global[grid_spec.name] = grid
         return grid
 

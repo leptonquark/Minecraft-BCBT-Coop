@@ -1,0 +1,110 @@
+<ConfigurationScreen>:
+    name: "ConfigurationScreen"
+    FloatLayout:
+        BoxLayout:
+            orientation: 'vertical'
+            ConfigurationScreenRow:
+                ConfigurationScreenRowLabel:
+                    text: 'Amount of Agents:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    ConfigurationScreenRowNumberInput:
+                        id: amount
+            Separator:
+            ConfigurationScreenRow:
+                ConfigurationScreenRowLabel:
+                    text: 'Experiment:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    ConfigurationScreenRowButton:
+                        id: experiment
+            Separator:
+            ConfigurationScreenRow:
+                ConfigurationScreenRowLabel:
+                    text: 'Collaborative:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    ConfigurationScreenRowCheckBox:
+                        id: collaborative
+            Separator:
+            ConfigurationScreenRow:
+                ConfigurationScreenRowLabel:
+                    text: 'Reset:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    ConfigurationScreenRowCheckBox:
+                        id: reset
+            Button:
+                id: start_bot
+                text: 'Start Bot'
+                on_press: root.start_bot()
+            Button:
+                id: exit
+                text: 'Exit'
+                on_press: app.stop()
+
+<Separator@Widget>:
+    size_hint_y: None
+    height: 1
+    canvas:
+        Color:
+            rgb: 0, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<ConfigurationScreenDropDown>:
+    background_color : (0.11, 0.11, 0.11, 1)
+    background_normal: ''
+    size_hint: (None, None)
+    height: 30
+    width: 180
+    multiline: False
+    halign: 'left'
+    valign: 'middle'
+
+<ConfigurationScreenRow@BoxLayout>:
+    canvas:
+        Color:
+            rgb: 0.19, 0.19, 0.19
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    padding: 10
+    orientation: 'horizontal'
+
+<ConfigurationScreenRowLabel@Label>:
+    halign: 'left'
+    valign: 'middle'
+    text_size: self.size
+
+<ConfigurationScreenRowButton, ConfigurationScreenDropDownRowButton>:
+    background_color : (0.11, 0.11, 0.11, 1)
+    background_normal: ''
+    size_hint: (None, None)
+    height: 30
+    width: 180
+    multiline: False
+    halign: 'left'
+    valign: 'middle'
+
+<ConfigurationScreenRowNumberInput@NumberInput>:
+    background_color: (0.11, 0.11, 0.11, 1)
+    foreground_color: (1, 1, 1, 1)
+    cursor_color: (1, 1, 1, 1)
+    size_hint: (.2, None)
+    height: 30
+    multiline: False
+    halign: 'left'
+    valign: 'middle'
+
+<ConfigurationScreenRowCheckBox@CheckBox>:
+    size_hint: (None, None)
+    halign: 'right'
+    valign: 'middle'
+    height: 20
+    width: 20
