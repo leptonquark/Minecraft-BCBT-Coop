@@ -42,7 +42,14 @@ if __name__ == '__main__':
             screen_manager = ScreenManager(transition=FadeTransition())
             screen_manager.add_widget(StartScreen())
             screen_manager.add_widget(DashboardScreen())
+            Window.bind(on_request_close=self.on_request_close)
             return screen_manager
+
+        def on_request_close(self, *args):
+            if self.root.current == "DashboardScreen":
+                return self.root.current_screen.on_request_close()
+            else:
+                return False
 
 
     AMOUNT_OF_AGENTS = "amountOfAgents"
@@ -99,6 +106,7 @@ if __name__ == '__main__':
             self.manager.current = "DashboardScreen"
 
 
+
     class DashboardScreen(Screen):
 
         def __init__(self, **kwargs):
@@ -106,14 +114,24 @@ if __name__ == '__main__':
             self.process = None
             self.listen_event = None
             self.running_event = None
-
+            self.old_size = None
 
         def on_enter(self):
+            self.old_size = Window.size
             Window.size = (900, 600)
             self.start_bot()
 
-        def start_bot(self):
+        def restart_bot(self):
+            self.stop_bot()
+            self.start_bot()
 
+        def stop_bot(self):
+            if self.process:
+                self.running_event.clear()
+            if self.listen_event:
+                self.listen_event.cancel()
+
+        def start_bot(self):
             start_screen = self.manager.get_screen("StartScreen")
             amount = int(start_screen.ids['amount'].text)
             agent_names = get_names(amount)
@@ -137,13 +155,6 @@ if __name__ == '__main__':
             self.process.start()
             self.listen_event = Clock.schedule_interval(lambda _: self.listen_to_pipe(self.process.pipe), 1 / 60)
 
-        def restart_bot(self):
-            if self.process:
-                self.running_event.clear()
-            if self.listen_event:
-                self.listen_event.cancel()
-            self.start_bot()
-
         def listen_to_pipe(self, pipe):
             if pipe[0].poll():
                 value = pipe[0].recv()
@@ -155,6 +166,12 @@ if __name__ == '__main__':
 
         def set_blackboard_data(self, blackboard):
             self.ids.blackboard.text = ", \n".join(f"{key}: {value}" for key, value in blackboard.items())
+
+        def on_request_close(self, *args):
+            self.stop_bot()
+            Window.size = self.old_size
+            self.manager.current = "StartScreen"
+            return True
 
 
     NAME_MARGIN_BOTTOM = 20
