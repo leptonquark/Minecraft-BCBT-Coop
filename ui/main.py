@@ -16,7 +16,10 @@ if __name__ == '__main__':
     from kivy.core.text import Label
     from kivy.core.window import Window
     from kivy.graphics import Color, Ellipse, Rectangle
+    from kivy.properties import ObjectProperty
     from kivy.storage.jsonstore import JsonStore
+    from kivy.uix.button import Button
+    from kivy.uix.dropdown import DropDown
     from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
     from kivy.uix.textinput import TextInput
     from kivy.uix.widget import Widget
@@ -53,14 +56,14 @@ if __name__ == '__main__':
 
 
     AMOUNT_OF_AGENTS = "amountOfAgents"
+    EXPERIMENT_ID = "experiment"
     COLLABORATIVE = "collaborative"
     RESET = "reset"
-    FLAT_WORLD = "flat_world"
 
     AMOUNT_OF_AGENTS_DEFAULT = 2
+    EXPERIMENT_ID_DEFAULT = 0
     COLLABORATIVE_DEFAULT = True
     RESET_DEFAULT = True
-    FLAT_WORLD_DEFAULT = False
 
 
     class StartScreen(Screen):
@@ -71,32 +74,37 @@ if __name__ == '__main__':
 
         def on_enter(self, *args):
             self.initialize_amount_of_agents()
+            self.initialize_experiment()
             self.initialize_checkbox(self.ids.collaborative, COLLABORATIVE, COLLABORATIVE_DEFAULT)
             self.initialize_checkbox(self.ids.reset, RESET, RESET_DEFAULT)
-            self.initialize_checkbox(self.ids.flat_world, FLAT_WORLD, FLAT_WORLD_DEFAULT)
 
         def initialize_amount_of_agents(self):
-            if AMOUNT_OF_AGENTS in self.store and AMOUNT_OF_AGENTS in self.store[AMOUNT_OF_AGENTS]:
-                amount_of_agents = self.store[AMOUNT_OF_AGENTS][AMOUNT_OF_AGENTS]
-            else:
-                amount_of_agents = AMOUNT_OF_AGENTS_DEFAULT
-                self.store[AMOUNT_OF_AGENTS] = {AMOUNT_OF_AGENTS: AMOUNT_OF_AGENTS_DEFAULT}
-
+            amount_of_agents = self.get_stored_value(AMOUNT_OF_AGENTS, AMOUNT_OF_AGENTS_DEFAULT)
             self.ids.amount.text = str(amount_of_agents)
             self.ids.amount.bind(text=self.on_amount_of_agents)
 
+        def get_stored_value(self, key, default):
+            if key in self.store and key in self.store[key]:
+                return self.store[key][key]
+            else:
+                self.store[key] = {key: default}
+                return default
+
         def on_amount_of_agents(self, _, amount):
             if amount.isnumeric():
-                self.store[AMOUNT_OF_AGENTS] = {AMOUNT_OF_AGENTS: int(amount)}
+                self.store_value(AMOUNT_OF_AGENTS, int(amount))
+
+        def initialize_experiment(self):
+            experiment_id = self.get_stored_value(EXPERIMENT_ID, EXPERIMENT_ID_DEFAULT)
+            self.ids.experiment.configuration = config.configurations[experiment_id]
+            self.ids.experiment.bind(configuration=self.on_experiment)
+
+        def on_experiment(self, _, experiment):
+            self.store_value(EXPERIMENT_ID, config.configurations.index(experiment))
 
         def initialize_checkbox(self, widget, key, default):
-            if key in self.store and key in self.store[key]:
-                collaborative = self.store[key][key]
-            else:
-                collaborative = default
-                self.store[key] = {key: default}
-
-            widget.active = collaborative
+            active = self.get_stored_value(key, default)
+            widget.active = active
             widget.bind(active=lambda _, selected: self.store_value(key, selected))
 
         def store_value(self, key, value):
@@ -105,6 +113,38 @@ if __name__ == '__main__':
         def start_bot(self):
             self.manager.current = "DashboardScreen"
 
+
+    class StartScreenRowButton(Button):
+
+        configuration = ObjectProperty(config.configurations[0])
+
+        def __init__(self, **kwargs):
+            super(StartScreenRowButton, self).__init__(**kwargs)
+            self.bind(configuration=self.on_configuration)
+            self.text = self.configuration.name
+            self.dropdown = StartScreenDropDown()
+            for configuration in config.configurations:
+                dropdown_row_button = StartScreenDropDownRowButton(text=configuration.name, configuration=configuration)
+                dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.configuration))
+                self.dropdown.add_widget(dropdown_row_button)
+            self.dropdown.bind(on_select=self.on_select)
+
+        def on_release(self):
+            self.dropdown.open(self)
+
+        def on_select(self, _, configuration):
+            self.configuration = configuration
+
+        def on_configuration(self, _, configuration):
+            self.text = configuration.name
+
+
+    class StartScreenDropDown(DropDown):
+        pass
+
+
+    class StartScreenDropDownRowButton(Button):
+        configuration = ObjectProperty(None)
 
 
     class DashboardScreen(Screen):
@@ -137,14 +177,12 @@ if __name__ == '__main__':
             agent_names = get_names(amount)
             collaborative = start_screen.ids['collaborative'].active
             reset = start_screen.ids['reset'].active
-            flat_world = start_screen.ids['flat_world'].active
 
-            configuration = config.config_flat_world_generator if flat_world else config.config_default_world_generator
+            configuration = start_screen.ids['experiment'].configuration
             mission_data = MissionData(configuration, collaborative, reset, agent_names)
 
             descriptor = "collaborative" if collaborative else "independent"
-            generator = "FWG" if flat_world else "DWG"
-            print(f"Starting Minecraft with {descriptor} {amount} clients using {generator}...")
+            print(f"Starting Minecraft with {descriptor} {amount} clients with configuration {configuration.name}...")
 
             self.ids.map.set_mission_data(mission_data)
 

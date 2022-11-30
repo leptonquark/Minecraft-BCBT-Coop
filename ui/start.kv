@@ -1,60 +1,54 @@
+#:import Factory kivy.factory.Factory
+
+
 <StartScreen>:
     name: "StartScreen"
-    BoxLayout:
-        orientation: 'vertical'
-        StartScreenRow:
-            StartScreenRowLabel:
-                text: 'Amount of Agents:'
-            AnchorLayout:
-                anchor_x: 'right'
-                anchor_y: 'center'
-                StartScreenRowNumberInput:
-                    id: amount
-        Separator:
-        StartScreenRow:
-            StartScreenRowLabel:
-                text: 'Experiment:'
-            AnchorLayout:
-                anchor_x: 'right'
-                anchor_y: 'center'
-                StartScreenRowButton:
-                    id: experiment
-                    text: 'Wooden Fence'
-        Separator:
-        StartScreenRow:
-            StartScreenRowLabel:
-                text: 'Collaborative:'
-            AnchorLayout:
-                anchor_x: 'right'
-                anchor_y: 'center'
-                StartScreenRowCheckBox:
-                    id: collaborative
-        Separator:
-        StartScreenRow:
-            StartScreenRowLabel:
-                text: 'Reset:'
-            AnchorLayout:
-                anchor_x: 'right'
-                anchor_y: 'center'
-                StartScreenRowCheckBox:
-                    id: reset
-        Separator:
-        StartScreenRow:
-            StartScreenRowLabel:
-                text: 'Flat World:'
-            AnchorLayout:
-                anchor_x: 'right'
-                anchor_y: 'center'
-                StartScreenRowCheckBox:
-                    id: flat_world
-        Button:
-            id: start_bot
-            text: 'Start Bot'
-            on_press: root.start_bot()
-        Button:
-            id: exit
-            text: 'Exit'
-            on_press: app.stop()
+    FloatLayout:
+        BoxLayout:
+            orientation: 'vertical'
+            StartScreenRow:
+                StartScreenRowLabel:
+                    text: 'Amount of Agents:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    StartScreenRowNumberInput:
+                        id: amount
+            Separator:
+            StartScreenRow:
+                StartScreenRowLabel:
+                    text: 'Experiment:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    StartScreenRowButton:
+                        id: experiment
+            Separator:
+            StartScreenRow:
+                StartScreenRowLabel:
+                    text: 'Collaborative:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    StartScreenRowCheckBox:
+                        id: collaborative
+            Separator:
+            StartScreenRow:
+                StartScreenRowLabel:
+                    text: 'Reset:'
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'center'
+                    StartScreenRowCheckBox:
+                        id: reset
+            Button:
+                id: start_bot
+                text: 'Start Bot'
+                on_press: root.start_bot()
+            Button:
+                id: exit
+                text: 'Exit'
+                on_press: app.stop()
 
 <Separator@Widget>:
     size_hint_y: None
@@ -66,6 +60,15 @@
             pos: self.pos
             size: self.size
 
+<StartScreenDropDown>:
+    background_color : (0.11, 0.11, 0.11, 1)
+    background_normal: ''
+    size_hint: (None, None)
+    height: 30
+    width: 180
+    multiline: False
+    halign: 'left'
+    valign: 'middle'
 
 <StartScreenRow@BoxLayout>:
     canvas:
@@ -82,12 +85,12 @@
     valign: 'middle'
     text_size: self.size
 
-<StartScreenRowButton@Button>:
+<StartScreenRowButton, StartScreenDropDownRowButton>:
     background_color : (0.11, 0.11, 0.11, 1)
     background_normal: ''
     size_hint: (None, None)
     height: 30
-    width: 120
+    width: 180
     multiline: False
     halign: 'left'
     valign: 'middle'

@@ -25,7 +25,7 @@ MOVE_BACKWARD_SPEED = -0.2
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
-WORLD_STATE_TIMEOUT = 300
+WORLD_STATE_TIMEOUT = None
 EYE_HEIGHT = 1.62
 
 
@@ -299,7 +299,7 @@ class MinerAgent:
         while observations is None or len(observations) == 0:
             world_state = self.interface.get_world_state()
             observations = world_state.observations
-            if time.time() - start_time > WORLD_STATE_TIMEOUT:
+            if WORLD_STATE_TIMEOUT is not None and time.time() - start_time > WORLD_STATE_TIMEOUT:
                 print("Getting World State timed out")
                 return None
         return world_state
