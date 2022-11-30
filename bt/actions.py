@@ -282,6 +282,7 @@ class PlaceBlockAtPosition(Action):
             self.agent.attack(True)
             return Status.RUNNING
 
+        self.agent.attack(False)
         self.agent.place_block()
 
         is_block_at_position = self.agent.observer.is_block_at_position(self.position, self.block)
