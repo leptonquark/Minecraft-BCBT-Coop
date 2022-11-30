@@ -23,7 +23,7 @@ config_pickaxe = ExperimentConfiguration(
 
 config_default_world_generator = ExperimentConfiguration(
     flat_world=False,
-    goals=[AgentlessCondition(conditions.HasItemEquipped, [items.OBSIDIAN])],
+    goals=Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9], 5),
     start_positions=[[131, 72, 17], [117, 72, 13], [120, 72, 24], [125, 72, 50], [140, 72, 34]]
 )
 
