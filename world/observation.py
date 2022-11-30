@@ -69,6 +69,14 @@ class LineOfSightHitType(Enum):
     ITEM = 1
 
 
+def get_grid_by_spec(info, spec):
+    if Observation.GRID_LOCAL in info:
+        grid_observation_list = info.get(spec.name, None)
+        if grid_observation_list:
+            return grid_observation_from_list(grid_observation_list, spec.get_grid_size())
+    return None
+
+
 class Observation:
     GRID_LOCAL = "me"
 
@@ -139,15 +147,9 @@ class Observation:
         self.los_type = get_line_of_sight_type(self.info)
         self.los_hit_type = get_line_of_sight_hit_type(self.info)
 
-        self.grid_local = self.get_grid_local(self.info)
+        self.grid_local = get_grid_by_spec(self.info, self.mission_data.grid_local)
 
         self.setup_entities(self.info)
-
-    def get_grid_local(self, info):
-        if Observation.GRID_LOCAL in info:
-            grid_local_spec = self.mission_data.grid_local
-            return grid_observation_from_list(info[grid_local_spec.name], self.grid_size_local)
-        return None
 
     def setup_entities(self, info):
         if Observation.ENTITIES in info:
@@ -169,7 +171,7 @@ class Observation:
         if grid_spec.name in self.grids_global:
             return self.grids_global[grid_spec.name]
 
-        grid = grid_observation_from_list(self.info[grid_spec.name], grid_spec.get_grid_size())
+        grid = get_grid_by_spec(self.info, grid_spec)
         self.grids_global[grid_spec.name] = grid
         return grid
 
