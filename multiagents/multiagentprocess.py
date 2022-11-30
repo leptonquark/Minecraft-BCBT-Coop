@@ -10,7 +10,8 @@ from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
 from world.observation import Observation
 
-MAX_TIME = 600
+MAX_TIME = 300
+
 
 class MultiAgentProcess(mp.Process):
     def __init__(self, running, mission_data, blackboard, role):
@@ -42,7 +43,7 @@ class MultiAgentProcess(mp.Process):
 
         world_state = agent.get_next_world_state()
         observation = None
-        while self.is_running(world_state, tree, start_time):
+        while self.is_running(observation, world_state, tree, start_time):
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
             self.send_info(observation, None)
@@ -56,7 +57,7 @@ class MultiAgentProcess(mp.Process):
         print(f"Total time: {completion_time} \n")
         self.send_info(observation, completion_time)
 
-    def is_running(self, world_state, tree, start_time):
+    def is_running(self, observation, world_state, tree, start_time):
         if self.running and not self.running.is_set():
             print("Process was terminated")
             return False
@@ -68,6 +69,9 @@ class MultiAgentProcess(mp.Process):
             return False
         if MAX_TIME and time.time() - start_time > MAX_TIME:
             print("Mission timed out")
+            return False
+        if observation is not None and observation.life is not None and observation.life <= 0:
+            print("Agent is deceased")
             return False
         return True
 

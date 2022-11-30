@@ -77,12 +77,18 @@ def get_grid_by_spec(info, spec):
     return None
 
 
+def get_life(info):
+    return info.get(Observation.LIFE, None)
+
+
 class Observation:
     GRID_LOCAL = "me"
 
     X = "XPos"
     Y = "YPos"
     Z = "ZPos"
+
+    LIFE = "Life"
 
     LOS = "LineOfSight"
     LOS_TYPE = "type"
@@ -122,6 +128,8 @@ class Observation:
         self.los_type = None
         self.los_hit_type = None
 
+        self.life = None
+
         self.animals = None
         self.pickups = None
 
@@ -136,6 +144,8 @@ class Observation:
 
         self.info = json.loads(info_json)
         self.inventory = Inventory(self.info)
+
+        self.life = get_life(self.info)
 
         self.pos_local_grid = np.array([int(axis / 2) for axis in self.grid_size_local])
 
