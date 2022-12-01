@@ -94,7 +94,7 @@ class PPA:
 class CraftPPA(PPA):
 
     def __init__(self, agent, item, amount=1, same_variant=False):
-        super(CraftPPA, self).__init__()
+        super().__init__()
         self.name = f"Craft {amount}x {item}"
         self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
         recipe = get_recipe(item)
@@ -113,7 +113,7 @@ class CraftPPA(PPA):
 class MeltPPA(PPA):
 
     def __init__(self, agent, item, amount=1, same_variant=False):
-        super(MeltPPA, self).__init__()
+        super().__init__()
         self.name = f"Melt {amount}x {item}"
         self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
         recipe = get_recipe(item)
@@ -129,7 +129,7 @@ class MeltPPA(PPA):
 
 class PickupPPA(PPA):
     def __init__(self, agent, material, amount, same_variant=False):
-        super(PickupPPA, self).__init__()
+        super().__init__()
         self.name = f"Pick up {material}"
         self.post_condition = conditions.HasItem(agent, material, amount, same_variant)
         self.pre_conditions = [conditions.HasPickupNearby(agent, material)]
@@ -138,7 +138,7 @@ class PickupPPA(PPA):
 
 class CraftPickaxePPA(PPA):
     def __init__(self, agent, tier):
-        super(CraftPickaxePPA, self).__init__()
+        super().__init__()
         self.name = f"Craft pickaxe for gathering {tier.name}"
         self.post_condition = conditions.HasPickaxeByMinimumTier(agent, tier)
         minimum_pickaxe = get_pickaxe(tier)
@@ -153,7 +153,7 @@ class CraftPickaxePPA(PPA):
 
 class ExploreDownwardsPPA(PPA):
     def __init__(self, agent, material):
-        super(ExploreDownwardsPPA, self).__init__()
+        super().__init__()
         self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
         self.actions = [actions.DigDownwardsToMaterial(agent, material)]
@@ -161,7 +161,7 @@ class ExploreDownwardsPPA(PPA):
 
 class ExploreForwardPPA(PPA):
     def __init__(self, agent, material):
-        super(ExploreForwardPPA, self).__init__()
+        super().__init__()
         self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
         self.actions = [actions.DigForwardToMaterial(agent)]
@@ -169,7 +169,7 @@ class ExploreForwardPPA(PPA):
 
 class GoToBlockPPA(PPA):
     def __init__(self, agent, material):
-        super(GoToBlockPPA, self).__init__()
+        super().__init__()
         self.name = f"Go to {material}"
         self.post_condition = conditions.IsBlockWithinReach(agent, material)
         self.pre_conditions = [conditions.IsBlockObservable(agent, material)]
@@ -178,7 +178,7 @@ class GoToBlockPPA(PPA):
 
 class MinePPA(PPA):
     def __init__(self, agent, material):
-        super(MinePPA, self).__init__()
+        super().__init__()
         self.name = f"Mine {material}"
         self.post_condition = conditions.HasPickupNearby(agent, material)
         self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
@@ -191,7 +191,7 @@ class MinePPA(PPA):
 
 class HuntPPA(PPA):
     def __init__(self, agent, item):
-        super(HuntPPA, self).__init__()
+        super().__init__()
         mob = get_loot_source(item)
         self.name = f"Hunt {item} for {mob}"
         self.post_condition = conditions.HasPickupNearby(agent, item)
@@ -204,7 +204,7 @@ class HuntPPA(PPA):
 
 class GoToAnimalPPA(PPA):
     def __init__(self, agent, animal):
-        super(GoToAnimalPPA, self).__init__()
+        super().__init__()
         self.name = f"Go to {animal}"
         self.post_condition = conditions.IsAnimalWithinReach(agent, animal)
         self.pre_conditions = [conditions.IsAnimalObservable(agent, animal)]
@@ -213,7 +213,7 @@ class GoToAnimalPPA(PPA):
 
 class LookForAnimalPPA(PPA):
     def __init__(self, agent, animal):
-        super(LookForAnimalPPA, self).__init__()
+        super().__init__()
         self.name = f"Look for {animal}"
         self.post_condition = conditions.IsAnimalObservable(agent, animal)
         self.actions = [actions.RunForwardTowardsAnimal(agent, animal)]
@@ -221,7 +221,7 @@ class LookForAnimalPPA(PPA):
 
 class EquipPPA(PPA):
     def __init__(self, agent, item):
-        super(EquipPPA, self).__init__()
+        super().__init__()
         self.name = f"Equip {item}"
         self.agent = agent
         self.post_condition = conditions.HasItemEquipped(agent, item)
@@ -231,7 +231,7 @@ class EquipPPA(PPA):
 
 class EquipPickaxePPA(PPA):
     def __init__(self, agent, tier):
-        super(EquipPickaxePPA, self).__init__()
+        super().__init__()
         self.name = f"Equip Pickaxe of tier {tier}"
         self.agent = agent
         self.post_condition = conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier)
@@ -241,7 +241,7 @@ class EquipPickaxePPA(PPA):
 
 class PlaceBlockPPA(PPA):
     def __init__(self, agent, block, position):
-        super(PlaceBlockPPA, self).__init__()
+        super().__init__()
         self.name = f"Place Block {block} at position {position}"
         self.agent = agent
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
@@ -254,7 +254,7 @@ class PlaceBlockPPA(PPA):
 
 class PlaceBlockPPACollaborative(PPA):
     def __init__(self, agent, block, position):
-        super(PlaceBlockPPACollaborative, self).__init__()
+        super().__init__()
         self.name = f"Place Block {block} at position {position}"
         self.channel = f"Place {block} at {position}"
         self.agent = agent
@@ -288,7 +288,7 @@ class PlaceBlockPPACollaborative(PPA):
 
 class GoToPositionPPA(PPA):
     def __init__(self, agent, position):
-        super(GoToPositionPPA, self).__init__()
+        super().__init__()
         self.name = f"Go to position {position}"
         self.agent = agent
         self.post_condition = conditions.IsPositionWithinReach(agent, position)

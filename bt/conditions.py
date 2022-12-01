@@ -8,7 +8,7 @@ from world.observer import get_position_center, get_position_flat_center
 # TODO: Move agent setter to here
 class Condition(Behaviour):
     def __init__(self, name):
-        super(Condition, self).__init__(name)
+        super().__init__(name)
 
     def update(self):
         return Status.SUCCESS if self.verify() else Status.FAILURE
@@ -19,7 +19,7 @@ class Condition(Behaviour):
 
 class HasItem(Condition):
     def __init__(self, agent, item, amount=1, same_variant=False):
-        super(HasItem, self).__init__(f"Has Item {amount}x {item}")
+        super().__init__(f"Has Item {amount}x {item}")
         self.agent = agent
         self.item = item
         self.amount = amount
@@ -31,7 +31,7 @@ class HasItem(Condition):
 
 class HasItemEquipped(Condition):
     def __init__(self, agent, item):
-        super(HasItemEquipped, self).__init__(f"Has Item Equipped {item}")
+        super().__init__(f"Has Item Equipped {item}")
         self.agent = agent
         self.item = item
 
@@ -41,7 +41,7 @@ class HasItemEquipped(Condition):
 
 class HasPickaxeByMinimumTier(Condition):
     def __init__(self, agent, tier):
-        super(HasPickaxeByMinimumTier, self).__init__(f"Has Pickaxe of tier {tier} or better")
+        super().__init__(f"Has Pickaxe of tier {tier} or better")
         self.agent = agent
         self.tier = tier
 
@@ -51,7 +51,7 @@ class HasPickaxeByMinimumTier(Condition):
 
 class HasBestPickaxeByMinimumTierEquipped(Condition):
     def __init__(self, agent, tier):
-        super(HasBestPickaxeByMinimumTierEquipped, self).__init__(f"Has Pickaxe of tier {tier} or better equipped")
+        super().__init__(f"Has Pickaxe of tier {tier} or better equipped")
         self.agent = agent
         self.tier = tier
 
@@ -61,7 +61,7 @@ class HasBestPickaxeByMinimumTierEquipped(Condition):
 
 class HasPickupNearby(Condition):
     def __init__(self, agent, item):
-        super(HasPickupNearby, self).__init__(f"Has Pickup Nearby {item}")
+        super().__init__(f"Has Pickup Nearby {item}")
         self.agent = agent
         self.item = item
 
@@ -72,7 +72,7 @@ class HasPickupNearby(Condition):
 class IsBlockWithinReach(Condition):
 
     def __init__(self, agent, block_type):
-        super(IsBlockWithinReach, self).__init__(f"Is Block Within Reach {block_type}")
+        super().__init__(f"Is Block Within Reach {block_type}")
         self.agent = agent
         self.block_type = block_type
 
@@ -96,7 +96,7 @@ class IsBlockWithinReach(Condition):
 class IsBlockObservable(Condition):
 
     def __init__(self, agent, block):
-        super(IsBlockObservable, self).__init__(f"Is Block Observable {block}")
+        super().__init__(f"Is Block Observable {block}")
         self.agent = agent
         self.block = block
 
@@ -107,7 +107,7 @@ class IsBlockObservable(Condition):
 class IsPositionWithinReach(Condition):
 
     def __init__(self, agent, position):
-        super(IsPositionWithinReach, self).__init__(f"Is Position Within Reach {position}")
+        super().__init__(f"Is Position Within Reach {position}")
         self.agent = agent
         self.position = position
 
@@ -119,7 +119,7 @@ class IsPositionWithinReach(Condition):
 
 class IsAnimalWithinReach(Condition):
     def __init__(self, agent, specie):
-        super(IsAnimalWithinReach, self).__init__(f"Is Animal Within Reach {specie}")
+        super().__init__(f"Is Animal Within Reach {specie}")
         self.agent = agent
         self.specie = specie
 
@@ -130,7 +130,7 @@ class IsAnimalWithinReach(Condition):
 
 class IsAnimalObservable(Condition):
     def __init__(self, agent, specie):
-        super(IsAnimalObservable, self).__init__(f"Is Animal Observable {specie}")
+        super().__init__(f"Is Animal Observable {specie}")
         self.agent = agent
         self.specie = specie
 
@@ -140,7 +140,7 @@ class IsAnimalObservable(Condition):
 
 class IsBlockAtPosition(Condition):
     def __init__(self, agent, block, position):
-        super(IsBlockAtPosition, self).__init__(f"Is Block {block} at position {position}")
+        super().__init__(f"Is Block {block} at position {position}")
         self.agent = agent
         self.block = block
         self.position = position

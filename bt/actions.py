@@ -10,12 +10,12 @@ from world.observer import get_position_center, get_horizontal_distance, get_pos
 # TODO: Move agent setter to here
 class Action(Behaviour):
     def __init__(self, name):
-        super(Action, self).__init__(name)
+        super().__init__(name)
 
 
 class Craft(Action):
     def __init__(self, agent, item, amount=1):
-        super(Craft, self).__init__(f"Craft {item}")
+        super().__init__(f"Craft {item}")
         self.agent = agent
         self.amount = amount
         self.item = item
@@ -30,7 +30,7 @@ class Craft(Action):
 
 class Melt(Action):
     def __init__(self, agent, item, amount=1):
-        super(Melt, self).__init__(f"Melt {amount}x {item}")
+        super().__init__(f"Melt {amount}x {item}")
         self.agent = agent
         self.item = item
         self.amount = amount
@@ -50,7 +50,7 @@ class Melt(Action):
 
 class Equip(Action):
     def __init__(self, agent, item):
-        super(Equip, self).__init__(f"Equip {item}")
+        super().__init__(f"Equip {item}")
         self.agent = agent
         self.item = item
 
@@ -64,7 +64,7 @@ class Equip(Action):
 
 class EquipBestPickAxe(Action):
     def __init__(self, agent, tier):
-        super(EquipBestPickAxe, self).__init__(f"Equip best pickaxe, {tier} or better")
+        super().__init__(f"Equip best pickaxe, {tier} or better")
         self.agent = agent
         self.tier = tier
 
@@ -77,7 +77,7 @@ class EquipBestPickAxe(Action):
 
 class JumpIfStuck(Action):
     def __init__(self, agent):
-        super(JumpIfStuck, self).__init__("JumpIfStuck")
+        super().__init__("JumpIfStuck")
         self.agent = agent
 
     def update(self):
@@ -94,7 +94,7 @@ class JumpIfStuck(Action):
 
 class GoToObject(Action):
     def __init__(self, agent, name):
-        super(GoToObject, self).__init__(name)
+        super().__init__(name)
         self.agent = agent
 
     def go_to_position(self, position):
@@ -106,7 +106,7 @@ class GoToObject(Action):
 
 class PickupItem(GoToObject):
     def __init__(self, agent, item):
-        super(PickupItem, self).__init__(agent, f"Pick up {item}")
+        super().__init__(agent, f"Pick up {item}")
         self.item = item
 
     def update(self):
@@ -126,7 +126,7 @@ class PickupItem(GoToObject):
 
 class GoToAnimal(GoToObject):
     def __init__(self, agent, specie=None):
-        super(GoToAnimal, self).__init__(agent, f"Go to {specie if specie else 'animal'}")
+        super().__init__(agent, f"Go to {specie if specie else 'animal'}")
         self.specie = specie
 
     def update(self):
@@ -146,7 +146,7 @@ class GoToAnimal(GoToObject):
 
 class GoToBlock(GoToObject):
     def __init__(self, agent, block):
-        super(GoToBlock, self).__init__(agent, f"Go to {block}")
+        super().__init__(agent, f"Go to {block}")
         self.agent = agent
         self.block = block
 
@@ -165,7 +165,7 @@ class GoToBlock(GoToObject):
 
 class GoToPosition(GoToObject):
     def __init__(self, agent, position):
-        super(GoToPosition, self).__init__(agent, f"Go to {position}")
+        super().__init__(agent, f"Go to {position}")
         self.agent = agent
         self.position = position
 
@@ -179,7 +179,7 @@ class GoToPosition(GoToObject):
 
 class MineMaterial(Action):
     def __init__(self, agent, material):
-        super(MineMaterial, self).__init__(f"Mine {material}")
+        super().__init__(f"Mine {material}")
         self.agent = agent
         self.material = material
 
@@ -220,7 +220,7 @@ class MineMaterial(Action):
 
 class AttackAnimal(Action):
     def __init__(self, agent, specie=None):
-        super(AttackAnimal, self).__init__(f"Attack {specie if specie else 'animal'}")
+        super().__init__(f"Attack {specie if specie else 'animal'}")
         self.agent = agent
         self.specie = specie
 
@@ -248,7 +248,7 @@ class AttackAnimal(Action):
 
 class PlaceBlockAtPosition(Action):
     def __init__(self, agent, block, position):
-        super(PlaceBlockAtPosition, self).__init__(f"Place {block} at position {position}")
+        super().__init__(f"Place {block} at position {position}")
         self.agent = agent
         self.block = block
         self.position = position
@@ -300,7 +300,7 @@ class PlaceBlockAtPosition(Action):
 class DigDownwardsToMaterial(Action):
 
     def __init__(self, agent, material):
-        super(DigDownwardsToMaterial, self).__init__(f"Dig downwards to {material}")
+        super().__init__(f"Dig downwards to {material}")
         self.agent = agent
         self.material = material
 
@@ -342,7 +342,7 @@ class DigDownwardsToMaterial(Action):
 
 class DigForwardToMaterial(GoToObject):
     def __init__(self, agent):
-        super(DigForwardToMaterial, self).__init__(agent, f"Explore")
+        super().__init__(agent, f"Explore")
 
     def update(self):
         self.agent.jump(False)
@@ -360,7 +360,7 @@ class DigForwardToMaterial(GoToObject):
 # TODO: Refactor to "LookForAnimal" Which will be an exploratory step when looking for animals
 class RunForwardTowardsAnimal(GoToObject):
     def __init__(self, agent, specie=None):
-        super(RunForwardTowardsAnimal, self).__init__(agent, f"Look for {specie}")
+        super().__init__(agent, f"Look for {specie}")
         self.specie = specie
 
     def update(self):

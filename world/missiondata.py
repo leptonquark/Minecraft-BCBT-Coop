@@ -59,13 +59,12 @@ class MissionData:
 
         self.start_pitch = 18
 
-        self.start_time = 6000
+        self.daytime = len(config.start_entities) == 0
+        self.start_time = 6000 if self.daytime else 18000
         self.allow_passage_of_time = False
 
-        self.night_vision = True
-
-        self.entities_name = "entities"
-        self.entities_range = (40, 40, 40)
+        self.obs_entities_name = "entities"
+        self.obs_entities_range = (40, 40, 40)
 
         self.grid_local = GridSpecification("me", np.array([[-20, 20], [-20, 20], [-20, 20]]), False)
 
@@ -74,6 +73,8 @@ class MissionData:
             self.grids_global.append(self.goals.get_required_grid("global"))
 
         self.start_inventory = None
+
+        self.start_entities = config.start_entities
 
     def get_xml(self):
         mission = Et.Element(xmlconstants.ELEMENT_MISSION)
@@ -112,17 +113,31 @@ class MissionData:
 
     def initialize_server_handlers(self, server_section):
         server_handlers = Et.SubElement(server_section, xmlconstants.ELEMENT_SERVER_HANDLERS)
+        self.initialize_world_generator(server_handlers)
+        if self.start_entities:
+            self.initialize_drawing_decorator(server_handlers)
+
+    def initialize_world_generator(self, server_handlers):
         if self.flat_world:
-            default_world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_FLAT_WORLD_GENERATOR)
-            default_world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
-            xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
-            default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
-            default_world_generator.set(xmlconstants.ATTRIBUTE_FLAT_WORLD_GENERATOR_STRING, FLAT_WORLD_GENERATOR_STRING)
+            world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_FLAT_WORLD_GENERATOR)
+            world_generator.set(xmlconstants.ATTRIBUTE_FLAT_WORLD_GENERATOR_STRING, FLAT_WORLD_GENERATOR_STRING)
         else:
-            default_world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DEFAULT_WORLD_GENERATOR)
-            default_world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
-            xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
-            default_world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
+            world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DEFAULT_WORLD_GENERATOR)
+        world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
+        xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
+        world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
+
+    def initialize_drawing_decorator(self, server_handlers):
+        drawing_decorator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DRAWING_DECORATOR)
+        self.initialize_entities(drawing_decorator)
+
+    def initialize_entities(self, drawing_decorator):
+        for entity in self.start_entities:
+            draw_entity = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_ENTITY)
+            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_TYPE, entity.specie)
+            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_X, str(entity.position[0]))
+            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Y, str(entity.position[1]))
+            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Z, str(entity.position[2]))
 
     def initialize_agent_section(self, mission):
         for i in range(self.n_agents):
@@ -171,10 +186,10 @@ class MissionData:
     def initialize_entities_observations(self, agent_handlers):
         observation_entities = Et.SubElement(agent_handlers, xmlconstants.OBSERVATION_ENTITIES)
         range_entities = Et.SubElement(observation_entities, xmlconstants.ENTITIES_RANGE)
-        range_entities.set(xmlconstants.ENTITIES_NAME, self.entities_name)
-        range_entities.set(xmlconstants.ENTITIES_RANGE_X, str(self.entities_range[0]))
-        range_entities.set(xmlconstants.ENTITIES_RANGE_Y, str(self.entities_range[1]))
-        range_entities.set(xmlconstants.ENTITIES_RANGE_Z, str(self.entities_range[2]))
+        range_entities.set(xmlconstants.ENTITIES_NAME, self.obs_entities_name)
+        range_entities.set(xmlconstants.ENTITIES_RANGE_X, str(self.obs_entities_range[0]))
+        range_entities.set(xmlconstants.ENTITIES_RANGE_Y, str(self.obs_entities_range[1]))
+        range_entities.set(xmlconstants.ENTITIES_RANGE_Z, str(self.obs_entities_range[2]))
 
     def initialize_grid_observations(self, agent_handlers):
         observation_grid = Et.SubElement(agent_handlers, xmlconstants.OBSERVATION_GRID)

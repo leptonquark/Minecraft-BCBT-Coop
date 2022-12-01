@@ -15,7 +15,7 @@ MAX_TIME = 300
 
 class MultiAgentProcess(mp.Process):
     def __init__(self, running, mission_data, blackboard, role):
-        super(MultiAgentProcess, self).__init__()
+        super().__init__()
         self.running = running
         self.mission_data = mission_data
         self.blackboard = blackboard
@@ -33,7 +33,7 @@ class MultiAgentProcess(mp.Process):
         agent.start_multi_agent_mission(self.mission_data, self.role)
         agent.wait_for_mission()
 
-        if self.mission_data.night_vision:
+        if not self.mission_data.daytime:
             agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.collaborative)

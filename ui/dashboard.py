@@ -17,7 +17,7 @@ from world.missiondata import MissionData
 class DashboardScreen(Screen):
 
     def __init__(self, **kwargs):
-        super(DashboardScreen, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.process = None
         self.listen_event = None
         self.running_event = None
@@ -88,7 +88,7 @@ Z_RANGE_DEFAULT = (-25, 25)
 
 class Map(Widget):
     def __init__(self, **kwargs):
-        super(Map, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.agent_names = []
         self.blueprint_positions = []

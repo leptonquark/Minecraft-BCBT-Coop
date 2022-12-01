@@ -9,7 +9,7 @@ class Sequence(pt.composites.Selector):
     """
 
     def __init__(self, name="Sequence", children=None):
-        super(Sequence, self).__init__(name=name, children=children)
+        super().__init__(name=name, children=children)
 
     def tick(self):
         """

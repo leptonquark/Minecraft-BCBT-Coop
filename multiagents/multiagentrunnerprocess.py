@@ -8,7 +8,7 @@ from multiagents.multiagentprocess import MultiAgentProcess
 class MultiAgentRunnerProcess(mp.Process):
 
     def __init__(self, running, mission_data):
-        super(MultiAgentRunnerProcess, self).__init__()
+        super().__init__()
         self.running = running
         self.pipe = mp.Pipe()
         self.mission_data = mission_data

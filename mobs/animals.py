@@ -1,5 +1,5 @@
-import numpy as np
 from items import items
+from mobs.entity import Entity
 
 CHICKEN = "Chicken"
 PIG = "Pig"
@@ -25,11 +25,10 @@ def get_loot_source(item):
     return loot.get(item)
 
 
-class Animal:
+class Animal(Entity):
 
     def __init__(self, name, x, y, z, life=None):
-        self.specie = name
-        self.position = np.array([x, y, z])
+        super().__init__(name, x, y, z)
 
         self.life = None
         if life:

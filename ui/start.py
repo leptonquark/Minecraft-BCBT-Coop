@@ -21,7 +21,7 @@ RESET_DEFAULT = True
 class ConfigurationScreen(Screen):
 
     def __init__(self, **kwargs):
-        super(ConfigurationScreen, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.store = JsonStore("config.json")
 
     def on_enter(self, *args):
@@ -70,7 +70,7 @@ class ConfigurationScreenRowButton(Button):
     configuration = ObjectProperty(config.configurations[0])
 
     def __init__(self, **kwargs):
-        super(ConfigurationScreenRowButton, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.bind(configuration=self.on_configuration)
         self.text = self.configuration.name
         self.dropdown = ConfigurationScreenDropDown()
