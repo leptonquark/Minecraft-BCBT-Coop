@@ -145,6 +145,25 @@ class GoToAnimal(GoToObject):
             return Status.RUNNING
 
 
+class GoToEnemy(GoToObject):
+    def __init__(self, agent):
+        super().__init__(agent, f"Go to enemy")
+
+    def update(self):
+        self.agent.jump(False)
+
+        position = self.agent.observer.get_closest_enemy_position()
+        if position is None:
+            return Status.FAILURE
+
+        self.go_to_position(position)
+
+        if self.agent.observer.is_position_within_reach(position, ATTACK_REACH):
+            return Status.SUCCESS
+        else:
+            return Status.RUNNING
+
+
 class GoToBlock(GoToObject):
     def __init__(self, agent, block):
         super().__init__(agent, f"Go to {block}")

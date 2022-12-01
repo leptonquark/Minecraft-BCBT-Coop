@@ -49,7 +49,7 @@ config_flat_world_zombie = Experiment(
     flat_world=True,
     goals=[AgentlessCondition(conditions.HasNoEnemyNearby, [])],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
-    start_entities=[Enemy(enemies.ZOMBIE, 101, 10, 9)]
+    start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)]
 )
 
 configurations = [config_pickaxe, config_default_world, config_flat_world, config_flat_world_zombie]

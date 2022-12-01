@@ -1,6 +1,6 @@
 from mobs.entity import Entity
 
-ENEMY_HEIGHT = 1.5
+ENEMY_HEIGHT = 0
 
 ZOMBIE = "Zombie"
 

@@ -137,6 +137,16 @@ class IsAnimalWithinReach(Condition):
         return self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
 
 
+class IsEnemyWithinReach(Condition):
+    def __init__(self, agent):
+        super().__init__(f"Is Enemy Within Reach")
+        self.agent = agent
+
+    def verify(self):
+        position = self.agent.observer.get_closest_enemy_position()
+        return self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
+
+
 class IsAnimalObservable(Condition):
     def __init__(self, agent, specie):
         super().__init__(f"Is Animal Observable {specie}")
