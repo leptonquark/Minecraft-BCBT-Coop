@@ -42,6 +42,8 @@ IRON_PICKAXE = "iron_pickaxe"
 DIAMOND_PICKAXE = "diamond_pickaxe"
 
 WOODEN_SWORD = "wooden_sword"
+IRON_SWORD = "iron_sword"
+DIAMOND_SWORD = "diamond_sword"
 
 FENCE = "fence"
 ACACIA_FENCE = "acacia_fence"

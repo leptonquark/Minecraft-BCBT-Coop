@@ -2,6 +2,7 @@ from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 from items import items
+from mobs.enemies import ENEMY_HEIGHT
 from utils.constants import ATTACK_REACH, PLACING_REACH
 from utils.vectors import Direction, directionVector, down
 from world.observer import get_position_center, get_horizontal_distance, get_position_flat_center
@@ -244,6 +245,31 @@ class AttackAnimal(Action):
 
     def terminate(self, new_status):
         self.agent.stop()
+
+
+class DefeatClosestEnemy(Action):
+    def __init__(self, agent):
+        super().__init__(f"Defeat closest enemy")
+        self.agent = agent
+
+    def update(self):
+        position = self.agent.observer.get_closest_enemy_position()
+        distance = self.agent.observer.get_distance_to_position(position)
+        distance[1] += ENEMY_HEIGHT
+
+        if not self.agent.observer.is_position_within_reach(position):
+            return Status.FAILURE
+
+        if not self.agent.observer.is_looking_at_enemy():
+            pitching = self.agent.pitch_towards(distance)
+            turning = self.agent.turn_towards(distance)
+
+            if pitching or turning:
+                self.agent.attack(False)
+                return Status.RUNNING
+
+        self.agent.attack(True)
+        return Status.RUNNING
 
 
 class PlaceBlockAtPosition(Action):

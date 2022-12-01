@@ -57,6 +57,8 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
         return GoToAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsAnimalObservable):
         return LookForAnimalPPA(agent, condition.specie)
+    elif isinstance(condition, conditions.HasNoEnemyNearby):
+        return DefeatEnemyPPA(agent)
     elif isinstance(condition, conditions.IsBlockAtPosition):
         if collaborative:
             return PlaceBlockPPACollaborative(agent, condition.block, condition.position)
@@ -293,3 +295,11 @@ class GoToPositionPPA(PPA):
         self.agent = agent
         self.post_condition = conditions.IsPositionWithinReach(agent, position)
         self.actions = [actions.GoToPosition(agent, position)]
+
+
+class DefeatEnemyPPA(PPA):
+    def __init__(self, agent):
+        super().__init__()
+        self.name = f"Defeat enemy"
+        self.post_condition = conditions.HasNoEnemyNearby(agent)
+        self.actions = [actions.DefeatClosestEnemy(agent)]

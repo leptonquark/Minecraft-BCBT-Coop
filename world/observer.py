@@ -2,6 +2,7 @@ import numpy as np
 
 from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
+from mobs.enemies import types as enemies
 from utils import vectors
 from utils.vectors import get_los_face
 from world.observation import LineOfSightHitType
@@ -115,6 +116,9 @@ class Observer:
     def is_looking_at_type(self, los_type):
         return self.observation.los_type == los_type
 
+    def is_looking_at_enemy(self):
+        return self.observation.los_type in enemies
+
     def is_looking_at_discrete_position(self, discrete_position):
         if self.observation.los_hit_type != LineOfSightHitType.BLOCK:
             return False
@@ -155,6 +159,22 @@ class Observer:
 
         if weakest_animal is not None:
             return weakest_animal.position
+        else:
+            return None
+
+    def get_closest_enemy_position(self):
+        closest_enemy = None
+        for enemy in self.observation.enemies:
+            if closest_enemy is None:
+                closest_enemy = enemy
+            else:
+                distance = enemy.position - self.observation.abs_pos
+                weakest_distance = closest_enemy.position - self.observation.abs_pos
+                if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
+                    closest_enemy = enemy
+
+        if closest_enemy is not None:
+            return closest_enemy.position
         else:
             return None
 

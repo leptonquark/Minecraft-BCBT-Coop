@@ -1,5 +1,7 @@
 from mobs.entity import Entity
 
+ENEMY_HEIGHT = 1.5
+
 ZOMBIE = "Zombie"
 
 types = [ZOMBIE]

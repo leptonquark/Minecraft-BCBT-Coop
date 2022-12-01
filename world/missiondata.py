@@ -3,6 +3,7 @@ import xml.etree.ElementTree as Et
 
 import numpy as np
 
+import items.items
 from goals.blueprint.blueprint import Blueprint
 from utils.string import prettify_xml
 from world import xmlconstants
@@ -72,7 +73,7 @@ class MissionData:
         if isinstance(self.goals, Blueprint):
             self.grids_global.append(self.goals.get_required_grid("global"))
 
-        self.start_inventory = None
+        self.start_inventory = [items.items.IRON_SWORD]
 
         self.start_entities = config.start_entities
 
