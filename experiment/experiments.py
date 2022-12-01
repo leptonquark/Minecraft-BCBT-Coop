@@ -23,7 +23,7 @@ class Experiment:
 config_pickaxe = Experiment(
     name="Diamond Pickaxe",
     flat_world=False,
-    goals=[AgentlessCondition(conditions.HasItemEquipped, [items.DIAMOND_PICKAXE])],
+    goals=[AgentlessCondition(conditions.HasItemEquipped, [items.BEEF])],
     start_positions=[[131, 72, 17], [117, 72, 13], [120, 72, 24]],
     start_entities=[]
 )

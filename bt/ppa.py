@@ -13,6 +13,7 @@ from items.gathering import get_gathering_tier_by_material, get_pickaxe
 from items.recipes import get_recipe, RecipeType
 from mobs.animals import get_loot_source
 from mobs.hunting import get_hunting_tool
+from utils.vectors import Direction
 
 
 def back_chain_recursive(agent, condition, collaborative) -> Optional[Sequence]:
@@ -52,7 +53,7 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
         if condition.block == items.items.DIAMOND:
             return ExploreDownwardsPPA(agent, condition.block)
         else:
-            return ExploreForwardPPA(agent, condition.block)
+            return LookForBlockPPA(agent, condition.block)
     elif isinstance(condition, conditions.IsAnimalWithinReach):
         return GoToAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsEnemyWithinReach):
@@ -163,12 +164,12 @@ class ExploreDownwardsPPA(PPA):
         self.actions = [actions.DigDownwardsToMaterial(agent, material)]
 
 
-class ExploreForwardPPA(PPA):
+class LookForBlockPPA(PPA):
     def __init__(self, agent, material):
         super().__init__()
         self.name = f"Look for {material}"
         self.post_condition = conditions.IsBlockObservable(agent, material)
-        self.actions = [actions.DigForwardToMaterial(agent)]
+        self.actions = [actions.ExploreInDirection(agent, Direction.North)]
 
 
 class GoToBlockPPA(PPA):
@@ -220,7 +221,7 @@ class LookForAnimalPPA(PPA):
         super().__init__()
         self.name = f"Look for {animal}"
         self.post_condition = conditions.IsAnimalObservable(agent, animal)
-        self.actions = [actions.RunForwardTowardsAnimal(agent, animal)]
+        self.actions = [actions.ExploreInDirection(agent, Direction.North)]
 
 
 class EquipPPA(PPA):

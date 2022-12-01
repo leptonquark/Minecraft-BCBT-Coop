@@ -14,6 +14,7 @@ PITCH_TOLERANCE = 0.5
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
 ENEMY_NEARBY_DISTANCE_TOLERANCE = 20
+FULL_TURN_THRESHOLD = 0.2
 
 
 class Observer:
@@ -142,7 +143,7 @@ class Observer:
             los_pos_discrete[2] -= 1
         return los_pos_discrete
 
-    def get_weakest_animal_position(self, specie=None):
+    def get_weakest_animal(self, specie=None):
         # Get the weakest animal. If there are several, take the closest of them.
         weakest_animal = None
         for animal in self.observation.animals:
@@ -157,12 +158,9 @@ class Observer:
                     if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
                         weakest_animal = animal
 
-        if weakest_animal is not None:
-            return weakest_animal.position
-        else:
-            return None
+        return weakest_animal
 
-    def get_closest_enemy_position(self):
+    def get_closest_enemy(self):
         closest_enemy = None
         for enemy in self.observation.enemies:
             if closest_enemy is None:
@@ -172,11 +170,7 @@ class Observer:
                 weakest_distance = closest_enemy.position - self.observation.abs_pos
                 if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
                     closest_enemy = enemy
-
-        if closest_enemy is not None:
-            return closest_enemy.position
-        else:
-            return None
+        return closest_enemy
 
     def has_enemy_nearby(self):
         return len(self.observation.enemies) > 0
@@ -222,7 +216,7 @@ class Observer:
 
         diff = wanted_angle - self.observation.yaw
         if diff <= 0:
-            diff += 360
+            diff += vectors.CIRCLE_DEGREES
 
         if diff <= YAW_TOLERANCE or diff >= vectors.CIRCLE_DEGREES - YAW_TOLERANCE:
             return 0

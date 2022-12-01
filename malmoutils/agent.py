@@ -6,7 +6,8 @@ from items import effects
 from items.inventory import HOTBAR_SIZE
 from items.items import unclimbable, traversable, narrow
 from malmoutils.interface import MalmoInterface
-from utils.vectors import RelativeDirection, directionVector, up, Direction
+from mobs.enemies import ENEMY_HEIGHT
+from utils.vectors import RelativeDirection, directionVector, up, Direction, center, faceDistance, BlockFace
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center, \
     get_wanted_direction, get_position_center
 
@@ -136,6 +137,32 @@ class MinerAgent:
                 self.jump_forward(wanted_direction)
             else:
                 self.mine_forward(0, wanted_direction)
+
+    def look_at_block(self, discrete_position, face=BlockFace.NoFace):
+        position_center = discrete_position + center + faceDistance[face]
+        distance = self.observer.get_distance_to_position(position_center)
+        if not self.observer.is_looking_at_discrete_position(discrete_position):
+            self.attack(False)
+            pitching = self.pitch_towards(distance)
+            turning = self.turn_towards(distance)
+
+            if pitching or turning:
+                return False
+
+        self.turn(0)
+        self.pitch(0)
+        return True
+
+    def look_at_entity(self, entity):
+        distance = self.observer.get_distance_to_position(entity.position)
+        distance[1] += ENEMY_HEIGHT
+        if not self.observer.is_looking_at_type(entity.type):
+            pitching = self.pitch_towards(distance)
+            turning = self.turn_towards(distance)
+            if pitching or turning:
+                self.attack(False)
+                return False
+        return True
 
     def pitch_towards(self, distance):
         horizontal_distance = get_horizontal_distance(distance)

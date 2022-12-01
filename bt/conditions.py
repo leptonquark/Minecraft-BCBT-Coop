@@ -85,14 +85,6 @@ class IsBlockWithinReach(Condition):
         self.agent = agent
         self.block_type = block_type
 
-    def update(self):
-        discrete_position = self.agent.observer.get_closest_block(self.block_type)
-        if discrete_position is None:
-            return Status.FAILURE
-
-        position_center = get_position_center(discrete_position)
-        return Status.SUCCESS if self.agent.observer.is_position_within_reach(position_center) else Status.FAILURE
-
     def verify(self):
         discrete_position = self.agent.observer.get_closest_block(self.block_type)
         if discrete_position is None:
@@ -133,8 +125,8 @@ class IsAnimalWithinReach(Condition):
         self.specie = specie
 
     def verify(self):
-        position = self.agent.observer.get_weakest_animal_position(self.specie)
-        return self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
+        animal = self.agent.observer.get_weakest_animal(self.specie)
+        return animal and self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
 
 
 class IsEnemyWithinReach(Condition):
@@ -143,8 +135,8 @@ class IsEnemyWithinReach(Condition):
         self.agent = agent
 
     def verify(self):
-        position = self.agent.observer.get_closest_enemy_position()
-        return self.agent.observer.is_position_within_reach(position, ATTACK_REACH)
+        enemy = self.agent.observer.get_closest_enemy()
+        return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
 
 
 class IsAnimalObservable(Condition):

@@ -73,7 +73,7 @@ class MissionData:
         if isinstance(self.goals, Blueprint):
             self.grids_global.append(self.goals.get_required_grid("global"))
 
-        self.start_inventory = [items.items.IRON_SWORD]
+        self.start_inventory = [items.items.IRON_SWORD] if config.start_entities else []
 
         self.start_entities = config.start_entities
 

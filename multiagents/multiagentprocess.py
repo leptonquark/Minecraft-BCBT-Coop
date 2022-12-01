@@ -33,8 +33,7 @@ class MultiAgentProcess(mp.Process):
         agent.start_multi_agent_mission(self.mission_data, self.role)
         agent.wait_for_mission()
 
-        if not self.mission_data.daytime:
-            agent.activate_night_vision()
+        agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.collaborative)
 
