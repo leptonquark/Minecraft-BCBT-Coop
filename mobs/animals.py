@@ -7,7 +7,7 @@ SHEEP = "Sheep"
 COW = "Cow"
 HORSE = "Horse"
 
-species = [CHICKEN, PIG, SHEEP, COW, HORSE]
+types = [CHICKEN, PIG, SHEEP, COW, HORSE]
 
 loot = {
     items.BEEF: COW,
@@ -34,10 +34,10 @@ class Animal(Entity):
         if life:
             self.life = life
         else:
-            self.life = starting_life.get(self.specie, 0)
+            self.life = starting_life.get(self.type, 0)
 
     def __str__(self):
-        return f"Animal: {self.specie} at position {self.position[0]}, {self.position[1]}, {self.position[2]}"
+        return f"Animal: {self.type} at position {self.position[0]}, {self.position[1]}, {self.position[2]}"
 
     def __repr__(self):
         return str(self)

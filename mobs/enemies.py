@@ -2,6 +2,8 @@ from mobs.entity import Entity
 
 ZOMBIE = "Zombie"
 
+types = [ZOMBIE]
+
 
 class Enemy(Entity):
 
@@ -9,7 +11,7 @@ class Enemy(Entity):
         super().__init__(name, x, y, z)
 
     def __str__(self):
-        return f"Enemy: {self.specie} at position {self.position[0]}, {self.position[1]}, {self.position[2]}"
+        return f"Enemy: {self.type} at position {self.position[0]}, {self.position[1]}, {self.position[2]}"
 
     def __repr__(self):
         return str(self)

@@ -12,6 +12,7 @@ YAW_TOLERANCE = 8
 PITCH_TOLERANCE = 0.5
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
+ENEMY_NEARBY_DISTANCE_TOLERANCE = 20
 
 
 class Observer:
@@ -141,7 +142,7 @@ class Observer:
         # Get the weakest animal. If there are several, take the closest of them.
         weakest_animal = None
         for animal in self.observation.animals:
-            if specie is None or animal.specie == specie:
+            if specie is None or animal.type == specie:
                 if weakest_animal is None:
                     weakest_animal = animal
                 elif animal.life < weakest_animal.life:
@@ -156,6 +157,9 @@ class Observer:
             return weakest_animal.position
         else:
             return None
+
+    def has_enemy_nearby(self):
+        return len(self.observation.enemies) > 0
 
     def has_pickup_nearby(self, wanted):
         variants = get_variants(wanted)
@@ -180,7 +184,7 @@ class Observer:
         return not position_traversable
 
     def is_animal_observable(self, specie):
-        return self.observation.animals and any(animal.specie == specie for animal in self.observation.animals)
+        return self.observation.animals and any(animal.type == specie for animal in self.observation.animals)
 
     def get_current_direction(self):
         for key in vectors.directionAngle:

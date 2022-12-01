@@ -12,7 +12,7 @@ from mobs.entity import Entity
 
 
 @dataclass
-class ExperimentConfiguration:
+class Experiment:
     name: str
     flat_world: bool
     goals: Union[Blueprint, List[Union[Action, conditions.Condition, AgentlessCondition]]]
@@ -20,7 +20,7 @@ class ExperimentConfiguration:
     start_entities: List[Entity]
 
 
-config_pickaxe = ExperimentConfiguration(
+config_pickaxe = Experiment(
     name="Diamond Pickaxe",
     flat_world=False,
     goals=[AgentlessCondition(conditions.HasItemEquipped, [items.DIAMOND_PICKAXE])],
@@ -28,7 +28,7 @@ config_pickaxe = ExperimentConfiguration(
     start_entities=[]
 )
 
-config_default_world = ExperimentConfiguration(
+config_default_world = Experiment(
     name="Fence Grid Default World",
     flat_world=False,
     goals=Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9], 5),
@@ -36,7 +36,7 @@ config_default_world = ExperimentConfiguration(
     start_entities=[]
 )
 
-config_flat_world = ExperimentConfiguration(
+config_flat_world = Experiment(
     name="Fence Grid Flat World",
     flat_world=True,
     goals=Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25),
@@ -44,10 +44,10 @@ config_flat_world = ExperimentConfiguration(
     start_entities=[]
 )
 
-config_flat_world_zombie = ExperimentConfiguration(
+config_flat_world_zombie = Experiment(
     name="Fence Grid Flat World Zombie",
     flat_world=True,
-    goals=Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25),
+    goals=[AgentlessCondition(conditions.HasNoEnemyNearby, [])],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[Enemy(enemies.ZOMBIE, 101, 10, 9)]
 )

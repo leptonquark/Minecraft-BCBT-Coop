@@ -23,7 +23,7 @@ def back_chain_recursive(agent, condition, collaborative) -> Optional[Sequence]:
             if ppa_condition_tree is not None:
                 ppa.pre_conditions[i] = ppa_condition_tree
         return ppa.as_tree()
-    return None
+    return condition
 
 
 def condition_to_ppa_tree(agent, condition, collaborative=False):

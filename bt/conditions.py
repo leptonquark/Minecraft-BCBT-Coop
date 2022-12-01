@@ -69,6 +69,15 @@ class HasPickupNearby(Condition):
         return self.agent.observer.has_pickup_nearby(self.item)
 
 
+class HasNoEnemyNearby(Condition):
+    def __init__(self, agent):
+        super().__init__(f"Has No Enemy Nearby")
+        self.agent = agent
+
+    def verify(self):
+        return not self.agent.observer.has_enemy_nearby()
+
+
 class IsBlockWithinReach(Condition):
 
     def __init__(self, agent, block_type):

@@ -134,7 +134,7 @@ class MissionData:
     def initialize_entities(self, drawing_decorator):
         for entity in self.start_entities:
             draw_entity = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_ENTITY)
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_TYPE, entity.specie)
+            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_TYPE, entity.type)
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_X, str(entity.position[0]))
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Y, str(entity.position[1]))
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Z, str(entity.position[2]))
