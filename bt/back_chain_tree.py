@@ -31,16 +31,16 @@ class BackChainTree:
             elif isinstance(goal, Blueprint):
                 for condition in goal.as_conditions(self.agent):
                     condition_ppa_tree = back_chain_recursive(self.agent, condition, collaborative)
-                    condition_ppa_tree.setup_with_descendants()
                     children.append(condition_ppa_tree)
             else:
                 if isinstance(goal, AgentlessCondition):
                     goal = goal.as_condition(self.agent)
                 if isinstance(goal, Condition):
                     goal_ppa_tree = back_chain_recursive(self.agent, goal, collaborative)
-                    goal_ppa_tree.setup_with_descendants()
                     children.append(goal_ppa_tree)
-        return Sequence("BaseTree", children=children)
+        base_tree = Sequence("BaseTree", children=children)
+        base_tree.setup_with_descendants()
+        return base_tree
 
     def tick(self):
         self.root.tick_once()
