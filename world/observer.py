@@ -116,8 +116,9 @@ class Observer:
         for grid_global_spec in grids_global:
             if grid_global_spec.contains_position(position):
                 grid_global = self.observation.get_grid_global(grid_global_spec)
-                position_in_grid = position - grid_global_spec.grid_range[:, 0]
-                return grid_global[tuple(position_in_grid)]
+                if grid_global is not None:
+                    position_in_grid = position - grid_global_spec.grid_range[:, 0]
+                    return grid_global[tuple(position_in_grid)]
         return None
 
     def get_distance_to_discrete_position(self, discrete_position):
