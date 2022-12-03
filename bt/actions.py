@@ -274,7 +274,8 @@ class PlaceBlockAtPosition(Action):
         self.position_below = position + down
 
     def update(self):
-        has_arrived = self.agent.observer.is_position_within_reach(self.position, reach=PLACING_REACH)
+        position_flat_center = get_position_flat_center(self.position)
+        has_arrived = self.agent.observer.is_position_within_reach(position_flat_center, reach=PLACING_REACH)
 
         if not has_arrived:
             self.agent.attack(False)
