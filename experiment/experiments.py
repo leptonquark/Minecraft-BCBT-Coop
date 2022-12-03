@@ -49,7 +49,7 @@ config_flat_world_zombie = Experiment(
     flat_world=True,
     goals=[
         AgentlessCondition(conditions.HasNoEnemyNearby, []),
-        Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 5)
+        Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)
     ],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)]
