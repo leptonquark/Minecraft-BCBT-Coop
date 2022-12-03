@@ -104,10 +104,7 @@ class MinerAgent:
         flat_distance[1] = 0
 
         if np.linalg.norm(flat_distance) <= DIG_VERTICAL_HORIZONTAL_TOLERANCE:
-            if distance[1] < 0:
-                self.mine_downwards()
-            else:
-                self.mine_upwards()
+            self.mine_vertical(distance[1])
             return
 
         self.turn_towards(distance)
@@ -136,6 +133,12 @@ class MinerAgent:
                 self.jump_forward(wanted_direction)
             else:
                 self.mine_forward(0, wanted_direction)
+
+    def mine_vertical(self, y_distance):
+        if y_distance < 0:
+            self.mine_downwards()
+        else:
+            self.mine_upwards()
 
     def look_at_block(self, discrete_position, face=BlockFace.NoFace):
         position_center = discrete_position + center + faceDistance[face]
