@@ -15,7 +15,7 @@ from mobs.entity import Entity
 class Experiment:
     name: str
     flat_world: bool
-    goals: Union[Blueprint, List[Union[Action, conditions.Condition, AgentlessCondition]]]
+    goals: List[Union[Blueprint, Action, conditions.Condition, AgentlessCondition]]
     start_positions: List[List[float]]
     start_entities: List[Entity]
 
@@ -31,15 +31,15 @@ config_pickaxe = Experiment(
 config_default_world = Experiment(
     name="Fence Grid Default World",
     flat_world=False,
-    goals=Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 9], 5),
-    start_positions=[[131, 72, 17], [117, 72, 13], [120, 72, 24], [125, 72, 50], [140, 72, 34]],
+    goals=[Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 11], 7)],
+    start_positions=[[131, 72, 17], [132, 72, 4], [140, 72, 24], [125, 72, 50], [140, 72, 34]],
     start_entities=[]
 )
 
 config_flat_world = Experiment(
     name="Fence Grid Flat World",
     flat_world=True,
-    goals=Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25),
+    goals=[Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[]
 )
@@ -47,8 +47,10 @@ config_flat_world = Experiment(
 config_flat_world_zombie = Experiment(
     name="Fence Grid Flat World Zombie",
     flat_world=True,
-    goals=[AgentlessCondition(conditions.HasNoEnemyNearby, [])]
-          + Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 5).as_agentless_conditions(),
+    goals=[
+        AgentlessCondition(conditions.HasNoEnemyNearby, []),
+        Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 5)
+    ],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)]
 )

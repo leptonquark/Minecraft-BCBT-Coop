@@ -70,8 +70,9 @@ class MissionData:
         self.grid_local = GridSpecification("me", np.array([[-20, 20], [-20, 20], [-20, 20]]), False)
 
         self.grids_global = []
-        if isinstance(self.goals, Blueprint):
-            self.grids_global.append(self.goals.get_required_grid("global"))
+        for goal in self.goals:
+            if isinstance(goal, Blueprint):
+                self.grids_global.append(goal.get_required_grid("global"))
 
         self.start_inventory = [items.items.IRON_SWORD] if config.start_entities else []
 

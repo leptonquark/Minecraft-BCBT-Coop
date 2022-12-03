@@ -63,7 +63,7 @@ class DashboardScreen(Screen):
     def listen_to_pipe(self, pipe):
         if pipe[0].poll():
             value = pipe[0].recv()
-            self.set_map_data(value.agent_positions, value.blueprint_result)
+            self.set_map_data(value.agent_positions, value.blueprint_results)
             self.set_blackboard_data(value.blackboard)
 
     def set_map_data(self, agent_positions, blueprint_result):
@@ -104,16 +104,18 @@ class Map(Widget):
 
     def set_mission_data(self, mission_data):
         self.agent_names = mission_data.agent_names
-        if type(mission_data.goals) is Blueprint:
-            self.blueprint_positions = mission_data.goals.positions
+        self.blueprint_positions = []
+        for goal in mission_data.goals:
+            if isinstance(goal, Blueprint):
+                self.blueprint_positions.append(goal.positions)
         if mission_data.flat_world:
             self.x_range = (75, 175)
             self.z_range = (-50, 50)
 
-    def set_data(self, agent_positions, blueprint_result):
+    def set_data(self, agent_positions, blueprint_results):
         self.agent_positions = agent_positions
-        if blueprint_result:
-            self.blueprint_results = blueprint_result
+        if blueprint_results:
+            self.blueprint_results = blueprint_results
         self.update_canvas()
 
     def update_canvas(self, *args):
@@ -135,14 +137,15 @@ class Map(Widget):
 
     def add_blueprint_positions(self):
         with self.canvas:
-            for i, blueprint_position in enumerate(self.blueprint_positions):
-                if self.blueprint_results and self.blueprint_results[i]:
-                    Color(0, 1, 0, 1)
-                else:
-                    Color(0, 0, 1, 1)
-                frame_x, frame_z = self.get_frame_position(blueprint_position[0], blueprint_position[2])
-                Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
-                self.add_name([frame_x, frame_z], str(blueprint_position), 8)
+            for i, blueprint in enumerate(self.blueprint_positions):
+                for j, blueprint_position in enumerate(blueprint):
+                    if self.blueprint_results and self.blueprint_results[i] and self.blueprint_results[i][j]:
+                        Color(0, 1, 0, 1)
+                    else:
+                        Color(0, 0, 1, 1)
+                    frame_x, frame_z = self.get_frame_position(blueprint_position[0], blueprint_position[2])
+                    Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
+                    self.add_name([frame_x, frame_z], str(blueprint_position), 8)
 
     def add_name(self, position, name, font_size=NAME_FONT_SIZE):
         with self.canvas:
