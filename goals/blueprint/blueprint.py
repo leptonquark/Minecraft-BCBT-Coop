@@ -3,6 +3,7 @@ from enum import Enum
 import numpy as np
 
 from bt.conditions import IsBlockAtPosition
+from goals.agentlesscondition import AgentlessCondition
 from items import items
 from world.grid import GridSpecification
 
@@ -29,6 +30,9 @@ class Blueprint:
 
     def as_conditions(self, agent):
         return [IsBlockAtPosition(agent, self.material, position) for position in self.positions]
+
+    def as_agentless_conditions(self):
+        return [AgentlessCondition(IsBlockAtPosition, [self.material, position]) for position in self.positions]
 
     @staticmethod
     def get_blueprint(blueprint_type, start_position, delta=None):

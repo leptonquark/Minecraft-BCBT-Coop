@@ -23,7 +23,7 @@ class Experiment:
 config_pickaxe = Experiment(
     name="Diamond Pickaxe",
     flat_world=False,
-    goals=[AgentlessCondition(conditions.HasItemEquipped, [items.BEEF])],
+    goals=[AgentlessCondition(conditions.HasItemEquipped, [items.DIAMOND_PICKAXE])],
     start_positions=[[131, 72, 17], [117, 72, 13], [120, 72, 24]],
     start_entities=[]
 )
@@ -47,7 +47,8 @@ config_flat_world = Experiment(
 config_flat_world_zombie = Experiment(
     name="Fence Grid Flat World Zombie",
     flat_world=True,
-    goals=[AgentlessCondition(conditions.HasNoEnemyNearby, [])],
+    goals=[AgentlessCondition(conditions.HasNoEnemyNearby, [])]
+          + Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 5).as_agentless_conditions(),
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)]
 )

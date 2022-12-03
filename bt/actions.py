@@ -280,7 +280,11 @@ class PlaceBlockAtPosition(Action):
             self.agent.attack(False)
             return Status.FAILURE
 
-        if all(self.position == self.agent.observer.get_abs_pos_discrete()):
+        abs_pos_discrete = self.agent.observer.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return Status.RUNNING
+
+        if all(self.position == abs_pos_discrete):
             self.agent.move_backward()
             self.agent.attack(False)
             return Status.RUNNING
@@ -323,7 +327,12 @@ class DigDownwardsToMaterial(Action):
             return Status.SUCCESS
 
         position_downwards = self.agent.observer.get_first_block_downwards()
+        if position_downwards is None:
+            return Status.FAILURE
+
         distance = self.agent.observer.get_distance_to_discrete_position(position_downwards)
+        if distance is None:
+            return Status.FAILURE
 
         position_center = get_position_center(position_downwards)
         if not self.agent.observer.is_position_within_reach(position_center):
@@ -349,8 +358,11 @@ class ExploreInDirection(GoToObject):
 
     def update(self):
         self.agent.jump(False)
+        abs_pos_discrete = self.agent.observer.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return Status.RUNNING
 
-        position = self.agent.observer.get_abs_pos_discrete() + directionVector[self.direction]
+        position = abs_pos_discrete + directionVector[self.direction]
 
         self.go_to_position(position)
 
