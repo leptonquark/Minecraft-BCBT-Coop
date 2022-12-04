@@ -20,7 +20,7 @@ class Experiment:
     start_entities: List[Entity]
 
 
-config_pickaxe = Experiment(
+experiment_pickaxe = Experiment(
     name="Diamond Pickaxe",
     flat_world=False,
     goals=[AgentlessCondition(conditions.HasItemEquipped, [items.DIAMOND_PICKAXE])],
@@ -28,7 +28,7 @@ config_pickaxe = Experiment(
     start_entities=[]
 )
 
-config_default_world = Experiment(
+experiment_default_world = Experiment(
     name="Fence Grid Default World",
     flat_world=False,
     goals=[Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 71, 11], 7)],
@@ -36,7 +36,7 @@ config_default_world = Experiment(
     start_entities=[]
 )
 
-config_flat_world = Experiment(
+experiment_flat_world = Experiment(
     name="Fence Grid Flat World",
     flat_world=True,
     goals=[Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)],
@@ -44,7 +44,7 @@ config_flat_world = Experiment(
     start_entities=[]
 )
 
-config_flat_world_zombie = Experiment(
+experiment_flat_world_zombie = Experiment(
     name="Fence Grid Flat World Zombie",
     flat_world=True,
     goals=[
@@ -55,4 +55,4 @@ config_flat_world_zombie = Experiment(
     start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)]
 )
 
-configurations = [config_pickaxe, config_default_world, config_flat_world, config_flat_world_zombie]
+configurations = [experiment_pickaxe, experiment_default_world, experiment_flat_world, experiment_flat_world_zombie]
