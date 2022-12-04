@@ -13,6 +13,9 @@ class Action(Behaviour):
         super().__init__(name)
         self.agent = agent
 
+    def terminate(self, new_status):
+        self.agent.stop()
+
 
 class Craft(Action):
     def __init__(self, agent, item, amount=1):
@@ -112,6 +115,8 @@ class PickupItem(Action):
         else:
             return Status.RUNNING
 
+    def terminate(self, new_status):
+        self.agent.stop()
 
 class GoToAnimal(Action):
     def __init__(self, agent, specie=None):
@@ -165,6 +170,9 @@ class GoToBlock(Action):
         self.agent.go_to_position(position_center)
 
         return Status.SUCCESS if self.agent.observer.is_position_within_reach(position_center) else Status.RUNNING
+
+    def terminate(self, new_status):
+        self.agent.stop()
 
 
 class GoToPosition(Action):
@@ -320,11 +328,11 @@ class DigDownwardsToMaterial(Action):
         if position_downwards is None:
             return Status.FAILURE
 
-        distance = self.agent.observer.get_distance_to_discrete_position(position_downwards)
+        position_center = get_position_center(position_downwards)
+        distance = self.agent.observer.get_distance_to_position(position_center)
         if distance is None:
             return Status.FAILURE
 
-        position_center = get_position_center(position_downwards)
         if not self.agent.observer.is_position_within_reach(position_center):
             self.agent.turn_towards(distance)
             turn_direction = self.agent.get_turn_direction(distance)

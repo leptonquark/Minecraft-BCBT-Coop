@@ -27,7 +27,6 @@ FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
 WORLD_STATE_TIMEOUT = None
-EYE_HEIGHT = 1.62
 
 
 def get_move_speed(horizontal_distance, turn_direction):
@@ -40,6 +39,10 @@ def get_move_speed(horizontal_distance, turn_direction):
     if is_large_turn and is_close_to_target:
         move_speed = 0
     return move_speed
+
+
+def get_face_position(discrete_position, face):
+    return discrete_position + center + faceDistance[face]
 
 
 class MinerAgent:
@@ -141,7 +144,7 @@ class MinerAgent:
             self.mine_upwards()
 
     def look_at_block(self, discrete_position, face=BlockFace.NoFace):
-        position_center = discrete_position + center + faceDistance[face]
+        position_center = get_face_position(discrete_position, face)
         distance = self.observer.get_distance_to_position(position_center)
         if distance is None:
             return False
@@ -170,7 +173,7 @@ class MinerAgent:
 
     def pitch_towards(self, distance):
         horizontal_distance = get_horizontal_distance(distance)
-        wanted_pitch = get_wanted_pitch(horizontal_distance, -EYE_HEIGHT + distance[1])
+        wanted_pitch = get_wanted_pitch(horizontal_distance, distance[1])
         pitch_req = self.observer.get_pitch_change(wanted_pitch)
         self.interface.pitch(pitch_req)
         return pitch_req != 0
