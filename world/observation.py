@@ -7,7 +7,9 @@ from items import items
 from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
+from mobs import enemies
 from mobs.animals import Animal
+from mobs.enemies import Enemy
 from utils.vectors import CIRCLE_DEGREES
 
 
@@ -131,6 +133,7 @@ class Observation:
         self.life = None
 
         self.animals = None
+        self.enemies = None
         self.pickups = None
 
         if observations is None or not observations:
@@ -163,8 +166,9 @@ class Observation:
 
     def setup_entities(self, info):
         if Observation.ENTITIES in info:
-            self.pickups = []
             self.animals = []
+            self.enemies = []
+            self.pickups = []
             for entity in info[Observation.ENTITIES]:
                 entity_name = entity.get(Observation.ENTITY_NAME, None)
                 entity_x = entity.get(Observation.ENTITY_X, None)
@@ -173,9 +177,11 @@ class Observation:
                 if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
                     if entity_name in items.pickups:
                         self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
-                    elif entity_name in animals.species:
+                    elif entity_name in animals.types:
                         animal_life = entity.get(Observation.ENTITY_LIFE, None)
                         self.animals.append(Animal(entity_name, entity_x, entity_y, entity_z, animal_life))
+                    elif entity_name in enemies.types:
+                        self.enemies.append(Enemy(entity_name, entity_x, entity_y, entity_z))
 
     def get_grid_global(self, grid_spec):
         if grid_spec.name in self.grids_global:

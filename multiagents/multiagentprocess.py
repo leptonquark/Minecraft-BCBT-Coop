@@ -4,8 +4,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from bt.back_chain_tree import BackChainTree
-from goals.blueprint.blueprint import Blueprint
-from goals.blueprint.blueprintvalidator import BlueprintValidator
+from goals.blueprint.blueprintvalidator import get_blueprint_validators_from_goals
 from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
 from world.observation import Observation
@@ -15,15 +14,13 @@ MAX_TIME = 300
 
 class MultiAgentProcess(mp.Process):
     def __init__(self, running, mission_data, blackboard, role):
-        super(MultiAgentProcess, self).__init__()
+        super().__init__()
         self.running = running
         self.mission_data = mission_data
         self.blackboard = blackboard
         self.role = role
-        self.blueprint_validator = None
         goals = self.mission_data.goals
-        if role == 0 and type(goals) is Blueprint:
-            self.blueprint_validator = BlueprintValidator(goals)
+        self.blueprint_validators = get_blueprint_validators_from_goals(goals, role)
         self.pipe = mp.Pipe()
 
     def run(self):
@@ -33,8 +30,7 @@ class MultiAgentProcess(mp.Process):
         agent.start_multi_agent_mission(self.mission_data, self.role)
         agent.wait_for_mission()
 
-        if self.mission_data.night_vision:
-            agent.activate_night_vision()
+        agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.collaborative)
 
@@ -81,11 +77,8 @@ class MultiAgentProcess(mp.Process):
 
     def get_data(self, observation, completion_time):
         player_position = observation.abs_pos
-        if self.blueprint_validator:
-            blueprint_result = self.blueprint_validator.validate(observation)
-            return MultiAgentState(self.role, completion_time, player_position, blueprint_result)
-        else:
-            return MultiAgentState(self.role, completion_time, player_position, None)
+        blueprint_result = [validator.validate(observation) for validator in self.blueprint_validators]
+        return MultiAgentState(self.role, completion_time, player_position, blueprint_result)
 
 
 @dataclass
@@ -93,4 +86,4 @@ class MultiAgentState:
     role: int
     completion_time: Optional[float]
     position: List[float]
-    blueprint_result: Optional[List[bool]]
+    blueprint_results: List[List[bool]]

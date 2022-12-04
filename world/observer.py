@@ -2,6 +2,7 @@ import numpy as np
 
 from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
+from mobs.enemies import types as enemies
 from utils import vectors
 from utils.vectors import get_los_face
 from world.observation import LineOfSightHitType
@@ -12,6 +13,8 @@ YAW_TOLERANCE = 8
 PITCH_TOLERANCE = 0.5
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
+ENEMY_NEARBY_DISTANCE_TOLERANCE = 20
+FULL_TURN_THRESHOLD = 0.2
 
 
 class Observer:
@@ -36,9 +39,13 @@ class Observer:
         return self.observation.grid_local[tuple(position)]
 
     def get_abs_pos_discrete(self):
-        return np.floor(self.observation.abs_pos)
+        return np.floor(self.observation.abs_pos) if self.observation.abs_pos is not None else None
 
     def get_closest_block(self, block_type):
+        abs_pos_discrete = self.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return None
+
         hits = self.get_hits(block_type)
         if hits is None:
             return None
@@ -52,9 +59,9 @@ class Observer:
             closest_vectors_same_horizontal = closest_vectors[(closest_vectors[:, 1] == 0)]
             # Prioritize same horizontal level
             if closest_vectors_same_horizontal.size > 0:
-                return self.get_abs_pos_discrete() + closest_vectors_same_horizontal[0]
+                return abs_pos_discrete + closest_vectors_same_horizontal[0]
             else:
-                return self.get_abs_pos_discrete() + closest_vectors[0]
+                return abs_pos_discrete + closest_vectors[0]
 
     def is_block_observable(self, block_type):
         hits = self.get_hits(block_type)
@@ -75,13 +82,22 @@ class Observer:
         return hits
 
     def get_first_block_downwards(self):
+        abs_pos_discrete = self.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return None
+
         check_position = np.copy(self.observation.pos_local_grid)
         while check_position[1] >= 0 and self.observation.grid_local[tuple(check_position)] in traversable:
             check_position -= vectors.up
-        return self.get_abs_pos_discrete() - self.observation.pos_local_grid + check_position
+        return abs_pos_discrete - self.observation.pos_local_grid + check_position
 
     def is_position_within_reach(self, position, reach=GATHERING_REACH):
-        return position is not None and np.linalg.norm(self.get_distance_to_discrete_position(position)) <= reach
+        if position is None:
+            return False
+        distance = self.get_distance_to_discrete_position(position)
+        if distance is None:
+            return False
+        return position is not None and np.linalg.norm(distance) <= reach
 
     def is_block_at_position(self, position, block):
         variants = get_variants(block)
@@ -89,7 +105,10 @@ class Observer:
 
     def get_block_at_position_from_local(self, position):
         distance = self.get_rounded_distance_to_position(position)
-        return self.observation.grid_local[tuple(self.observation.pos_local_grid + distance)]
+        if distance is None:
+            return None
+        else:
+            return self.observation.grid_local[tuple(self.observation.pos_local_grid + distance)]
 
     def get_block_at_position_from_global(self, position):
         grids_global = self.observation.mission_data.grids_global
@@ -97,22 +116,35 @@ class Observer:
         for grid_global_spec in grids_global:
             if grid_global_spec.contains_position(position):
                 grid_global = self.observation.get_grid_global(grid_global_spec)
-                position_in_grid = position - grid_global_spec.grid_range[:, 0]
-                return grid_global[tuple(position_in_grid)]
+                if grid_global is not None:
+                    position_in_grid = position - grid_global_spec.grid_range[:, 0]
+                    return grid_global[tuple(position_in_grid)]
         return None
 
     def get_distance_to_discrete_position(self, discrete_position):
-        position_center = discrete_position + vectors.flat_center
-        return position_center - self.observation.abs_pos
+        if self.observation.abs_pos is None:
+            return None
+        else:
+            return discrete_position + vectors.flat_center - self.observation.abs_pos
 
     def get_rounded_distance_to_position(self, position):
-        return (position - self.get_abs_pos_discrete()).astype('int64')
+        abs_pos_discrete = self.get_abs_pos_discrete()
+        if abs_pos_discrete is not None:
+            return (position - abs_pos_discrete).astype('int64')
+        else:
+            return None
 
     def get_distance_to_position(self, position):
-        return position - self.observation.abs_pos
+        if self.observation.abs_pos is None:
+            return None
+        else:
+            return position - self.observation.abs_pos
 
     def is_looking_at_type(self, los_type):
         return self.observation.los_type == los_type
+
+    def is_looking_at_enemy(self):
+        return self.observation.los_type in enemies
 
     def is_looking_at_discrete_position(self, discrete_position):
         if self.observation.los_hit_type != LineOfSightHitType.BLOCK:
@@ -137,27 +169,45 @@ class Observer:
             los_pos_discrete[2] -= 1
         return los_pos_discrete
 
-    def get_weakest_animal_position(self, specie=None):
+    def get_weakest_animal(self, specie=None):
         # Get the weakest animal. If there are several, take the closest of them.
         weakest_animal = None
+        position = self.observation.abs_pos if self.observation.abs_pos is not None else np.array([0, 0, 0])
         for animal in self.observation.animals:
-            if specie is None or animal.specie == specie:
+            if specie is None or animal.type == specie:
                 if weakest_animal is None:
                     weakest_animal = animal
                 elif animal.life < weakest_animal.life:
                     weakest_animal = animal
                 elif animal.life == weakest_animal.life:
-                    distance = animal.position - self.observation.abs_pos
-                    weakest_distance = weakest_animal.position - self.observation.abs_pos
+                    distance = animal.position - position
+                    weakest_distance = weakest_animal.position - position
                     if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
                         weakest_animal = animal
 
-        if weakest_animal is not None:
-            return weakest_animal.position
-        else:
+        return weakest_animal
+
+    def get_closest_enemy(self):
+        if self.observation.abs_pos is None:
             return None
 
+        closest_enemy = None
+        for enemy in self.observation.enemies:
+            if closest_enemy is None:
+                closest_enemy = enemy
+            else:
+                distance = enemy.position - self.observation.abs_pos
+                weakest_distance = closest_enemy.position - self.observation.abs_pos
+                if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
+                    closest_enemy = enemy
+        return closest_enemy
+
+    def has_enemy_nearby(self):
+        return len(self.observation.enemies) > 0
+
     def has_pickup_nearby(self, wanted):
+        if self.observation.abs_pos is None:
+            return False
         variants = get_variants(wanted)
         for pickup in self.observation.pickups:
             if pickup.name in variants:
@@ -180,7 +230,7 @@ class Observer:
         return not position_traversable
 
     def is_animal_observable(self, specie):
-        return self.observation.animals and any(animal.specie == specie for animal in self.observation.animals)
+        return self.observation.animals and any(animal.type == specie for animal in self.observation.animals)
 
     def get_current_direction(self):
         for key in vectors.directionAngle:
@@ -198,7 +248,7 @@ class Observer:
 
         diff = wanted_angle - self.observation.yaw
         if diff <= 0:
-            diff += 360
+            diff += vectors.CIRCLE_DEGREES
 
         if diff <= YAW_TOLERANCE or diff >= vectors.CIRCLE_DEGREES - YAW_TOLERANCE:
             return 0

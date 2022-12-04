@@ -48,6 +48,16 @@ down = np.array([0, -1, 0])
 flat_center = np.array([0.5, 0, 0.5])
 center = np.array([0.5, 0.5, 0.5])
 
+faceDistance = {
+    BlockFace.NoFace: directionVector[Direction.Zero],
+    BlockFace.Up: 0.5 * up,
+    BlockFace.Down: 0.5 * down,
+    BlockFace.South: 0.5 * directionVector[Direction.South],
+    BlockFace.West: 0.5 * directionVector[Direction.West],
+    BlockFace.North: 0.5 * directionVector[Direction.North],
+    BlockFace.East: 0.5 * directionVector[Direction.East],
+}
+
 
 def radians_to_degrees(rad):
     half_circle = CIRCLE_DEGREES / 2

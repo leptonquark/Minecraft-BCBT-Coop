@@ -5,7 +5,7 @@ from kivy.uix.dropdown import DropDown
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 
-import experiment.configurations as config
+import experiment.experiments as experiments
 
 AMOUNT_OF_AGENTS = "amountOfAgents"
 EXPERIMENT_ID = "experiment"
@@ -21,7 +21,7 @@ RESET_DEFAULT = True
 class ConfigurationScreen(Screen):
 
     def __init__(self, **kwargs):
-        super(ConfigurationScreen, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.store = JsonStore("config.json")
 
     def on_enter(self, *args):
@@ -48,11 +48,11 @@ class ConfigurationScreen(Screen):
 
     def initialize_experiment(self):
         experiment_id = self.get_stored_value(EXPERIMENT_ID, EXPERIMENT_ID_DEFAULT)
-        self.ids.experiment.configuration = config.configurations[experiment_id]
+        self.ids.experiment.configuration = experiments.configurations[experiment_id]
         self.ids.experiment.bind(configuration=self.on_experiment)
 
     def on_experiment(self, _, experiment):
-        self.store_value(EXPERIMENT_ID, config.configurations.index(experiment))
+        self.store_value(EXPERIMENT_ID, experiments.configurations.index(experiment))
 
     def initialize_checkbox(self, widget, key, default):
         active = self.get_stored_value(key, default)
@@ -67,14 +67,14 @@ class ConfigurationScreen(Screen):
 
 
 class ConfigurationScreenRowButton(Button):
-    configuration = ObjectProperty(config.configurations[0])
+    configuration = ObjectProperty(experiments.configurations[0])
 
     def __init__(self, **kwargs):
-        super(ConfigurationScreenRowButton, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.bind(configuration=self.on_configuration)
         self.text = self.configuration.name
         self.dropdown = ConfigurationScreenDropDown()
-        for configuration in config.configurations:
+        for configuration in experiments.configurations:
             dropdown_row_button = ConfigurationScreenDropDownRowButton(text=configuration.name,
                                                                        configuration=configuration)
             dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.configuration))

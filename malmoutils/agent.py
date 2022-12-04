@@ -6,14 +6,15 @@ from items import effects
 from items.inventory import HOTBAR_SIZE
 from items.items import unclimbable, traversable, narrow
 from malmoutils.interface import MalmoInterface
-from utils.vectors import RelativeDirection, directionVector, up, Direction
+from mobs.enemies import ENEMY_HEIGHT
+from utils.vectors import RelativeDirection, directionVector, up, Direction, center, faceDistance, BlockFace
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center, \
     get_wanted_direction, get_position_center
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
 
-DIG_DOWNWARDS_HORIZONTAL_TOLERANCE = 0.2
+DIG_VERTICAL_HORIZONTAL_TOLERANCE = 0.2
 BLOCKED_BY_NARROW_THRESHOLD = 0.5
 MOVE_THRESHOLD = 5
 MIN_MOVE_SPEED = 0.05
@@ -96,26 +97,17 @@ class MinerAgent:
 
     def go_to_position(self, position):
         distance = self.observer.get_distance_to_position(position)
+        if distance is None:
+            return
 
         flat_distance = np.copy(distance)
         flat_distance[1] = 0
 
-        if np.linalg.norm(flat_distance) <= DIG_DOWNWARDS_HORIZONTAL_TOLERANCE:
-            if distance[1] < 0:
-                self.mine_downwards()
-            else:
-                self.mine_upwards()
+        if np.linalg.norm(flat_distance) <= DIG_VERTICAL_HORIZONTAL_TOLERANCE:
+            self.mine_vertical(distance[1])
             return
 
         self.turn_towards(distance)
-
-        turn_direction = self.get_turn_direction(distance)
-        current_direction = self.observer.get_current_direction()
-
-        at_same_discrete_position_horizontally = np.all(np.round(flat_distance) == 0)
-
-        lower_free = self.observer.lower_surroundings[current_direction] in traversable + narrow
-        upper_free = self.observer.upper_surroundings[current_direction] in traversable
 
         self.strafe(0)
         at_narrow = self.observer.lower_surroundings[Direction.Zero] in narrow
@@ -124,6 +116,11 @@ class MinerAgent:
             if avoiding:
                 return
 
+        turn_direction = self.get_turn_direction(distance)
+        current_direction = self.observer.get_current_direction()
+        lower_free = self.observer.lower_surroundings[current_direction] in traversable + narrow
+        upper_free = self.observer.upper_surroundings[current_direction] in traversable
+        at_same_discrete_position_horizontally = np.all(np.round(flat_distance) == 0)
         if at_same_discrete_position_horizontally or (lower_free and upper_free):
             self.move_forward(get_horizontal_distance(distance), turn_direction)
             return
@@ -136,6 +133,40 @@ class MinerAgent:
                 self.jump_forward(wanted_direction)
             else:
                 self.mine_forward(0, wanted_direction)
+
+    def mine_vertical(self, y_distance):
+        if y_distance < 0:
+            self.mine_downwards()
+        else:
+            self.mine_upwards()
+
+    def look_at_block(self, discrete_position, face=BlockFace.NoFace):
+        position_center = discrete_position + center + faceDistance[face]
+        distance = self.observer.get_distance_to_position(position_center)
+        if distance is None:
+            return False
+        if not self.observer.is_looking_at_discrete_position(discrete_position):
+            self.attack(False)
+            pitching = self.pitch_towards(distance)
+            turning = self.turn_towards(distance)
+
+            if pitching or turning:
+                return False
+
+        self.turn(0)
+        self.pitch(0)
+        return True
+
+    def look_at_entity(self, entity):
+        distance = self.observer.get_distance_to_position(entity.position)
+        distance[1] += ENEMY_HEIGHT
+        if not self.observer.is_looking_at_type(entity.type):
+            pitching = self.pitch_towards(distance)
+            turning = self.turn_towards(distance)
+            if pitching or turning:
+                self.attack(False)
+                return False
+        return True
 
     def pitch_towards(self, distance):
         horizontal_distance = get_horizontal_distance(distance)
@@ -155,7 +186,11 @@ class MinerAgent:
         return pitch_req == 0
 
     def avoid_narrow(self, flat_distance):
-        flat_center = get_position_flat_center(self.observer.get_abs_pos_discrete())
+        abs_pos_discrete = self.observer.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return False
+
+        flat_center = get_position_flat_center(abs_pos_discrete)
         distance_to_center = self.observer.get_distance_to_position(flat_center)
         flat_distance_to_center = np.copy(distance_to_center)
         flat_distance_to_center[1] = 0
@@ -178,8 +213,11 @@ class MinerAgent:
             self.interface.strafe(-STRAFE_SPEED)
 
     def mine_forward(self, vertical_distance, wanted_direction):
+        abs_pos_discrete = self.observer.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return
         distance_to_block = directionVector[wanted_direction] + vertical_distance * up
-        block_position = self.observer.get_abs_pos_discrete() + distance_to_block
+        block_position = abs_pos_discrete + distance_to_block
         block_center = get_position_center(block_position)
         distance_to_block = self.observer.get_distance_to_position(block_center)
         self.turn(0)

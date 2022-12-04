@@ -8,14 +8,14 @@ from multiagents.multiagentprocess import MultiAgentProcess
 class MultiAgentRunnerProcess(mp.Process):
 
     def __init__(self, running, mission_data):
-        super(MultiAgentRunnerProcess, self).__init__()
+        super().__init__()
         self.running = running
         self.pipe = mp.Pipe()
         self.mission_data = mission_data
 
         self.agent_positions = [None] * mission_data.n_agents
         self.completion_times: List[Optional[float]] = [None] * mission_data.n_agents
-        self.blueprint_result = None
+        self.blueprint_results = []
 
     def run(self):
         manager = mp.Manager()
@@ -39,8 +39,8 @@ class MultiAgentRunnerProcess(mp.Process):
 
     def cache_agent_data(self, agent_data, i):
         self.agent_positions[i] = agent_data.position
-        if agent_data.blueprint_result:
-            self.blueprint_result = agent_data.blueprint_result
+        if agent_data.blueprint_results:
+            self.blueprint_results = agent_data.blueprint_results
         self.completion_times[i] = agent_data.completion_time
 
     def get_state(self, blackboard):
@@ -48,7 +48,7 @@ class MultiAgentRunnerProcess(mp.Process):
             completion_time = max(self.completion_times)
         else:
             completion_time = None
-        data = MultiAgentRunnerState(self.agent_positions, self.blueprint_result, blackboard.copy(),
+        data = MultiAgentRunnerState(self.agent_positions, self.blueprint_results, blackboard.copy(),
                                      completion_time)
         return data
 
@@ -56,7 +56,7 @@ class MultiAgentRunnerProcess(mp.Process):
 @dataclass
 class MultiAgentRunnerState:
     agent_positions: List[Optional[List[float]]]
-    blueprint_result: Optional[List[bool]]
+    blueprint_results: List[List[bool]]
     blackboard: Dict[str, str]
     completion_time: Optional[float]
 
