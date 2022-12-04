@@ -1,9 +1,8 @@
+from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
-from bt.actions import Action
 
-
-class Sender(Action):
+class Sender(Behaviour):
     def __init__(self, blackboard, channel, value):
         super().__init__(f"Set {channel} is {value}")
         self.blackboard = blackboard
