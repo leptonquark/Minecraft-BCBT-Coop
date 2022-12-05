@@ -7,7 +7,7 @@ import bt.actions as actions
 import bt.conditions as conditions
 import items.items
 from bt.receiver import InverseReceiver
-from bt.sender import StopSender, Sender
+from bt.sender import StopSender, Sender, ItemSender
 from bt.sequence import Sequence
 from items.gathering import get_gathering_tier_by_material, get_pickaxe
 from items.recipes import get_recipe, RecipeType
@@ -71,6 +71,8 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
         return EquipPickaxePPA(agent, condition.tier)
     elif isinstance(condition, conditions.HasPickaxeByMinimumTier):
         return CraftPickaxePPA(agent, condition.tier)
+    elif isinstance(condition, conditions.HasItemShared):
+        return HasItemSharedPPA(agent, condition.item, condition.amount)
     return None
 
 
@@ -315,3 +317,39 @@ class GoToEnemyPPA(PPA):
         self.name = f"Go to enemy"
         self.post_condition = conditions.IsEnemyWithinReach(agent)
         self.actions = [actions.GoToEnemy(agent)]
+
+
+def get_base_ppa(agent, item, amount):
+    recipe = get_recipe(item)
+    if recipe is None:
+        return PickupPPA(agent, item, amount)
+    elif recipe.recipe_type == RecipeType.Melting:
+        return MeltPPA(agent, item, amount)
+    else:
+        return CraftPPA(agent, item, amount)
+
+
+class HasItemSharedPPA(PPA):
+    def __init__(self, agent, item, amount):
+        super().__init__()
+        self.name = f"Has {item}"
+        self.agent = agent
+        self.item = item
+        self.amount = amount
+        self.post_condition = conditions.HasItemShared(agent, item, amount)
+        base_ppa = get_base_ppa(agent, item, amount)
+        self.actions = base_ppa.actions
+        self.pre_conditions = base_ppa.pre_conditions
+
+    def as_tree(self):
+        if self.actions is None:
+            return None
+
+        send_item_action = ItemSender(self.agent, self.item)
+
+        tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
+        if self.post_condition is not None:
+            tree = Selector(name=f"Postcondition Handler {self.name}", children=[
+                Selector(children=[self.post_condition, send_item_action]), tree])
+        tree.name = f"PPA {self.name}"
+        return tree

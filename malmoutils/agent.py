@@ -47,9 +47,10 @@ def get_face_position(discrete_position, face):
 
 class MinerAgent:
 
-    def __init__(self, blackboard, name="SteveBot"):
+    def __init__(self, blackboard, role, name="SteveBot"):
         self.name = name
         self.blackboard = blackboard
+        self.role = role
         self.interface = MalmoInterface()
         self.observer = None
         self.inventory = None
@@ -324,8 +325,8 @@ class MinerAgent:
     def start_mission(self, mission, mission_record):
         self.interface.start_mission(mission, mission_record)
 
-    def start_multi_agent_mission(self, mission_data, role):
-        self.interface.start_multi_agent_mission(mission_data, role)
+    def start_multi_agent_mission(self, mission_data):
+        self.interface.start_multi_agent_mission(mission_data, self.role)
 
     def wait_for_mission(self):
         self.interface.wait_for_mission()

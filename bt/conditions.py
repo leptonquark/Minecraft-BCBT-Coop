@@ -145,3 +145,18 @@ class IsBlockAtPosition(Condition):
 
     def verify(self):
         return self.agent.observer.is_block_at_position(self.position, self.block)
+
+
+class HasItemShared(Condition):
+    def __init__(self, agent, item, amount=1):
+        super().__init__(f"Has Item {amount}x {item}", agent)
+        self.item = item
+        self.amount = amount
+
+    def verify(self):
+        blackboard = self.agent.blackboard.copy()
+        amount = 0
+        for key in blackboard:
+            if key.startswith(f"shared_inventory_{self.item}"):
+                amount += blackboard[key]
+        return amount >= self.amount

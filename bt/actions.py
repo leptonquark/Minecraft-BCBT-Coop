@@ -29,7 +29,7 @@ class Craft(Action):
             return Status.FAILURE
 
         self.agent.craft(self.item, self.amount)
-        return Status.SUCCESS
+        return Status.RUNNING
 
 
 class Melt(Action):

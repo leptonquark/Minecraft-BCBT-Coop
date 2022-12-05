@@ -55,11 +55,11 @@ experiment_flat_world_zombie = Experiment(
     start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)]
 )
 
-experiment_get_600_fence = Experiment(
-    name="Get 600 Fence Flat World",
+experiment_get_30_fence = Experiment(
+    name="Get 30 Fence Flat World",
     flat_world=True,
     goals=[
-        AgentlessCondition(conditions.HasItem, [items.FENCE, 600])
+        AgentlessCondition(conditions.HasItemShared, [items.FENCE, 30])
     ],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[]
@@ -70,5 +70,5 @@ configurations = [
     experiment_default_world,
     experiment_flat_world,
     experiment_flat_world_zombie,
-    experiment_get_600_fence
+    experiment_get_30_fence
 ]

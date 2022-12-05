@@ -6,6 +6,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 
 import experiment.experiments as experiments
+from utils.file import get_project_root
 
 AMOUNT_OF_AGENTS = "amountOfAgents"
 EXPERIMENT_ID = "experiment"
@@ -17,12 +18,16 @@ EXPERIMENT_ID_DEFAULT = 0
 COLLABORATIVE_DEFAULT = True
 RESET_DEFAULT = True
 
+CONFIG_FILE = "data/config.json"
 
 class ConfigurationScreen(Screen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.store = JsonStore("config.json")
+        file_path = get_project_root() / CONFIG_FILE
+        folder_path = file_path.parent
+        folder_path.mkdir(parents=True, exist_ok=True)
+        self.store = JsonStore(str(file_path))
 
     def on_enter(self, *args):
         self.initialize_amount_of_agents()

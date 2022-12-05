@@ -13,7 +13,7 @@ from world.missiondata import MissionData
 
 if __name__ == '__main__':
     reset = True
-    flat_world = False
+    flat_world = True
     n_test_runs = 15
     agents_max = 3
 

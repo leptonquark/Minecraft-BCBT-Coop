@@ -25,9 +25,9 @@ class MultiAgentProcess(mp.Process):
 
     def run(self):
         agent_name = self.mission_data.agent_names[self.role]
-        agent = MinerAgent(self.blackboard, agent_name)
+        agent = MinerAgent(self.blackboard, self.role, agent_name)
 
-        agent.start_multi_agent_mission(self.mission_data, self.role)
+        agent.start_multi_agent_mission(self.mission_data)
         agent.wait_for_mission()
 
         agent.activate_night_vision()
