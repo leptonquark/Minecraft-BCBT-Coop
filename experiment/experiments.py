@@ -65,10 +65,22 @@ experiment_get_30_fence = Experiment(
     start_entities=[]
 )
 
+experiment_get_10_stone_pickaxe = Experiment(
+    name="Get 10 Stone Pick Axe",
+    flat_world=False,
+    goals=[
+        AgentlessCondition(conditions.HasItemShared, [items.STICKS, 20]),
+        AgentlessCondition(conditions.HasItemShared, [items.COBBLESTONE, 30]),
+    ],
+    start_positions=[[131, 72, 17], [132, 72, 4], [140, 72, 24], [125, 72, 50], [140, 72, 34]],
+    start_entities=[]
+)
+
 configurations = [
     experiment_pickaxe,
     experiment_default_world,
     experiment_flat_world,
     experiment_flat_world_zombie,
-    experiment_get_30_fence
+    experiment_get_30_fence,
+    experiment_get_10_stone_pickaxe
 ]

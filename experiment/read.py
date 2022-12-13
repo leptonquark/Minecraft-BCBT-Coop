@@ -1,14 +1,17 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from experiment.start import EXPERIMENT_PATH
+from utils.file import get_project_root
+
 CAPSIZE = 10
 WIDTH = 0.25
 
-files = ["output10.csv", "output11.csv"]
+files = ["output_dwg_5.csv"]
 flat_world = False
 without_edges = False
 
-dfs = [pd.read_csv(file) for file in files]
+dfs = [pd.read_csv(get_project_root() / EXPERIMENT_PATH / file) for file in files]
 df = pd.concat(dfs)
 
 print(df.time.mean())
@@ -67,7 +70,7 @@ for without_edges in [False, True]:
     runs = int(len(df) / (2 * len(stats_full.agents.unique())))
     generator = "flat world generator" if flat_world else "default world generator"
     we_title = " (without edge cases)" if without_edges else ""
-    plt.title(f'{runs} runs each using {generator}{we_title}')
+    plt.title(f'{runs} runs each using {generator}')
 
     gen = "fwg" if flat_world else "dwg"
     we = "we_" if without_edges else ""

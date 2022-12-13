@@ -4,12 +4,15 @@
 # Being able to choose whether to use cooperative or individualistic agents
 import multiprocessing as mp
 import time
+from pathlib import Path
 
 import experiment.experiments as experiments
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from utils.file import create_file_and_write
 from utils.names import get_names
 from world.missiondata import MissionData
+
+EXPERIMENT_PATH = Path("log/experiments")
 
 if __name__ == '__main__':
     reset = True
@@ -48,5 +51,6 @@ if __name__ == '__main__':
                 run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
     gen = "fwg" if flat_world else "dwg"
-    file_name = f"log/experiments/output_{gen}.csv"
+    file_name = f"output_{gen}.csv"
+    file_path = EXPERIMENT_PATH / file_name
     create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
