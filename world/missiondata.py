@@ -3,7 +3,6 @@ import xml.etree.ElementTree as Et
 
 import numpy as np
 
-import items.items
 from goals.blueprint.blueprint import Blueprint
 from utils.string import prettify_xml
 from world import xmlconstants
@@ -21,11 +20,11 @@ def setup_experiment_id():
 
 class MissionData:
 
-    def __init__(self, config, collaborative, reset, agent_names=None):
+    def __init__(self, config, cooperativity, reset, agent_names=None):
         if agent_names is None:
             agent_names = ["SteveBot"]
         self.agent_names = agent_names
-        self.collaborative = collaborative
+        self.cooperativity = cooperativity
         self.goals = config.goals
 
         self.experiment_id = setup_experiment_id()
@@ -74,8 +73,7 @@ class MissionData:
             if isinstance(goal, Blueprint):
                 self.grids_global.append(goal.get_required_grid("global"))
 
-        self.start_inventory = [items.items.IRON_SWORD] if config.start_entities else []
-
+        self.start_inventory = config.start_inventory
         self.start_entities = config.start_entities
 
     def get_xml(self):

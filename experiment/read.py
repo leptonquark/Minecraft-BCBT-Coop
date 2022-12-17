@@ -7,7 +7,7 @@ from utils.file import get_project_root
 CAPSIZE = 10
 WIDTH = 0.25
 
-files = ["output_dwg_5.csv"]
+files = ["output_dwg.csv"]
 flat_world = False
 without_edges = False
 

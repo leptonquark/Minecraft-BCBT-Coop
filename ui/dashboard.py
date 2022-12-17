@@ -8,6 +8,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
 from goals.blueprint.blueprint import Blueprint
+from multiagents.cooperativity import Cooperativity
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
 from utils.names import get_names
@@ -42,14 +43,14 @@ class DashboardScreen(Screen):
         start_screen = self.manager.get_screen("ConfigurationScreen")
         amount = int(start_screen.ids['amount'].text)
         agent_names = get_names(amount)
-        collaborative = start_screen.ids['collaborative'].active
+        cooperativity = Cooperativity.COOPERATIVE if start_screen.ids[
+            'collaborative'].active else Cooperativity.INDEPENDENT
         reset = start_screen.ids['reset'].active
 
-        configuration = start_screen.ids['experiment'].configuration
-        mission_data = MissionData(configuration, collaborative, reset, agent_names)
+        configuration = start_screen.ids['experiment'].experiment
+        mission_data = MissionData(configuration, cooperativity, reset, agent_names)
 
-        descriptor = "collaborative" if collaborative else "independent"
-        print(f"Starting Minecraft with {descriptor} {amount} clients with configuration {configuration.name}...")
+        print(f"Starting Minecraft with {cooperativity} {amount} clients with configuration {configuration.name}...")
 
         self.ids.map.set_mission_data(mission_data)
 

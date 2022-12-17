@@ -53,7 +53,7 @@ class ConfigurationScreen(Screen):
 
     def initialize_experiment(self):
         experiment_id = self.get_stored_value(EXPERIMENT_ID, EXPERIMENT_ID_DEFAULT)
-        self.ids.experiment.configuration = experiments.configurations[experiment_id]
+        self.ids.experiment.experiment = experiments.configurations[experiment_id]
         self.ids.experiment.bind(configuration=self.on_experiment)
 
     def on_experiment(self, _, experiment):
@@ -82,7 +82,7 @@ class ConfigurationScreenRowButton(Button):
         for configuration in experiments.configurations:
             dropdown_row_button = ConfigurationScreenDropDownRowButton(text=configuration.name,
                                                                        configuration=configuration)
-            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.configuration))
+            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.experiment))
             self.dropdown.add_widget(dropdown_row_button)
         self.dropdown.bind(on_select=self.on_select)
 

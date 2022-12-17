@@ -32,7 +32,7 @@ class MultiAgentProcess(mp.Process):
 
         agent.activate_night_vision()
 
-        tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.collaborative)
+        tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.cooperativity)
 
         last_delta = time.time()
         start_time = time.time()

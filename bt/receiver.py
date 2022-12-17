@@ -26,7 +26,5 @@ class InverseReceiver(Behaviour):
         self.values = values
 
     def update(self):
-        return Status.SUCCESS if self.verify() else Status.FAILURE
-
-    def verify(self):
-        return self.blackboard.get(self.channel, False) not in self.values
+        value = self.blackboard.get(self.channel, False)
+        return Status.SUCCESS if value not in self.values and value != True else Status.FAILURE
