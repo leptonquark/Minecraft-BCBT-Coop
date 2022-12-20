@@ -27,7 +27,7 @@ class ConfigurationScreen(Screen):
         file_path = get_project_root() / CONFIG_FILE
         folder_path = file_path.parent
         folder_path.mkdir(parents=True, exist_ok=True)
-        self.store = JsonStore(str(file_path))
+        self.store = JsonStore(CONFIG_FILE)
 
     def on_enter(self, *args):
         self.initialize_amount_of_agents()
@@ -54,7 +54,7 @@ class ConfigurationScreen(Screen):
     def initialize_experiment(self):
         experiment_id = self.get_stored_value(EXPERIMENT_ID, EXPERIMENT_ID_DEFAULT)
         self.ids.experiment.experiment = experiments.configurations[experiment_id]
-        self.ids.experiment.bind(configuration=self.on_experiment)
+        self.ids.experiment.bind(experiment=self.on_experiment)
 
     def on_experiment(self, _, experiment):
         self.store_value(EXPERIMENT_ID, experiments.configurations.index(experiment))
@@ -72,28 +72,28 @@ class ConfigurationScreen(Screen):
 
 
 class ConfigurationScreenRowButton(Button):
-    configuration = ObjectProperty(experiments.configurations[0])
+    experiment = ObjectProperty(experiments.configurations[0])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bind(configuration=self.on_configuration)
-        self.text = self.configuration.name
+        self.bind(experiment=self.on_experiment)
+        self.text = self.experiment.name
         self.dropdown = ConfigurationScreenDropDown()
-        for configuration in experiments.configurations:
-            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=configuration.name,
-                                                                       configuration=configuration)
-            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.configuration))
+        for experiment in experiments.configurations:
+            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=experiment.name,
+                                                                       experiment=experiment)
+            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.experiment))
             self.dropdown.add_widget(dropdown_row_button)
         self.dropdown.bind(on_select=self.on_select)
 
     def on_release(self):
         self.dropdown.open(self)
 
-    def on_select(self, _, configuration):
-        self.configuration = configuration
+    def on_select(self, _, experiment):
+        self.experiment = experiment
 
-    def on_configuration(self, _, configuration):
-        self.text = configuration.name
+    def on_experiment(self, _, experiment):
+        self.text = experiment.name
 
 
 class NumberInput(TextInput):
@@ -111,4 +111,4 @@ class ConfigurationScreenDropDown(DropDown):
 
 
 class ConfigurationScreenDropDownRowButton(Button):
-    configuration = ObjectProperty(None)
+    experiment = ObjectProperty(None)
