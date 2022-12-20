@@ -109,7 +109,7 @@ class Map(Widget):
         for goal in mission_data.goals:
             if isinstance(goal, Blueprint):
                 self.blueprint_positions.append(goal.positions)
-        if mission_data.flat_world:
+        if mission_data.is_flat_world():
             self.x_range = (75, 175)
             self.z_range = (-50, 50)
 

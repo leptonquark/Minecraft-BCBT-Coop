@@ -348,7 +348,7 @@ class DigDownwardsToMaterial(Action):
     def terminate(self, new_status):
         self.agent.stop()
 
-
+DISTANCE_FAR_AWAY = 100
 class ExploreInDirection(Action):
     def __init__(self, agent, direction):
         super().__init__(f"Explore in direction {direction}", agent)
@@ -360,7 +360,7 @@ class ExploreInDirection(Action):
         if abs_pos_discrete is None:
             return Status.RUNNING
 
-        position = abs_pos_discrete + directionVector[self.direction]
+        position = abs_pos_discrete + DISTANCE_FAR_AWAY * directionVector[self.direction]
 
         self.agent.go_to_position(position)
 

@@ -7,9 +7,7 @@ from goals.blueprint.blueprint import Blueprint
 from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
-
-SEED = "4000020"
-FLAT_WORLD_GENERATOR_STRING = "3;1*minecraft:bedrock,7*minecraft:dirt,1*minecraft:grass;35;decoration"
+from world.world_generator import FlatWorldGenerator
 
 
 def setup_experiment_id():
@@ -33,7 +31,8 @@ class MissionData:
 
         self.n_agents = len(agent_names)
 
-        self.seed = SEED
+        self.world_generator = config.world_generator
+
         self.ms_per_tick = 50  # Default: 50
         self.mode = "Survival"
 
@@ -53,8 +52,6 @@ class MissionData:
 
         self.force_reset = reset
 
-        self.flat_world = config.flat_world
-
         self.start_positions = config.start_positions if self.force_reset else None
 
         self.start_pitch = 18
@@ -66,7 +63,7 @@ class MissionData:
         self.obs_entities_name = "entities"
         self.obs_entities_range = (40, 40, 40)
 
-        self.grid_local = GridSpecification("me", np.array([[-20, 20], [-20, 4], [-20, 20]]), False)
+        self.grid_local = GridSpecification("me", np.array([[-40, 40], [-4, 4], [-40, 40]]), False)
 
         self.grids_global = []
         for goal in self.goals:
@@ -114,22 +111,24 @@ class MissionData:
     def initialize_server_handlers(self, server_section):
         server_handlers = Et.SubElement(server_section, xmlconstants.ELEMENT_SERVER_HANDLERS)
         self.initialize_world_generator(server_handlers)
-        if self.start_entities:
+        if self.start_entities or self.world_generator.cuboids:
             self.initialize_drawing_decorator(server_handlers)
 
     def initialize_world_generator(self, server_handlers):
-        if self.flat_world:
+        if isinstance(self.world_generator, FlatWorldGenerator):
             world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_FLAT_WORLD_GENERATOR)
-            world_generator.set(xmlconstants.ATTRIBUTE_FLAT_WORLD_GENERATOR_STRING, FLAT_WORLD_GENERATOR_STRING)
+            generator_string = self.world_generator.generator_string
+            world_generator.set(xmlconstants.ATTRIBUTE_FLAT_WORLD_GENERATOR_STRING, generator_string)
         else:
             world_generator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DEFAULT_WORLD_GENERATOR)
-        world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.seed)
+        world_generator.set(xmlconstants.ATTRIBUTE_SEED, self.world_generator.seed)
         xml_force_reset = xmlconstants.TRUE if self.force_reset else xmlconstants.FALSE
         world_generator.set(xmlconstants.ATTRIBUTE_FORCE_WORLD_RESET, xml_force_reset)
 
     def initialize_drawing_decorator(self, server_handlers):
         drawing_decorator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DRAWING_DECORATOR)
         self.initialize_entities(drawing_decorator)
+        self.initialize_cuboids(drawing_decorator)
 
     def initialize_entities(self, drawing_decorator):
         for entity in self.start_entities:
@@ -138,6 +137,17 @@ class MissionData:
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_X, str(entity.position[0]))
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Y, str(entity.position[1]))
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Z, str(entity.position[2]))
+
+    def initialize_cuboids(self, drawing_decorator):
+        for cuboid in self.world_generator.cuboids:
+            draw_cuboid = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_CUBOID)
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_X1, str(cuboid.range[0][0]))
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Y1, str(cuboid.range[0][1]))
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Z1, str(cuboid.range[0][2]))
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_X2, str(cuboid.range[1][0]))
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Y2, str(cuboid.range[1][1]))
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Z2, str(cuboid.range[1][2]))
+            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_TYPE, cuboid.type)
 
     def initialize_agent_section(self, mission):
         for i in range(self.n_agents):
@@ -196,6 +206,9 @@ class MissionData:
         self.grid_local.initialize_xml(observation_grid)
         for grid_global in self.grids_global:
             grid_global.initialize_xml(observation_grid)
+
+    def is_flat_world(self):
+        return isinstance(self.world_generator, FlatWorldGenerator)
 
 
 def et_to_xml(root):

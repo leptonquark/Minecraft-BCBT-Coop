@@ -18,7 +18,7 @@ EXPERIMENT_ID_DEFAULT = 0
 COLLABORATIVE_DEFAULT = True
 RESET_DEFAULT = True
 
-CONFIG_FILE = "data/config.json"
+CONFIG_FILE = "config.json"
 
 class ConfigurationScreen(Screen):
 
