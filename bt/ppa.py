@@ -286,15 +286,12 @@ class PlaceBlockPPACollaborative(PPA):
         self.agent = agent
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
         self.pre_conditions = [
-            conditions.HasItemEquipped(agent, block),
             Sender(agent.blackboard, self.channel, self.agent.name),
+            conditions.HasItemEquipped(agent, block),
             conditions.IsPositionWithinReach(agent, position),
 
         ]
-        self.actions = [
-            actions.PlaceBlockAtPosition(agent, block, position),
-            StopSender(agent.blackboard, self.channel)
-        ]
+        self.actions = [actions.PlaceBlockAtPosition(agent, block, position), ]
 
     def as_tree(self):
         if self.actions is None:

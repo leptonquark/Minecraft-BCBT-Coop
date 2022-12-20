@@ -3,17 +3,19 @@ from py_trees.common import Status
 
 
 class Receiver(Behaviour):
-    def __init__(self, blackboard, channel, value=True):
+    def __init__(self, blackboard, channel, values=None):
+        if values is None:
+            values = []
         super().__init__(f"Is {channel} fulfilled")
         self.blackboard = blackboard
         self.channel = channel
-        self.value = value
+        self.values = values
 
     def update(self):
         return Status.SUCCESS if self.verify() else Status.FAILURE
 
     def verify(self):
-        return self.blackboard.get(self.channel) == self.value
+        return self.blackboard.get(self.channel, False) in self.values
 
 
 class InverseReceiver(Behaviour):
@@ -27,4 +29,4 @@ class InverseReceiver(Behaviour):
 
     def update(self):
         value = self.blackboard.get(self.channel, False)
-        return Status.SUCCESS if value not in self.values and value != True else Status.FAILURE
+        return Status.SUCCESS if value not in self.values else Status.FAILURE
