@@ -17,7 +17,7 @@ EXPERIMENT_PATH = Path("log/experiments")
 
 if __name__ == '__main__':
     reset = True
-    experiment = experiments.experiment_get_10_stone_pickaxe
+    experiment = experiments.experiment_flat_world
     n_test_runs = 15
     agents_max = 3
     cooperativites = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_BACKUP]

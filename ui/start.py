@@ -82,7 +82,7 @@ class ConfigurationScreenRowButton(Button):
         for configuration in experiments.configurations:
             dropdown_row_button = ConfigurationScreenDropDownRowButton(text=configuration.name,
                                                                        configuration=configuration)
-            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.experiment))
+            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.configuration))
             self.dropdown.add_widget(dropdown_row_button)
         self.dropdown.bind(on_select=self.on_select)
 
