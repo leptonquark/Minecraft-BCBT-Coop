@@ -8,7 +8,6 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
 from goals.blueprint.blueprint import Blueprint
-from multiagents.cooperativity import Cooperativity
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
 from utils.names import get_names
@@ -43,8 +42,7 @@ class DashboardScreen(Screen):
         start_screen = self.manager.get_screen("ConfigurationScreen")
         amount = int(start_screen.ids['amount'].text)
         agent_names = get_names(amount)
-        cooperativity = Cooperativity.COOPERATIVE if start_screen.ids[
-            'collaborative'].active else Cooperativity.INDEPENDENT
+        cooperativity = start_screen.ids['cooperativity'].cooperativity
         reset = start_screen.ids['reset'].active
 
         configuration = start_screen.ids['experiment'].experiment

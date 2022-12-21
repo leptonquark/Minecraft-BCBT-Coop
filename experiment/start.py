@@ -20,7 +20,7 @@ if __name__ == '__main__':
     experiment = experiments.experiment_flat_world
     n_test_runs = 15
     agents_max = 3
-    cooperativites = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_BACKUP]
+    cooperativites = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
 
     output = ["collaborative,agents,internal_id,time"]
 

@@ -26,7 +26,7 @@ class BackChainTree:
 
     def back_chain(self, goals, cooperativity):
         children = [JumpIfStuck(self.agent)]
-        if cooperativity == Cooperativity.COOPERATIVE_WITH_BACKUP or cooperativity == Cooperativity.COOPERATIVE:
+        if cooperativity == Cooperativity.COOPERATIVE_WITH_CATCHUP or cooperativity == Cooperativity.COOPERATIVE:
             for goal in goals:
                 if isinstance(goal, Action):
                     children.append(goal)
@@ -40,7 +40,7 @@ class BackChainTree:
                     if isinstance(goal, Condition):
                         goal_ppa_tree = back_chain_recursive(self.agent, goal, True)
                         children.append(goal_ppa_tree)
-        if cooperativity == Cooperativity.COOPERATIVE_WITH_BACKUP or cooperativity == Cooperativity.INDEPENDENT:
+        if cooperativity == Cooperativity.COOPERATIVE_WITH_CATCHUP or cooperativity == Cooperativity.INDEPENDENT:
             for goal in goals:
                 if isinstance(goal, Action):
                     children.append(goal)
