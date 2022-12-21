@@ -7,8 +7,7 @@ from utils.file import get_project_root
 CAPSIZE = 10
 FULL_WIDTH = 0.5
 
-files = ["output_g10sp.csv", "output_g10sp1.csv"]
-# files = ["output_fwg_1.csv"]
+files = ["output_g10spmdw_5.csv"]
 fpp = False
 flat_world = False
 without_edges = True

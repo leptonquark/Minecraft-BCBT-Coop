@@ -104,12 +104,12 @@ experiment_get_10_stone_pickaxe_manual = Experiment(
         ]
     ),
     goals=[
-        AgentlessCondition(conditions.HasItemShared, [items.STICKS, 20]),
-        AgentlessCondition(conditions.HasItemShared, [items.COBBLESTONE, 30]),
+        AgentlessCondition(conditions.HasItemShared, [items.STICKS, 10]),
+        AgentlessCondition(conditions.HasItemShared, [items.COBBLESTONE, 15]),
     ],
     start_positions=[[0, 9, 0], [-5, 9, 0], [5, 9, 0], [10, 9, 0], [-10, 9, 0]],
     start_entities=[],
-    start_inventory=[items.WOODEN_PICKAXE]
+    start_inventory=[]
 )
 
 configurations = [

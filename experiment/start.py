@@ -1,7 +1,3 @@
-# Start a MultiAgentProcess with various amount of agents
-# Store the time?
-# Store the path (stretch)
-# Being able to choose whether to use cooperative or individualistic agents
 import multiprocessing as mp
 import time
 from pathlib import Path
@@ -17,7 +13,7 @@ EXPERIMENT_PATH = Path("log/experiments")
 
 if __name__ == '__main__':
     reset = True
-    experiment = experiments.experiment_flat_world
+    experiment = experiments.experiment_get_10_stone_pickaxe_manual
     n_test_runs = 15
     agents_max = 3
     cooperativites = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
