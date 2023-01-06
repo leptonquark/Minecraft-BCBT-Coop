@@ -2,6 +2,7 @@ import time
 from pathlib import Path
 
 import experiment.experiments as experiments
+from goals.blueprint.blueprint import Blueprint, BlueprintType
 from items import items
 from multiagents.cooperativity import Cooperativity
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
@@ -44,6 +45,32 @@ def run_pickaxe_tests():
     create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
 
 
+def run_variable_delta_tests():
+    reset = True
+    experiment = experiments.experiment_flat_world
+    n_test_runs = 1
+    agents_max = 1
+    cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
+    deltas = [5, 10, 15, 20, 25]
+    output = ["collaborative,agents,delta,internal_id,time"]
+    run = 0
+    start_time = time.time()
+    for delta in deltas:
+        experiment.goals = [Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], delta)]
+        for n_agents in range(1, agents_max + 1):
+            agent_names = get_names(n_agents)
+            for cooperativity in cooperativities:
+                for i in range(n_test_runs):
+                    completion_time = run_test(agent_names, cooperativity, experiment, n_agents, reset)
+                    collaborative = cooperativity_to_collaborative[cooperativity]
+                    output.append(f"{run},{collaborative},{n_agents},{delta},{i},{completion_time}")
+                    print(output)
+                    run += 1
+    print(f"Total time all experiments: {time.time() - start_time}")
+    file_name = f"output_{experiment.id}_delta.csv"
+    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+
+
 def run_tests():
     reset = True
     experiment = experiments.experiment_default_world
@@ -83,4 +110,4 @@ def run_test(agent_names, cooperativity, experiment, n_agents, reset):
 
 
 if __name__ == '__main__':
-    run_tests()
+    run_variable_delta_tests()
