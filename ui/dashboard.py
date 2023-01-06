@@ -54,8 +54,7 @@ class DashboardScreen(Screen):
 
         self.running_event = mp.Event()
         self.running_event.set()
-
-        self.process = MultiAgentRunnerProcess(self.running_event, mission_data)
+        self.process = MultiAgentRunnerProcess(mission_data, self.running_event)
         self.process.start()
         self.listen_event = Clock.schedule_interval(lambda _: self.listen_to_pipe(self.process.pipe), 1 / 60)
 

@@ -102,7 +102,7 @@ def get_variants(item):
     return [item] + VARIANTS.get(item, [])
 
 
-VARIANTS = {FENCE: [ACACIA_FENCE], LOG: [LOG_2]}
+VARIANTS = {FENCE: [ACACIA_FENCE], LOG: [LOG_2], STONE: [COBBLESTONE]}
 
 traversable = [AIR, PLANT, TALL_GRASS, FLOWER_YELLOW, FLOWER_RED, WATER]
 narrow = get_variants(FENCE)

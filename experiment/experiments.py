@@ -86,8 +86,8 @@ experiment_get_10_stone_pickaxe = Experiment(
     name="Get 10 Pick Axe Default World",
     world_generator=DefaultWorldGenerator(),
     goals=[
-        AgentlessCondition(conditions.HasItemShared, [items.STICKS, 20]),
-        AgentlessCondition(conditions.HasItemShared, [items.COBBLESTONE, 30]),
+        AgentlessCondition(conditions.HasItemShared, [items.STICKS, 10]),
+        AgentlessCondition(conditions.HasItemShared, [items.STONE, 15]),
     ],
     start_positions=[[131, 72, 17], [132, 72, 4], [140, 72, 24], [125, 72, 50], [140, 72, 34]],
     start_entities=[],
@@ -105,7 +105,7 @@ experiment_get_10_stone_pickaxe_manual = Experiment(
     ),
     goals=[
         AgentlessCondition(conditions.HasItemShared, [items.STICKS, 10]),
-        AgentlessCondition(conditions.HasItemShared, [items.COBBLESTONE, 15]),
+        AgentlessCondition(conditions.HasItemShared, [items.STONE, 15]),
     ],
     start_positions=[[0, 9, 0], [-5, 9, 0], [5, 9, 0], [10, 9, 0], [-10, 9, 0]],
     start_entities=[],

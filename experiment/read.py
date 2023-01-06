@@ -1,23 +1,24 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from experiment.start import EXPERIMENT_PATH
+from experiment.test import EXPERIMENT_PATH
 from utils.file import get_project_root
 
 CAPSIZE = 10
-FULL_WIDTH = 0.5
+FULL_WIDTH = 0.8
 
-files = ["output_g10spmdw_5.csv"]
 fpp = False
-flat_world = False
+flat_world = True
 without_edges = True
 
-dfs = [pd.read_csv(get_project_root() / EXPERIMENT_PATH / file) for file in files]
+if fpp and flat_world:
+    files = ["output_fwg_2.csv", "output_fwg_3.csv"]
+elif fpp and not flat_world:
+    files = ["output_dwg_7.csv", "output_dwg_8.csv"]
+else:
+    files = ["output_g10spmdw_5.csv"]
+dfs = [pd.read_csv(get_project_root() / EXPERIMENT_PATH / file).astype({"collaborative": str}) for file in files]
 df = pd.concat(dfs)
-
-print(df)
-
-print(df.time.mean())
 
 stats = df.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
 stats.columns = ["time_mean", "time_std"]
@@ -45,7 +46,7 @@ for without_edges in [False, True]:
             else:
                 return -width
         else:
-            if collaborative:
+            if collaborative == "True" or collaborative:
                 return width / 2
             else:
                 return -width / 2
@@ -78,7 +79,7 @@ for without_edges in [False, True]:
 
     for t in x[::cooperativities]:
         if cooperativities == 3:
-            ticks += [t - 2 * width, t - width, t - width, t]
+            ticks += [t - 2 * width, t - width + 0.0001, t - width, t]
         elif cooperativities == 2:
             ticks += [t, t + width / 2, t + width]
 
@@ -88,17 +89,18 @@ for without_edges in [False, True]:
             labels += ['Indep', f"\n{agent} {'agents' if agent > 1 else 'agent'}", 'Collab']
     elif cooperativities == 3:
         for agent in stats_full.agents.unique():
-            labels += ['I', f"\n{agent} {'agents' if agent > 1 else 'agent'}", 'C', "B"]
+            labels += ['Indep', f"\n{agent} {'agents' if agent > 1 else 'agent'}", 'Collab', "Both"]
+    print(labels)
     plt.xticks(ticks)
     ax.set_xticklabels(labels)
     ax.tick_params(axis='x', which='both', length=0)
 
+    print(len(labels))
+    print(len(ticks))
+
     plt.ylabel('Average completion time (s)')
 
-    if fpp:
-        ymax = 300
-    else:
-        ymax = 200
+    ymax = 150
     plt.ylim([0, ymax])
 
     runs = int(len(df) / (cooperativities * len(stats_full.agents.unique())))

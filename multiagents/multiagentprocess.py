@@ -9,7 +9,7 @@ from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
 from world.observation import Observation
 
-MAX_TIME = None
+MAX_TIME = 300
 
 
 class MultiAgentProcess(mp.Process):
