@@ -1,6 +1,6 @@
 import pandas as pd
 
-# Merge a list of dataframes with different pickaxes into one dataframe with a pickaxe column
+# Merge a list of dataframes with different PICKAXES into one dataframe with a pickaxe column
 from experiment.read import read_csv
 from experiment.test import EXPERIMENT_PATH
 from items import items
@@ -18,7 +18,8 @@ dfs = pd.DataFrame()
 
 for pickaxe, file in files.items():
     df = read_csv(file)
-    df["pickaxe"] = pickaxe
+    df["pickaxe"] = pickaxe if pickaxe else "None"
     dfs = dfs.append(df)
 
 dfs.to_csv(get_project_root() / EXPERIMENT_PATH / "output_g10spmdw_wide.csv", index=True)
+

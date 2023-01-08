@@ -48,15 +48,15 @@ def run_pickaxe_tests():
 def run_variable_delta_tests():
     reset = True
     experiment = experiments.experiment_flat_world
-    n_test_runs = 1
-    agents_max = 1
+    n_test_runs = 15
+    agents_max = 3
     cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
     deltas = [5, 10, 15, 20, 25]
     output = ["collaborative,agents,delta,internal_id,time"]
     run = 0
     start_time = time.time()
     for delta in deltas:
-        experiment.goals = [Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], delta)]
+        experiment.goals = [Blueprint.get_blueprint(BlueprintType.PointGrid, [130, 9, 9], delta)]
         for n_agents in range(1, agents_max + 1):
             agent_names = get_names(n_agents)
             for cooperativity in cooperativities:
