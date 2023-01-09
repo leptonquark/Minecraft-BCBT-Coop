@@ -10,7 +10,6 @@ from kivy.uix.widget import Widget
 from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
-from utils.names import get_names
 from world.missiondata import MissionData
 
 
@@ -41,12 +40,11 @@ class DashboardScreen(Screen):
     def start_bot(self):
         start_screen = self.manager.get_screen("ConfigurationScreen")
         amount = int(start_screen.ids['amount'].text)
-        agent_names = get_names(amount)
         cooperativity = start_screen.ids['cooperativity'].cooperativity
         reset = start_screen.ids['reset'].active
 
         configuration = start_screen.ids['experiment'].experiment
-        mission_data = MissionData(configuration, cooperativity, reset, agent_names)
+        mission_data = MissionData(configuration, cooperativity, reset, amount)
 
         print(f"Starting Minecraft with {cooperativity} {amount} clients with configuration {configuration.name}...")
 

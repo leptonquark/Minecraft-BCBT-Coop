@@ -4,6 +4,7 @@ import xml.etree.ElementTree as Et
 import numpy as np
 
 from goals.blueprint.blueprint import Blueprint
+from utils.names import get_agent_names
 from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
@@ -18,10 +19,8 @@ def setup_experiment_id():
 
 class MissionData:
 
-    def __init__(self, config, cooperativity, reset, agent_names=None):
-        if agent_names is None:
-            agent_names = ["SteveBot"]
-        self.agent_names = agent_names
+    def __init__(self, config, cooperativity, reset, n_agents=1):
+        self.agent_names = get_agent_names(n_agents)
         self.cooperativity = cooperativity
         self.goals = config.goals
 
@@ -29,7 +28,7 @@ class MissionData:
 
         self.summary = "Behaviour Tree Malmo"
 
-        self.n_agents = len(agent_names)
+        self.n_agents = n_agents
 
         self.world_generator = config.world_generator
 
@@ -150,17 +149,17 @@ class MissionData:
             draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_TYPE, cuboid.type)
 
     def initialize_agent_section(self, mission):
-        for i in range(self.n_agents):
+        for i, name in enumerate(self.agent_names):
             agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
             agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
 
-            self.initialize_agent_name(agent_section, i)
+            self.initialize_agent_name(agent_section, name)
             self.initialize_agent_start(agent_section, i)
             self.initialize_agent_handlers(agent_section)
 
-    def initialize_agent_name(self, agent_section, i):
-        name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
-        name.text = self.agent_names[i]
+    def initialize_agent_name(self, agent_section, name):
+        agent_name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
+        agent_name.text = name
 
     def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
