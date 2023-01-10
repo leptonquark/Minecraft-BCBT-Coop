@@ -62,7 +62,7 @@ class MissionData:
         self.obs_entities_name = "entities"
         self.obs_entities_range = (40, 40, 40)
 
-        self.grid_local = GridSpecification("me", np.array([[-30, 30], [-8, 4], [-30, 30]]), False)
+        self.grid_local = GridSpecification("me", np.array([[-40, 40], [-2, 4], [-40, 40]]), False)
 
         self.grids_global = []
         for goal in self.goals:

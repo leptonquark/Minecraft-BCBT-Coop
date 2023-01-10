@@ -75,10 +75,11 @@ class Observer:
         if self.observation.grid_local is None:
             return None
 
-        hits = (self.observation.grid_local == material)
-        ore = get_ore(material)
-        if ore is not None:
-            hits = (hits | (self.observation.grid_local == ore))
+        variants = get_variants(material)
+        ores = [ore for ore in (get_ore(variant) for variant in variants) if ore is not None]
+        targets = variants + ores
+        hits = np.isin(self.observation.grid_local, targets)
+
         self.hits[material] = hits
         return hits
 
