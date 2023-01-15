@@ -1,9 +1,8 @@
+from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
-from bt.actions import Action
 
-
-class Sender(Action):
+class Sender(Behaviour):
     def __init__(self, blackboard, channel, value):
         super().__init__(f"Set {channel} is {value}")
         self.blackboard = blackboard
@@ -20,7 +19,6 @@ class StartSender(Sender):
         super().__init__(blackboard, channel, True)
 
     def update(self):
-        print(f"StartSender ticked: {self.channel}")
         super().update()
         return Status.SUCCESS
 
@@ -32,3 +30,17 @@ class StopSender(Sender):
     def update(self):
         super().update()
         return Status.SUCCESS
+
+
+class ItemSender(Behaviour):
+    def __init__(self, agent, item):
+        self.agent = agent
+        self.blackboard = agent.blackboard
+        self.channel = f"shared_inventory_{item}_{agent.role}"
+        self.item = item
+        super().__init__(f"Set {self.channel} to amount of {item} in inventory")
+
+    def update(self):
+        amount = self.agent.inventory.get_item_amount(self.item)
+        self.blackboard[self.channel] = amount
+        return Status.FAILURE

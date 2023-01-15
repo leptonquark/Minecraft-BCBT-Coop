@@ -7,9 +7,13 @@ from multiagents.multiagentprocess import MultiAgentProcess
 
 class MultiAgentRunnerProcess(mp.Process):
 
-    def __init__(self, running, mission_data):
+    def __init__(self, mission_data, running_event=None):
         super().__init__()
-        self.running = running
+        if running_event is None:
+            self.running_event = mp.Event()
+            self.running_event.set()
+        else:
+            self.running_event = running_event
         self.pipe = mp.Pipe()
         self.mission_data = mission_data
 
@@ -21,7 +25,7 @@ class MultiAgentRunnerProcess(mp.Process):
         manager = mp.Manager()
         blackboard = manager.dict()
         processes = [
-            MultiAgentProcess(self.running, self.mission_data, blackboard, role)
+            MultiAgentProcess(self.running_event, self.mission_data, blackboard, role)
             for role in range(self.mission_data.n_agents)
         ]
         for process in processes:
@@ -59,4 +63,3 @@ class MultiAgentRunnerState:
     blueprint_results: List[List[bool]]
     blackboard: Dict[str, str]
     completion_time: Optional[float]
-

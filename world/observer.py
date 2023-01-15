@@ -4,7 +4,7 @@ from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
 from mobs.enemies import types as enemies
 from utils import vectors
-from utils.vectors import get_los_face
+from utils.vectors import get_los_face, up
 from world.observation import LineOfSightHitType
 
 DELTA_ANGLES = 45
@@ -15,6 +15,7 @@ MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
 ENEMY_NEARBY_DISTANCE_TOLERANCE = 20
 FULL_TURN_THRESHOLD = 0.2
+EYE_HEIGHT = 1.62
 
 
 class Observer:
@@ -74,10 +75,11 @@ class Observer:
         if self.observation.grid_local is None:
             return None
 
-        hits = (self.observation.grid_local == material)
-        ore = get_ore(material)
-        if ore is not None:
-            hits = (hits | (self.observation.grid_local == ore))
+        variants = get_variants(material)
+        ores = [ore for ore in (get_ore(variant) for variant in variants) if ore is not None]
+        targets = variants + ores
+        hits = np.isin(self.observation.grid_local, targets)
+
         self.hits[material] = hits
         return hits
 
@@ -94,9 +96,10 @@ class Observer:
     def is_position_within_reach(self, position, reach=GATHERING_REACH):
         if position is None:
             return False
-        distance = self.get_distance_to_discrete_position(position)
+        distance = self.get_distance_to_position(position)
         if distance is None:
             return False
+
         return position is not None and np.linalg.norm(distance) <= reach
 
     def is_block_at_position(self, position, block):
@@ -121,12 +124,6 @@ class Observer:
                     return grid_global[tuple(position_in_grid)]
         return None
 
-    def get_distance_to_discrete_position(self, discrete_position):
-        if self.observation.abs_pos is None:
-            return None
-        else:
-            return discrete_position + vectors.flat_center - self.observation.abs_pos
-
     def get_rounded_distance_to_position(self, position):
         abs_pos_discrete = self.get_abs_pos_discrete()
         if abs_pos_discrete is not None:
@@ -138,7 +135,7 @@ class Observer:
         if self.observation.abs_pos is None:
             return None
         else:
-            return position - self.observation.abs_pos
+            return position - (self.observation.abs_pos + EYE_HEIGHT * up)
 
     def is_looking_at_type(self, los_type):
         return self.observation.los_type == los_type

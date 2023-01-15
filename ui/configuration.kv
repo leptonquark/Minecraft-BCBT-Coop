@@ -18,7 +18,7 @@
                 AnchorLayout:
                     anchor_x: 'right'
                     anchor_y: 'center'
-                    ConfigurationScreenRowButton:
+                    ExperimentRowButton:
                         id: experiment
             Separator:
             ConfigurationScreenRow:
@@ -27,8 +27,8 @@
                 AnchorLayout:
                     anchor_x: 'right'
                     anchor_y: 'center'
-                    ConfigurationScreenRowCheckBox:
-                        id: collaborative
+                    CooperativityRowButton:
+                        id:  cooperativity
             Separator:
             ConfigurationScreenRow:
                 ConfigurationScreenRowLabel:
@@ -82,7 +82,7 @@
     valign: 'middle'
     text_size: self.size
 
-<ConfigurationScreenRowButton, ConfigurationScreenDropDownRowButton>:
+<ExperimentRowButton, CooperativityRowButton, ConfigurationScreenDropDownRowButton>:
     background_color : (0.11, 0.11, 0.11, 1)
     background_normal: ''
     size_hint: (None, None)

@@ -5,7 +5,7 @@ NAMES = [
 ]
 
 
-def get_names(n):
+def get_agent_names(n):
     return [get_name(i) for i in range(n)]
 
 

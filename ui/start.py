@@ -6,28 +6,34 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 
 import experiment.experiments as experiments
+from multiagents.cooperativity import Cooperativity
+from utils.file import get_project_root
 
 AMOUNT_OF_AGENTS = "amountOfAgents"
 EXPERIMENT_ID = "experiment"
-COLLABORATIVE = "collaborative"
+COOPERATIVITY_ID = "cooperativity"
 RESET = "reset"
 
 AMOUNT_OF_AGENTS_DEFAULT = 2
 EXPERIMENT_ID_DEFAULT = 0
-COLLABORATIVE_DEFAULT = True
+COOPERATIVITY_DEFAULT = 0
 RESET_DEFAULT = True
 
+CONFIG_FILE = "config.json"
 
 class ConfigurationScreen(Screen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.store = JsonStore("config.json")
+        file_path = get_project_root() / CONFIG_FILE
+        folder_path = file_path.parent
+        folder_path.mkdir(parents=True, exist_ok=True)
+        self.store = JsonStore(CONFIG_FILE)
 
     def on_enter(self, *args):
         self.initialize_amount_of_agents()
         self.initialize_experiment()
-        self.initialize_checkbox(self.ids.collaborative, COLLABORATIVE, COLLABORATIVE_DEFAULT)
+        self.initialize_cooperativity()
         self.initialize_checkbox(self.ids.reset, RESET, RESET_DEFAULT)
 
     def initialize_amount_of_agents(self):
@@ -48,11 +54,19 @@ class ConfigurationScreen(Screen):
 
     def initialize_experiment(self):
         experiment_id = self.get_stored_value(EXPERIMENT_ID, EXPERIMENT_ID_DEFAULT)
-        self.ids.experiment.configuration = experiments.configurations[experiment_id]
-        self.ids.experiment.bind(configuration=self.on_experiment)
+        self.ids.experiment.experiment = experiments.configurations[experiment_id]
+        self.ids.experiment.bind(experiment=self.on_experiment)
 
     def on_experiment(self, _, experiment):
         self.store_value(EXPERIMENT_ID, experiments.configurations.index(experiment))
+
+    def initialize_cooperativity(self):
+        cooperativity_id = self.get_stored_value(COOPERATIVITY_ID, COOPERATIVITY_DEFAULT)
+        self.ids.cooperativity.cooperativity = Cooperativity(cooperativity_id)
+        self.ids.cooperativity.bind(cooperativity=self.on_cooperativity)
+
+    def on_cooperativity(self, _, cooperativity):
+        self.store_value(COOPERATIVITY_ID, cooperativity.value)
 
     def initialize_checkbox(self, widget, key, default):
         active = self.get_stored_value(key, default)
@@ -66,29 +80,55 @@ class ConfigurationScreen(Screen):
         self.manager.current = "DashboardScreen"
 
 
-class ConfigurationScreenRowButton(Button):
-    configuration = ObjectProperty(experiments.configurations[0])
+class ExperimentRowButton(Button):
+    experiment = ObjectProperty(experiments.configurations[0])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bind(configuration=self.on_configuration)
-        self.text = self.configuration.name
+        self.bind(experiment=self.on_experiment)
+        self.text = self.experiment.name
         self.dropdown = ConfigurationScreenDropDown()
-        for configuration in experiments.configurations:
-            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=configuration.name,
-                                                                       configuration=configuration)
-            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.configuration))
+        for experiment in experiments.configurations:
+            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=experiment.name,
+                                                                       value=experiment)
+            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.value))
             self.dropdown.add_widget(dropdown_row_button)
         self.dropdown.bind(on_select=self.on_select)
 
     def on_release(self):
         self.dropdown.open(self)
 
-    def on_select(self, _, configuration):
-        self.configuration = configuration
+    def on_select(self, _, experiment):
+        self.experiment = experiment
 
-    def on_configuration(self, _, configuration):
-        self.text = configuration.name
+    def on_experiment(self, _, experiment):
+        self.text = experiment.name
+
+
+class CooperativityRowButton(Button):
+    cooperativity = ObjectProperty(Cooperativity.INDEPENDENT)
+    values = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.bind(cooperativity=self.on_cooperativity)
+        self.text = str(self.cooperativity)
+        self.dropdown = ConfigurationScreenDropDown()
+        for cooperativity in CooperativityRowButton.values:
+            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=str(cooperativity),
+                                                                       value=cooperativity)
+            dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.value))
+            self.dropdown.add_widget(dropdown_row_button)
+        self.dropdown.bind(on_select=self.on_select)
+
+    def on_release(self):
+        self.dropdown.open(self)
+
+    def on_select(self, _, cooperativity):
+        self.cooperativity = cooperativity
+
+    def on_cooperativity(self, _, cooperativity):
+        self.text = str(cooperativity)
 
 
 class NumberInput(TextInput):
@@ -106,4 +146,4 @@ class ConfigurationScreenDropDown(DropDown):
 
 
 class ConfigurationScreenDropDownRowButton(Button):
-    configuration = ObjectProperty(None)
+    value = ObjectProperty(None)

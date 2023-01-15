@@ -10,7 +10,6 @@ from kivy.uix.widget import Widget
 from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_color
-from utils.names import get_names
 from world.missiondata import MissionData
 
 
@@ -41,22 +40,19 @@ class DashboardScreen(Screen):
     def start_bot(self):
         start_screen = self.manager.get_screen("ConfigurationScreen")
         amount = int(start_screen.ids['amount'].text)
-        agent_names = get_names(amount)
-        collaborative = start_screen.ids['collaborative'].active
+        cooperativity = start_screen.ids['cooperativity'].cooperativity
         reset = start_screen.ids['reset'].active
 
-        configuration = start_screen.ids['experiment'].configuration
-        mission_data = MissionData(configuration, collaborative, reset, agent_names)
+        configuration = start_screen.ids['experiment'].experiment
+        mission_data = MissionData(configuration, cooperativity, reset, amount)
 
-        descriptor = "collaborative" if collaborative else "independent"
-        print(f"Starting Minecraft with {descriptor} {amount} clients with configuration {configuration.name}...")
+        print(f"Starting Minecraft with {cooperativity} {amount} clients with configuration {configuration.name}...")
 
         self.ids.map.set_mission_data(mission_data)
 
         self.running_event = mp.Event()
         self.running_event.set()
-
-        self.process = MultiAgentRunnerProcess(self.running_event, mission_data)
+        self.process = MultiAgentRunnerProcess(mission_data, self.running_event)
         self.process.start()
         self.listen_event = Clock.schedule_interval(lambda _: self.listen_to_pipe(self.process.pipe), 1 / 60)
 
@@ -108,7 +104,7 @@ class Map(Widget):
         for goal in mission_data.goals:
             if isinstance(goal, Blueprint):
                 self.blueprint_positions.append(goal.positions)
-        if mission_data.flat_world:
+        if mission_data.is_flat_world():
             self.x_range = (75, 175)
             self.z_range = (-50, 50)
 

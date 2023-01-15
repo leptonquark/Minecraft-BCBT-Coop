@@ -150,7 +150,7 @@ class Observation:
 
         self.life = get_life(self.info)
 
-        self.pos_local_grid = np.array([int(axis / 2) for axis in self.grid_size_local])
+        self.pos_local_grid = [-grid_range[0] for grid_range in mission_data.grid_local.grid_range]
 
         self.abs_pos = get_absolute_position(self.info)
         self.yaw = get_yaw(self.info)

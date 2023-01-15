@@ -7,7 +7,7 @@ import bt.actions as actions
 import bt.conditions as conditions
 import items.items
 from bt.receiver import InverseReceiver
-from bt.sender import StopSender, Sender
+from bt.sender import StopSender, Sender, ItemSender
 from bt.sequence import Sequence
 from items.gathering import get_gathering_tier_by_material, get_pickaxe
 from items.recipes import get_recipe, RecipeType
@@ -36,7 +36,7 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
             if recipe.recipe_type == RecipeType.Melting:
                 return MeltPPA(agent, condition.item, condition.amount, condition.same_variant)
             else:
-                return CraftPPA(agent, condition.item, condition.amount, condition.same_variant)
+                return SmartCraftPPA(agent, condition.item, condition.amount, condition.same_variant)
     elif isinstance(condition, conditions.HasPickupNearby):
         source = get_loot_source(condition.item)
         if source is None:
@@ -71,6 +71,11 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
         return EquipPickaxePPA(agent, condition.tier)
     elif isinstance(condition, conditions.HasPickaxeByMinimumTier):
         return CraftPickaxePPA(agent, condition.tier)
+    elif isinstance(condition, conditions.HasItemShared):
+        if collaborative:
+            return HasItemSharedPPACollaborative(agent, condition.item, condition.amount)
+        else:
+            return HasItemSharedPPA(agent, condition.item, condition.amount)
     return None
 
 
@@ -96,7 +101,23 @@ class PPA:
         return tree
 
 
-class CraftPPA(PPA):
+class SimpleCraftPPA(PPA):
+
+    def __init__(self, agent, item, amount=1, same_variant=False):
+        super().__init__()
+        self.name = f"Craft {amount}x {item}"
+        self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
+        recipe = get_recipe(item)
+        if recipe is not None:
+            if recipe.station:
+                self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
+            for ingredient in recipe.ingredients:
+                has_item = conditions.HasItem(agent, ingredient.item, ingredient.amount, ingredient.same_variant)
+                self.pre_conditions.append(has_item)
+        self.actions = [actions.Craft(agent, item, 1)]
+
+
+class SmartCraftPPA(PPA):
 
     def __init__(self, agent, item, amount=1, same_variant=False):
         super().__init__()
@@ -265,15 +286,12 @@ class PlaceBlockPPACollaborative(PPA):
         self.agent = agent
         self.post_condition = conditions.IsBlockAtPosition(agent, block, position)
         self.pre_conditions = [
-            conditions.HasItemEquipped(agent, block),
             Sender(agent.blackboard, self.channel, self.agent.name),
+            conditions.HasItemEquipped(agent, block),
             conditions.IsPositionWithinReach(agent, position),
 
         ]
-        self.actions = [
-            actions.PlaceBlockAtPosition(agent, block, position),
-            StopSender(agent.blackboard, self.channel)
-        ]
+        self.actions = [actions.PlaceBlockAtPosition(agent, block, position), ]
 
     def as_tree(self):
         if self.actions is None:
@@ -315,3 +333,71 @@ class GoToEnemyPPA(PPA):
         self.name = f"Go to enemy"
         self.post_condition = conditions.IsEnemyWithinReach(agent)
         self.actions = [actions.GoToEnemy(agent)]
+
+
+def get_base_ppa(agent, item, amount):
+    recipe = get_recipe(item)
+    if recipe is None:
+        return PickupPPA(agent, item, amount)
+    elif recipe.recipe_type == RecipeType.Melting:
+        return MeltPPA(agent, item, amount)
+    else:
+        return SimpleCraftPPA(agent, item, amount)
+
+
+class HasItemSharedPPA(PPA):
+    def __init__(self, agent, item, amount):
+        super().__init__()
+        self.name = f"Has {item}"
+        self.agent = agent
+        self.item = item
+        self.amount = amount
+        self.post_condition = conditions.HasItemShared(agent, item, amount)
+        base_ppa = get_base_ppa(agent, item, amount)
+        self.actions = base_ppa.actions
+        self.pre_conditions = base_ppa.pre_conditions
+
+    def as_tree(self):
+        if self.actions is None:
+            return None
+
+        send_item_action = ItemSender(self.agent, self.item)
+
+        tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
+        if self.post_condition is not None:
+            tree = Selector(name=f"Postcondition Handler {self.name}", children=[
+                self.post_condition, send_item_action, tree])
+        tree.name = f"PPA {self.name}"
+        return tree
+
+
+class HasItemSharedPPACollaborative(PPA):
+    def __init__(self, agent, item, amount):
+        super().__init__()
+        self.name = f"Has {item}"
+        self.agent = agent
+        self.channel = f"Has {item}"
+        self.item = item
+        self.amount = amount
+        self.post_condition = conditions.HasItemShared(agent, item, amount)
+        base_ppa = get_base_ppa(agent, item, amount)
+        sender = Sender(agent.blackboard, self.channel, self.agent.name)
+        self.pre_conditions = [sender] + base_ppa.pre_conditions
+        self.actions = base_ppa.actions + [StopSender(agent.blackboard, self.channel)]
+
+    def as_tree(self):
+        if self.actions is None:
+            return None
+
+        send_item_action = ItemSender(self.agent, self.item)
+        receiver = InverseReceiver(self.agent.blackboard, self.channel, [False, self.agent.name])
+
+        tree = Sequence(name=f"Precondition Handler {self.name}", children=self.pre_conditions + self.actions)
+        if self.post_condition is not None:
+            tree = Selector(name=f"Postcondition Handler {self.name}", children=[
+                Sequence(children=[self.post_condition, StopSender(self.agent.blackboard, self.channel)]),
+                send_item_action,
+                receiver,
+                tree])
+        tree.name = f"PPA {self.name}"
+        return tree
