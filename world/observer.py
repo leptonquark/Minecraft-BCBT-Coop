@@ -2,7 +2,6 @@ import numpy as np
 
 from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
-from mobs.enemies import types as enemies
 from utils import vectors
 from utils.vectors import get_los_face, up
 from world.observation import LineOfSightHitType
@@ -13,8 +12,6 @@ YAW_TOLERANCE = 8
 PITCH_TOLERANCE = 0.5
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
-ENEMY_NEARBY_DISTANCE_TOLERANCE = 20
-FULL_TURN_THRESHOLD = 0.2
 EYE_HEIGHT = 1.62
 
 
@@ -139,9 +136,6 @@ class Observer:
 
     def is_looking_at_type(self, los_type):
         return self.observation.los_type == los_type
-
-    def is_looking_at_enemy(self):
-        return self.observation.los_type in enemies
 
     def is_looking_at_discrete_position(self, discrete_position):
         if self.observation.los_hit_type != LineOfSightHitType.BLOCK:

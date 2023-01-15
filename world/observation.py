@@ -114,8 +114,6 @@ class Observation:
     def __init__(self, observations, mission_data):
         self.mission_data = mission_data
 
-        self.grid_size_local = mission_data.grid_local.get_grid_size()
-
         self.pos_local_grid = None
         self.info = None
 
