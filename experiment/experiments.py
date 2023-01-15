@@ -112,6 +112,24 @@ experiment_get_10_stone_pickaxe_manual = Experiment(
     start_inventory=[items.WOODEN_PICKAXE]
 )
 
+experiment_get_10_stone_pickaxe_manual_diamond = Experiment(
+    id="g10spmdwd",
+    name="Get 10 Pick Axe Test Arena",
+    world_generator=CustomWorldGenerator(
+        [
+            Cuboid(items.STONE, np.array([[-5, 9, 20], [5, 11, 25]])),
+            Cuboid(items.LOG_2, np.array([[-5, 9, -20], [5, 11, -25]])),
+        ]
+    ),
+    goals=[
+        AgentlessCondition(conditions.HasItemShared, [items.STICKS, 10]),
+        AgentlessCondition(conditions.HasItemShared, [items.STONE, 15]),
+    ],
+    start_positions=[[0, 9, 0], [-5, 9, 0], [5, 9, 0], [10, 9, 0], [-10, 9, 0]],
+    start_entities=[],
+    start_inventory=[items.DIAMOND_PICKAXE]
+)
+
 configurations = [
     experiment_pickaxe,
     experiment_default_world,
