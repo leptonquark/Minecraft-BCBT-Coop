@@ -60,7 +60,7 @@ class MissionData:
         self.allow_passage_of_time = False
 
         self.obs_entities_name = "entities"
-        self.obs_entities_range = (40, 40, 40)
+        self.obs_entities_range = (80, 5, 80)
 
         self.grid_local = GridSpecification("me", np.array([[-40, 40], [-2, 4], [-40, 40]]), False)
 
