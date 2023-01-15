@@ -29,3 +29,6 @@ class GridSpecification:
 
     def contains_position(self, position):
         return np.all(position >= self.grid_range[:, 0]) and np.all(position <= self.grid_range[:, 1])
+
+    def get_grid_position(self, position):
+        return tuple(position - self.grid_range[:, 0])

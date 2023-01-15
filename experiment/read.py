@@ -75,30 +75,27 @@ def plot_completion_times(fpp, flat_world):
 def get_title(flat_world, fpp, runs):
     if fpp:
         generator = "flat world generator" if flat_world else "default world generator"
-        title = f"{runs} runs each using {generator}"
+        return f"{runs} runs each using {generator}"
     else:
-        title = f"{runs} runs each in the stone pickaxe scenario"
-    return title
+        return f"{runs} runs each in the stone pickaxe scenario"
 
 
 def get_file_name(flat_world, fpp, runs, without_edges):
     we = "we_" if without_edges else ""
     if fpp:
         gen = "fwg" if flat_world else "dwg"
-        filename = f"{gen}_{we}{runs}"
+        return f"{gen}_{we}{runs}"
     else:
-        filename = f"sp_{we}{runs}"
-    return filename
+        return f"sp_{we}{runs}"
 
 
 def get_files(flat_world, fpp):
     if fpp and flat_world:
-        files = ["output_fwg_2.csv", "output_fwg_3.csv"]
+        return ["output_fwg_2.csv", "output_fwg_3.csv"]
     elif fpp and not flat_world:
-        files = ["output_dwg_7.csv", "output_dwg_8.csv"]
+        return ["output_dwg_7.csv", "output_dwg_8.csv"]
     else:
-        files = ["output_g10spmdw_5.csv"]
-    return files
+        return ["output_g10spmdw_5.csv"]
 
 
 def get_delta_x(collaborative, cooperativities, width):

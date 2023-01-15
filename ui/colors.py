@@ -15,10 +15,7 @@ CUBOID_COLOR_DEFAULT = [1, 1, 1, 1]
 
 
 def get_agent_color(i):
-    if i < len(AGENT_COLORS):
-        return AGENT_COLORS[i]
-    else:
-        return AGENT_COLORS[0]
+    return AGENT_COLORS[i] if i < len(AGENT_COLORS) else AGENT_COLORS[0]
 
 
 def get_cuboid_color(cuboid_type):

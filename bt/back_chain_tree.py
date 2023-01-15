@@ -40,15 +40,13 @@ class BackChainTree:
             if isinstance(goal, Action):
                 children.append(goal)
             elif isinstance(goal, Blueprint):
-                for condition in goal.as_conditions(self.agent):
-                    condition_ppa_tree = back_chain_recursive(self.agent, condition, collaborative)
-                    children.append(condition_ppa_tree)
+                conditions = goal.as_conditions(self.agent)
+                children += [back_chain_recursive(self.agent, condition, collaborative) for condition in conditions]
             else:
                 if isinstance(goal, AgentlessCondition):
                     goal = goal.as_condition(self.agent)
                 if isinstance(goal, Condition):
-                    goal_ppa_tree = back_chain_recursive(self.agent, goal, collaborative)
-                    children.append(goal_ppa_tree)
+                    children.append(back_chain_recursive(self.agent, goal, collaborative))
         return children
 
     def tick(self):

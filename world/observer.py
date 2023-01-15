@@ -13,6 +13,7 @@ PITCH_TOLERANCE = 0.5
 MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
 EYE_HEIGHT = 1.62
+ENEMY_CLOSE_DISTANCE = 15
 
 
 class Observer:
@@ -31,10 +32,7 @@ class Observer:
         }
 
     def get_grid_local_block(self, position):
-        if self.observation.grid_local is None:
-            return None
-
-        return self.observation.grid_local[tuple(position)]
+        return self.observation.grid_local[tuple(position)] if self.observation.grid_local is not None else None
 
     def get_abs_pos_discrete(self):
         return np.floor(self.observation.abs_pos) if self.observation.abs_pos is not None else None
@@ -54,12 +52,12 @@ class Observer:
             distances = np.linalg.norm(distances_vector, axis=1)
 
             closest_vectors = distances_vector[(distances == min(distances))]
-            closest_vectors_same_horizontal = closest_vectors[(closest_vectors[:, 1] == 0)]
+            closest_vectors_same_height = closest_vectors[(closest_vectors[:, 1] == 0)]
             # Prioritize same horizontal level
-            if closest_vectors_same_horizontal.size > 0:
-                return abs_pos_discrete + closest_vectors_same_horizontal[0]
-            else:
-                return abs_pos_discrete + closest_vectors[0]
+            closest = closest_vectors_same_height[0] if closest_vectors_same_height.size > 0 else closest_vectors[0]
+            return abs_pos_discrete + closest
+        else:
+            return None
 
     def is_block_observable(self, block_type):
         hits = self.get_hits(block_type)
@@ -68,7 +66,6 @@ class Observer:
     def get_hits(self, material):
         if material in self.hits:
             return self.hits[material]
-
         if self.observation.grid_local is None:
             return None
 
@@ -112,21 +109,17 @@ class Observer:
 
     def get_block_at_position_from_global(self, position):
         grids_global = self.observation.mission_data.grids_global
+        position_spec = next((spec for spec in grids_global if spec.contains_position(position)), None)
+        if position_spec is None:
+            return None
 
-        for grid_global_spec in grids_global:
-            if grid_global_spec.contains_position(position):
-                grid_global = self.observation.get_grid_global(grid_global_spec)
-                if grid_global is not None:
-                    position_in_grid = position - grid_global_spec.grid_range[:, 0]
-                    return grid_global[tuple(position_in_grid)]
-        return None
+        grid_global = self.observation.get_grid_global(position_spec)
+        grid_position = position_spec.get_grid_position(position)
+        return grid_global[grid_position] if grid_global is not None else None
 
     def get_rounded_distance_to_position(self, position):
         abs_pos_discrete = self.get_abs_pos_discrete()
-        if abs_pos_discrete is not None:
-            return (position - abs_pos_discrete).astype('int64')
-        else:
-            return None
+        return (position - abs_pos_discrete).astype('int64') if abs_pos_discrete is not None else None
 
     def get_distance_to_position(self, position):
         if self.observation.abs_pos is None:
@@ -140,10 +133,9 @@ class Observer:
     def is_looking_at_discrete_position(self, discrete_position):
         if self.observation.los_hit_type != LineOfSightHitType.BLOCK:
             return False
-
-        los_discrete_position = self.get_los_pos_discrete()
-
-        return los_discrete_position is not None and np.all(discrete_position == los_discrete_position)
+        else:
+            los_discrete_position = self.get_los_pos_discrete()
+            return los_discrete_position is not None and np.all(discrete_position == los_discrete_position)
 
     def get_los_pos_discrete(self):
         if self.observation.los_pos is None:
@@ -162,74 +154,91 @@ class Observer:
 
     def get_weakest_animal(self, specie=None):
         # Get the weakest animal. If there are several, take the closest of them.
-        weakest_animal = None
-        position = self.observation.abs_pos if self.observation.abs_pos is not None else np.array([0, 0, 0])
-        for animal in self.observation.animals:
-            if specie is None or animal.type == specie:
-                if weakest_animal is None:
-                    weakest_animal = animal
-                elif animal.life < weakest_animal.life:
-                    weakest_animal = animal
-                elif animal.life == weakest_animal.life:
-                    distance = animal.position - position
-                    weakest_distance = weakest_animal.position - position
-                    if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
-                        weakest_animal = animal
+        if self.observation.abs_pos is None:
+            return None
 
-        return weakest_animal
+        def get_weakest_animal_min_key(animal):
+            return not animal.is_specie(specie), animal.health, np.linalg.norm(animal.pos - self.observation.abs_pos)
+
+        weakest_animal = min(self.observation.animals, key=get_weakest_animal_min_key)
+        return weakest_animal if weakest_animal.is_specie(specie) else None
 
     def get_closest_enemy(self):
         if self.observation.abs_pos is None:
             return None
+        else:
+            return self.get_closest_enemy_to_position(self.observation.abs_pos)
 
-        closest_enemy = None
-        for enemy in self.observation.enemies:
-            if closest_enemy is None:
-                closest_enemy = enemy
-            else:
-                distance = enemy.position - self.observation.abs_pos
-                weakest_distance = closest_enemy.position - self.observation.abs_pos
-                if np.linalg.norm(distance) < np.linalg.norm(weakest_distance):
-                    closest_enemy = enemy
-        return closest_enemy
+    def get_closest_enemy_to_position(self, position):
+        if position is None:
+            return None
+        else:
+            return min(self.observation.enemies, key=lambda enemy: np.linalg.norm(enemy.position - position))
+
+    def get_closest_enemy_to_agents(self):
+        # Get the closest enemy to any agent. Prioritize enemies that are within range to this agent.
+        closest_enemy = self.get_closest_enemy()
+        if closest_enemy is not None:
+            closest_distance = np.linalg.norm(closest_enemy.position - self.observation.abs_pos)
+            if closest_distance <= ENEMY_CLOSE_DISTANCE:
+                return closest_enemy
+        other_agents_closest = [self.get_closest_enemy_to_position(a.position) for a in self.observation.other_agents]
+        closest_enemies = [enemy for enemy in other_agents_closest if enemy is not None]
+        if len(closest_enemies) > 0:
+            return min(closest_enemies, key=lambda enemy: np.linalg.norm(enemy.position - self.observation.abs_pos))
+        else:
+            return None
 
     def has_enemy_nearby(self):
         return len(self.observation.enemies) > 0
+
+    def is_enemy_near_any_agent(self):
+        closest_enemy = self.get_closest_enemy()
+        if closest_enemy is not None:
+            closest_distance = np.linalg.norm(closest_enemy.position - self.observation.abs_pos)
+            if closest_distance <= ENEMY_CLOSE_DISTANCE:
+                return True
+        return any(self.is_enemy_near_agent(agent) for agent in self.observation.other_agents)
+
+    def is_enemy_near_agent(self, agent):
+        closest_enemy = self.get_closest_enemy_to_position(agent.position)
+        if closest_enemy is None:
+            return False
+        else:
+            return np.linalg.norm(closest_enemy.position - agent.position) <= ENEMY_CLOSE_DISTANCE
 
     def has_pickup_nearby(self, wanted):
         if self.observation.abs_pos is None:
             return False
         variants = get_variants(wanted)
-        for pickup in self.observation.pickups:
-            if pickup.name in variants:
-                distance = np.linalg.norm(pickup.position - self.observation.abs_pos)
-                if distance < PICKUP_NEARBY_DISTANCE_TOLERANCE:
-                    return True
-        return False
+        return any(self.is_pickup_nearby(pickup, variants) for pickup in self.observation.pickups)
+
+    def is_pickup_nearby(self, pickup, variants):
+        if self.observation.abs_pos is None:
+            return False
+        elif pickup.name in variants:
+            return np.linalg.norm(pickup.position - self.observation.abs_pos) < PICKUP_NEARBY_DISTANCE_TOLERANCE
+        else:
+            return False
 
     def get_pickup_position(self, wanted):
         variants = get_variants(wanted)
-        for pickup in self.observation.pickups:
-            if pickup.name in variants:
-                return pickup.get_centralized_position()
-        return None
+        return next((p.get_centralized_position() for p in self.observation.pickups if p.name in variants), None)
 
     def is_stuck(self):
         if self.lower_surroundings is None:
             return False
-        position_traversable = self.lower_surroundings[vectors.Direction.Zero] in traversable + narrow
-        return not position_traversable
+        else:
+            return not self.lower_surroundings[vectors.Direction.Zero] in traversable + narrow
 
     def is_animal_observable(self, specie):
         return self.observation.animals and any(animal.type == specie for animal in self.observation.animals)
 
     def get_current_direction(self):
-        for key in vectors.directionAngle:
-            check_angle = vectors.directionAngle[key]
+        for key, check_angle in vectors.directionAngle.items():
             diff = check_angle - self.observation.yaw
             if diff <= 0:
                 diff += 360
-
             if diff <= DELTA_ANGLES or diff >= vectors.CIRCLE_DEGREES - DELTA_ANGLES:
                 return key
         return vectors.Direction.South
@@ -245,18 +254,12 @@ class Observer:
             return 0
         else:
             half_circle = vectors.CIRCLE_DEGREES / 2
-            if diff <= half_circle:
-                return diff / half_circle
-            else:
-                return (diff - vectors.CIRCLE_DEGREES) / half_circle
+            return diff / half_circle if diff <= half_circle else (diff - vectors.CIRCLE_DEGREES) / half_circle
 
     def get_pitch_change(self, wanted_pitch):
         quarter_circle = vectors.CIRCLE_DEGREES / 4
         diff = self.observation.pitch - wanted_pitch
-        if np.abs(diff) <= PITCH_TOLERANCE:
-            return 0
-        else:
-            return -MAX_PITCH * diff / quarter_circle
+        return -MAX_PITCH * diff / quarter_circle if np.abs(diff) > PITCH_TOLERANCE else 0
 
 
 def get_position_center(block_position):

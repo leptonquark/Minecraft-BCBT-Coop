@@ -22,10 +22,8 @@ def tree_to_state(node):
 
 def state_to_tree(state):
     behaviour_class = state[CLASS]
-
     if CHILDREN in state:
         children = [state_to_tree(child) for child in state[CHILDREN]]
-        node = behaviour_class(state[NAME], children=children)
+        return behaviour_class(state[NAME], children=children)
     else:
-        node = behaviour_class(**state[ATTRIBUTES])
-    return node
+        return behaviour_class(**state[ATTRIBUTES])

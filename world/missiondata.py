@@ -8,7 +8,7 @@ from utils.names import get_agent_names
 from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
-from world.world_generator import FlatWorldGenerator
+from world.worldgenerator import FlatWorldGenerator
 
 
 def setup_experiment_id():
@@ -64,11 +64,7 @@ class MissionData:
 
         self.grid_local = GridSpecification("me", np.array([[-40, 40], [-2, 4], [-40, 40]]), False)
 
-        self.grids_global = []
-        for goal in self.goals:
-            if isinstance(goal, Blueprint):
-                self.grids_global.append(goal.get_required_grid("global"))
-
+        self.grids_global = [goal.get_required_grid("global") for goal in self.goals if isinstance(goal, Blueprint)]
         self.start_inventory = config.start_inventory
         self.start_entities = config.start_entities
 

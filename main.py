@@ -1,4 +1,3 @@
-
 TITLE = "Minecraft Coop AI Experiment"
 
 if __name__ == '__main__':
@@ -15,6 +14,7 @@ if __name__ == '__main__':
 
     Builder.load_file('ui/start.kv')
 
+
     class StartApp(App):
 
         def build(self):
@@ -26,10 +26,7 @@ if __name__ == '__main__':
             return screen_manager
 
         def on_request_close(self, *args):
-            if self.root.current == "DashboardScreen":
-                return self.root.current_screen.on_request_close()
-            else:
-                return False
+            return self.root.current_screen.on_request_close() if self.root.current == "DashboardScreen" else False
 
 
     StartApp().run()

@@ -19,8 +19,7 @@ def setup_pool(n_agents):
     ip = get_ip()
     pool = ClientPool()
     for port in ports:
-        client = ClientInfo(ip, port)
-        pool.add(client)
+        pool.add(ClientInfo(ip, port))
     return pool
 
 
@@ -73,11 +72,10 @@ class MalmoInterface:
     def craft(self, item, variant=None):
         if variant is None or variant == variants.OAK:
             self.agent_host.sendCommand(f"craft {item}")
+        elif item == items.items.FENCE:
+            self.agent_host.sendCommand(f"craft {variant}_{item}")
         else:
-            if item == items.items.FENCE:
-                self.agent_host.sendCommand(f"craft {variant}_{item}")
-            else:
-                self.agent_host.sendCommand(f"craft {item} {variant}")
+            self.agent_host.sendCommand(f"craft {item} {variant}")
         time.sleep(CRAFT_SLEEP)
 
     def swap_items(self, position1, position2):
@@ -85,9 +83,6 @@ class MalmoInterface:
 
     def activate_effect(self, effect, effect_time, amplifier):
         self.agent_host.sendCommand(f"chat /effect @p {effect} {effect_time} {amplifier}")
-
-    def start_mission(self, mission, mission_record):
-        self.agent_host.startMission(mission, mission_record)
 
     def start_multi_agent_mission(self, mission_data, i):
         mission = MissionSpec(mission_data.get_xml(), True)

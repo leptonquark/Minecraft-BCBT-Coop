@@ -21,6 +21,7 @@ RESET_DEFAULT = True
 
 CONFIG_FILE = "config.json"
 
+
 class ConfigurationScreen(Screen):
 
     def __init__(self, **kwargs):
@@ -133,12 +134,10 @@ class CooperativityRowButton(Button):
 
 class NumberInput(TextInput):
     def insert_text(self, substring, from_undo=False):
-        if len(substring) + len(self.text) > 1:
+        if len(substring) + len(self.text) > 1 or not substring.isdigit():
             return
-
-        if not substring.isdigit():
-            return
-        return super().insert_text(substring, from_undo=from_undo)
+        else:
+            return super().insert_text(substring, from_undo=from_undo)
 
 
 class ConfigurationScreenDropDown(DropDown):

@@ -11,7 +11,7 @@ from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
 from ui.colors import get_agent_color, get_cuboid_color
 from world.missiondata import MissionData
-from world.world_generator import FlatWorldGenerator, CustomWorldGenerator
+from world.worldgenerator import FlatWorldGenerator, CustomWorldGenerator
 
 
 class DashboardScreen(Screen):
@@ -83,6 +83,16 @@ X_RANGE_DEFAULT = (100, 150)
 Z_RANGE_DEFAULT = (-25, 25)
 
 
+def get_cuboid_dict(cuboid):
+    return {
+        "x0": min(cuboid.range[0][0], cuboid.range[1][0]),
+        "x1": max(cuboid.range[0][0], cuboid.range[1][0]),
+        "z0": min(cuboid.range[0][2], cuboid.range[1][2]),
+        "z1": max(cuboid.range[0][2], cuboid.range[1][2]),
+        "color": get_cuboid_color(cuboid.type)
+    }
+
+
 class Map(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -105,20 +115,9 @@ class Map(Widget):
 
     def set_mission_data(self, mission_data):
         self.agent_names = mission_data.agent_names
-        self.blueprint_positions = []
-        for goal in mission_data.goals:
-            if isinstance(goal, Blueprint):
-                self.blueprint_positions.append(goal.positions)
+        self.blueprint_positions = [goal.positions for goal in mission_data.goals if isinstance(goal, Blueprint)]
         if isinstance(mission_data.world_generator, CustomWorldGenerator):
-            for cuboid in mission_data.world_generator.cuboids:
-                cuboid_dict = {
-                    "x0": min(cuboid.range[0][0], cuboid.range[1][0]),
-                    "x1": max(cuboid.range[0][0], cuboid.range[1][0]),
-                    "z0": min(cuboid.range[0][2], cuboid.range[1][2]),
-                    "z1": max(cuboid.range[0][2], cuboid.range[1][2]),
-                    "color": get_cuboid_color(cuboid.type)
-                }
-                self.cuboids.append(cuboid_dict)
+            self.cuboids = [get_cuboid_dict(cuboid) for cuboid in mission_data.cuboids]
             self.x_range = (-30, 30)
             self.z_range = (-30, 30)
         elif isinstance(mission_data.world_generator, FlatWorldGenerator):

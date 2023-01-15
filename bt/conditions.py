@@ -72,6 +72,14 @@ class HasNoEnemyNearby(Condition):
         return not self.agent.observer.has_enemy_nearby()
 
 
+class HasNoEnemyNearToAgent(Condition):
+    def __init__(self, agent):
+        super().__init__(f"Has No Enemy Near to Player", agent)
+
+    def verify(self):
+        return not self.agent.observer.enemy_near_to_player()
+
+
 class IsBlockWithinReach(Condition):
 
     def __init__(self, agent, block_type):
@@ -155,8 +163,6 @@ class HasItemShared(Condition):
 
     def verify(self):
         blackboard = self.agent.blackboard.copy()
-        amount = 0
-        for key in blackboard:
-            if key.startswith(f"shared_inventory_{self.item}"):
-                amount += blackboard[key]
+
+        amount = sum(n for key, n in blackboard.items() if key.startswith(f"shared_inventory_{self.item}"))
         return amount >= self.amount

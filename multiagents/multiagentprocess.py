@@ -24,12 +24,10 @@ class MultiAgentProcess(mp.Process):
         self.pipe = mp.Pipe()
 
     def run(self):
-        agent_name = self.mission_data.agent_names[self.role]
-        agent = MinerAgent(self.blackboard, self.role, agent_name)
+        agent = MinerAgent(self.mission_data, self.blackboard, self.role)
 
-        agent.start_multi_agent_mission(self.mission_data)
+        agent.start_mission()
         agent.wait_for_mission()
-
         agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.cooperativity)

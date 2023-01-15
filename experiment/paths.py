@@ -6,7 +6,7 @@ from experiment.test import run_test
 from goals.blueprint.blueprint import Blueprint
 from items import items
 from multiagents.cooperativity import Cooperativity
-from world.world_generator import CustomWorldGenerator
+from world.worldgenerator import CustomWorldGenerator
 
 AGENT_COLORS = ['r', 'g', 'b']
 COOPERATIVITY_NAMES = {
@@ -51,19 +51,10 @@ def get_path(cooperativity, experiment, n_agents):
 
 
 def plot_paths(experiment, n_agents, center, width):
-    goal_positions = []
-    for goal in experiment.goals:
-        if isinstance(goal, Blueprint):
-            goal_positions.append(goal.positions)
-    if goal_positions:
-        target_points = np.concatenate(goal_positions)
-    else:
-        target_points = None
-    print(experiment.world_generator)
-    if isinstance(experiment.world_generator, CustomWorldGenerator):
-        cuboids = experiment.world_generator.cuboids
-    else:
-        cuboids = []
+    goal_positions = [goal.positions for goal in experiment.goals if isinstance(goal, Blueprint)]
+    target_points = np.concatenate(goal_positions) if len(goal_positions) > 0 else None
+
+    cuboids = experiment.world.cuboids if isinstance(experiment.world_generator, CustomWorldGenerator) else []
 
     fig, ax = plt.subplots(1, 2, figsize=(8, 4.5))
     for i, cooperativity in enumerate([Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]):

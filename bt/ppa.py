@@ -1,6 +1,7 @@
 import math
-from typing import Optional
+from typing import Optional, List
 
+from py_trees.behaviour import Behaviour
 from py_trees.composites import Selector
 
 import bt.actions as actions
@@ -39,10 +40,7 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
                 return SmartCraftPPA(agent, condition.item, condition.amount, condition.same_variant)
     elif isinstance(condition, conditions.HasPickupNearby):
         source = get_loot_source(condition.item)
-        if source is None:
-            return MinePPA(agent, condition.item)
-        else:
-            return HuntPPA(agent, condition.item)
+        return MinePPA(agent, condition.item) if source is None else HuntPPA(agent, condition.item)
     elif isinstance(condition, conditions.HasItemEquipped):
         return EquipPPA(agent, condition.item)
     elif isinstance(condition, conditions.IsBlockWithinReach):
@@ -80,15 +78,19 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
 
 
 class PPA:
+    name: str
+    post_condition: Optional[conditions.Condition]
+    pre_conditions: List[Behaviour]
+    actions: List[Behaviour]
 
     def __init__(self):
         self.name = ""
         self.post_condition = None
         self.pre_conditions = []
-        self.actions = None
+        self.actions = []
 
     def as_tree(self):
-        if self.actions is None:
+        if len(self.actions) == 0:
             return None
 
         if len(self.pre_conditions) == 0 and len(self.actions) == 1:
@@ -294,7 +296,7 @@ class PlaceBlockPPACollaborative(PPA):
         self.actions = [actions.PlaceBlockAtPosition(agent, block, position), ]
 
     def as_tree(self):
-        if self.actions is None:
+        if len(self.actions) == 0:
             return None
 
         receiver = InverseReceiver(self.agent.blackboard, self.channel, [False, self.agent.name])
@@ -358,7 +360,7 @@ class HasItemSharedPPA(PPA):
         self.pre_conditions = base_ppa.pre_conditions
 
     def as_tree(self):
-        if self.actions is None:
+        if len(self.actions) == 0:
             return None
 
         send_item_action = ItemSender(self.agent, self.item)
@@ -386,7 +388,7 @@ class HasItemSharedPPACollaborative(PPA):
         self.actions = base_ppa.actions + [StopSender(agent.blackboard, self.channel)]
 
     def as_tree(self):
-        if self.actions is None:
+        if len(self.actions) == 0:
             return None
 
         send_item_action = ItemSender(self.agent, self.item)

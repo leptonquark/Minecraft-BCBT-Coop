@@ -21,7 +21,7 @@ def plot_pickaxe_completion_times():
         ("dwg", "the authentic world", "output_g10sp_wide.csv")
     ]
 
-    for id, world_name, file_name in worlds:
+    for world_id, world_name, file_name in worlds:
         world_data = read_csv(file_name)
 
         for agents in agent_amounts:
@@ -42,16 +42,17 @@ def plot_pickaxe_completion_times():
                 ax.errorbar(PICKAXES, time_mean, yerr=time_std, fmt="o", color=color, markerfacecolor=color,
                             markeredgecolor='k', capsize=2)
                 plt.legend(COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
-            plt.ylim([0, 100])
+
             ax.set_xticks(PICKAXES)
             ax.set_xticklabels(["None", "Wooden Pickaxe", "Stone Pickaxe", "Iron Pickaxe", "Diamond Pickaxe"])
             ax.set_xlabel("Pickaxe", size=12)
 
+            plt.ylim([0, 100])
             ax.set_ylabel("Average completion time (s)")
 
             plt.title(f"Gathering scenario in {world_name} with {agents} agents")
 
-            plt.savefig(f"pickaxe_completion_times_{id}_{agents}.png")
+            plt.savefig(f"pickaxe_completion_times_{world_id}_{agents}.png")
             plt.show()
 
 

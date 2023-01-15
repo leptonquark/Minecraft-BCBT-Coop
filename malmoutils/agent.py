@@ -26,19 +26,18 @@ MOVE_BACKWARD_SPEED = -0.2
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
 
-WORLD_STATE_TIMEOUT = None
+WORLD_STATE_TIMEOUT = 10000
 
 
 def get_move_speed(horizontal_distance, turn_direction):
-    move_speed = horizontal_distance / MOVE_THRESHOLD if horizontal_distance < MOVE_THRESHOLD else 1
-    move_speed *= (1 - np.abs(turn_direction)) ** 2
-    move_speed = max(move_speed, MIN_MOVE_SPEED)
-
     is_close_to_target = horizontal_distance < NO_MOVE_SPEED_DISTANCE_EPSILON
     is_large_turn = np.abs(turn_direction) > NO_MOVE_SPEED_TURN_DIRECTION_EPSILON
     if is_large_turn and is_close_to_target:
-        move_speed = 0
-    return move_speed
+        return 0
+    else:
+        move_speed = horizontal_distance / MOVE_THRESHOLD if horizontal_distance < MOVE_THRESHOLD else 1
+        move_speed *= (1 - np.abs(turn_direction)) ** 2
+        return max(move_speed, MIN_MOVE_SPEED)
 
 
 def get_face_position(discrete_position, face):
@@ -47,10 +46,11 @@ def get_face_position(discrete_position, face):
 
 class MinerAgent:
 
-    def __init__(self, blackboard, role, name="SteveBot"):
-        self.name = name
+    def __init__(self, mission_data, blackboard, role):
+        self.mission_data = mission_data
         self.blackboard = blackboard
         self.role = role
+        self.name = self.mission_data.agent_names[self.role]
         self.interface = MalmoInterface()
         self.observer = None
         self.inventory = None
@@ -211,10 +211,8 @@ class MinerAgent:
             return False
 
     def strafe_by_direction(self, direction):
-        if direction == RelativeDirection.Right:
-            self.interface.strafe(STRAFE_SPEED)
-        else:
-            self.interface.strafe(-STRAFE_SPEED)
+        strafe = STRAFE_SPEED if direction == RelativeDirection.Right else -STRAFE_SPEED
+        self.interface.strafe(strafe)
 
     def mine_forward(self, vertical_distance, wanted_direction):
         abs_pos_discrete = self.observer.get_abs_pos_discrete()
@@ -273,11 +271,7 @@ class MinerAgent:
 
     def craft(self, item, amount=1):
         variants = self.inventory.get_variants(item)
-        if variants:
-            variant = variants[0]
-        else:
-            variant = None
-
+        variant = variants[0] if len(variants) > 0 else None
         for _ in range(amount):
             self.interface.craft(item, variant)
 
@@ -285,7 +279,7 @@ class MinerAgent:
         fuel_position = self.inventory.find_item(fuel)
         if fuel_position != FUEL_HOT_BAR_POSITION:
             self.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
-        time.sleep(0.2)
+            time.sleep(0.2)
         self.craft(item, amount)
 
     def select_on_hotbar(self, position):
@@ -322,11 +316,8 @@ class MinerAgent:
     def has_best_pickaxe_by_minimum_tier_equipped(self, tier):
         return self.inventory.has_best_pickaxe_by_minimum_tier_equipped(tier)
 
-    def start_mission(self, mission, mission_record):
-        self.interface.start_mission(mission, mission_record)
-
-    def start_multi_agent_mission(self, mission_data):
-        self.interface.start_multi_agent_mission(mission_data, self.role)
+    def start_mission(self):
+        self.interface.start_multi_agent_mission(self.mission_data, self.role)
 
     def wait_for_mission(self):
         self.interface.wait_for_mission()
