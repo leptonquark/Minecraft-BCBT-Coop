@@ -81,6 +81,10 @@ REEDS = "reeds"
 
 XP_ORB = "XPOrb"
 
+APPLE = "apple"
+SAPLING = "sapling"
+WHEAT_SEEDS = "wheat_seeds"
+
 pickups = [
     BEEF,
     MUTTON,
@@ -94,7 +98,10 @@ pickups = [
     CRAFTING_TABLE,
     ACACIA_FENCE,
     FENCE,
-    OBSIDIAN
+    OBSIDIAN,
+    APPLE,
+    SAPLING,
+    WHEAT_SEEDS,
 ]
 
 
