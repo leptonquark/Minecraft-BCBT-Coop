@@ -4,13 +4,20 @@ import pandas as pd
 from experiment.test import EXPERIMENT_PATH
 from utils.file import get_project_root
 
+CAPSIZE = 10
+FULL_WIDTH = 0.8
+
+COOPERATIVITY_COLORS = {
+    "False": "r",
+    "True": "g",
+    "Both": "b"
+}
+
+COOPERATIVITY_NAMES = ["Independent", "Collaborative", "Proposed Method"]
+
 
 def read_csv(file_name):
     return pd.read_csv(get_project_root() / EXPERIMENT_PATH / file_name)
-
-
-CAPSIZE = 10
-FULL_WIDTH = 0.8
 
 
 def plot_completion_times(fpp, flat_world):
@@ -132,6 +139,16 @@ def get_ticks(cooperativities, width, x):
         elif cooperativities == 2:
             ticks += [t, t + width / 2, t + width]
     return ticks
+
+
+def plot_variable_values(ax, stats, values, key):
+    for cooperativity, color in COOPERATIVITY_COLORS.items():
+        data = stats[stats.collaborative == cooperativity]
+        time_mean = [float(data[data[key] == value].time_mean) for value in values]
+        time_std = [float(data[data[key] == value].time_std) for value in values]
+        ax.errorbar(values, time_mean, yerr=time_std, fmt="o", color=color, markerfacecolor=color,
+                    markeredgecolor='k', capsize=2)
+        plt.legend(COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
 
 
 if __name__ == '__main__':

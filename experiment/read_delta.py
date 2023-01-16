@@ -1,19 +1,8 @@
 import matplotlib.pyplot as plt
 
-from experiment.read import read_csv
-from items import items
+from experiment.read import read_csv, plot_variable_values, COOPERATIVITY_COLORS
 
-PICKAXES = ["None", items.WOODEN_PICKAXE, items.STONE_PICKAXE, items.IRON_PICKAXE, items.DIAMOND_PICKAXE]
-
-COOPERATIVITY_COLORS = {
-    "False": "r",
-    "True": "g",
-    "Both": "b"
-}
-
-COOPERATIVITY_NAMES = ["Independent", "Collaborative", "Proposed Method"]
 BAR_WIDTH = 0.5
-
 
 def plot_delta():
     world_id = "fwg"
@@ -31,23 +20,15 @@ def plot_delta():
     stats = stats.reset_index()
 
     stats = stats.groupby("delta").apply(add_time_fractions)
-
     deltas = stats.delta.unique()
 
     plot_delta_completion_times(agents, deltas, world_id, stats, world_name)
-
     plot_delta_completion_time_fractions(agents, deltas, world_id, stats, world_name)
 
 
 def plot_delta_completion_times(agents, deltas, world_id, stats, world_name):
     fig, ax = plt.subplots()
-    for cooperativity, color in COOPERATIVITY_COLORS.items():
-        data = stats[stats.collaborative == cooperativity]
-        time_mean = [float(data[data.delta == delta].time_mean) for delta in deltas]
-        time_std = [float(data[data.delta == delta].time_std) for delta in deltas]
-        ax.errorbar(deltas, time_mean, yerr=time_std, fmt="o", color=color, markerfacecolor=color,
-                    markeredgecolor='k', capsize=2)
-        plt.legend(COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
+    plot_variable_values(ax, stats, deltas, "delta")
     plt.ylim([0, 200])
     ax.set_xlabel("Pickaxe", size=12)
     ax.set_ylabel("Average completion time (s)")
