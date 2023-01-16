@@ -146,6 +146,23 @@ class GoToEnemy(Action):
         return Status.SUCCESS if within_reach else Status.RUNNING
 
 
+class GoToEnemyClosestToAgents(Action):
+    def __init__(self, agent):
+        super().__init__(f"Go to enemy closest to agents", agent)
+
+    def update(self):
+        self.agent.jump(False)
+
+        enemy = self.agent.observer.get_closest_enemy_to_agents()
+        if enemy is None:
+            return Status.FAILURE
+
+        self.agent.go_to_position(enemy.position)
+
+        within_reach = self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
+        return Status.SUCCESS if within_reach else Status.RUNNING
+
+
 class GoToBlock(Action):
     def __init__(self, agent, block):
         super().__init__(f"Go to {block}", agent)
@@ -291,7 +308,7 @@ class PlaceBlockAtPosition(Action):
         if abs_pos_discrete is None:
             return Status.RUNNING
 
-        if np.array_equal(self.position == abs_pos_discrete):
+        if np.array_equal(self.position, abs_pos_discrete):
             self.agent.move_backward()
             self.agent.attack(False)
             return Status.RUNNING

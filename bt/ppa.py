@@ -56,10 +56,14 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
         return GoToAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.IsEnemyWithinReach):
         return GoToEnemyPPA(agent)
+    elif isinstance(condition, conditions.IsEnemyClosestToAgentsWithinReach):
+        return GoToEnemyClosestToAgentsPPA(agent)
     elif isinstance(condition, conditions.IsAnimalObservable):
         return LookForAnimalPPA(agent, condition.specie)
     elif isinstance(condition, conditions.HasNoEnemyNearby):
         return DefeatEnemyPPA(agent)
+    elif isinstance(condition, conditions.HasNoEnemyNearToAgent):
+        return DefeatEnemyClosestToAgentsPPA(agent)
     elif isinstance(condition, conditions.IsBlockAtPosition):
         if collaborative:
             return PlaceBlockPPACollaborative(agent, condition.block, condition.position)
@@ -335,6 +339,23 @@ class GoToEnemyPPA(PPA):
         self.name = f"Go to enemy"
         self.post_condition = conditions.IsEnemyWithinReach(agent)
         self.actions = [actions.GoToEnemy(agent)]
+
+
+class DefeatEnemyClosestToAgentsPPA(PPA):
+    def __init__(self, agent):
+        super().__init__()
+        self.name = f"Defeat enemy closest to agents"
+        self.post_condition = conditions.HasNoEnemyNearToAgent(agent)
+        self.pre_conditions = [conditions.IsEnemyClosestToAgentsWithinReach(agent)]
+        self.actions = [actions.DefeatEnemyClosestToAgent(agent)]
+
+
+class GoToEnemyClosestToAgentsPPA(PPA):
+    def __init__(self, agent):
+        super().__init__()
+        self.name = f"Go to enemy  closest to agents"
+        self.post_condition = conditions.IsEnemyClosestToAgentsWithinReach(agent)
+        self.actions = [actions.GoToEnemyClosestToAgents(agent)]
 
 
 def get_base_ppa(agent, item, amount):

@@ -45,6 +45,8 @@ WOODEN_SWORD = "wooden_sword"
 IRON_SWORD = "iron_sword"
 DIAMOND_SWORD = "diamond_sword"
 
+IRON_HELMET = "iron_helmet"
+
 FENCE = "fence"
 ACACIA_FENCE = "acacia_fence"
 

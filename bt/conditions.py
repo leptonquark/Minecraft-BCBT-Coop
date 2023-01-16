@@ -77,7 +77,7 @@ class HasNoEnemyNearToAgent(Condition):
         super().__init__(f"Has No Enemy Near to Player", agent)
 
     def verify(self):
-        return not self.agent.observer.enemy_near_to_player()
+        return not self.agent.observer.is_enemy_near_any_agent()
 
 
 class IsBlockWithinReach(Condition):
@@ -133,6 +133,15 @@ class IsEnemyWithinReach(Condition):
 
     def verify(self):
         enemy = self.agent.observer.get_closest_enemy()
+        return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
+
+
+class IsEnemyClosestToAgentsWithinReach(Condition):
+    def __init__(self, agent):
+        super().__init__(f"Is Enemy Closest to Agents Within Reach", agent)
+
+    def verify(self):
+        enemy = self.agent.observer.get_closest_enemy_to_agents()
         return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
 
 

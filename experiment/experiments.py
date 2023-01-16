@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy as np
 
@@ -9,6 +9,7 @@ import world.worldgenerator as wg
 from bt.actions import Action
 from goals.agentlesscondition import AgentlessCondition
 from goals.blueprint.blueprint import Blueprint, BlueprintType
+from items.inventory import InventorySlot
 from mobs import enemies
 from mobs.enemies import Enemy
 from mobs.entity import Entity
@@ -22,7 +23,7 @@ class Experiment:
     goals: List[Union[Blueprint, Action, conditions.Condition, AgentlessCondition]]
     start_positions: List[List[float]]
     start_entities: List[Entity]
-    start_inventory: List[str]
+    start_inventory: List[Tuple[str, int]]
 
 
 experiment_pickaxe = Experiment(
@@ -55,17 +56,31 @@ experiment_flat_world = Experiment(
     start_inventory=[]
 )
 
+
 experiment_flat_world_zombie = Experiment(
     id="fwz",
     name="Fence Grid Flat World Zombie",
     world_generator=wg.FlatWorldGenerator(),
     goals=[
-        AgentlessCondition(conditions.HasNoEnemyNearby, []),
+        AgentlessCondition(conditions.HasNoEnemyNearby),
         Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)
     ],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
     start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)],
-    start_inventory=[items.IRON_SWORD]
+    start_inventory=[(items.IRON_HELMET, InventorySlot.HELMET_SLOT)]
+)
+
+experiment_flat_world_zombie_help = Experiment(
+    id="fwz",
+    name="Fence Flat World Zombie Help",
+    world_generator=wg.FlatWorldGenerator(),
+    goals=[
+        AgentlessCondition(conditions.HasNoEnemyNearToAgent),
+        Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)
+    ],
+    start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
+    start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)],
+    start_inventory=[(items.IRON_HELMET, InventorySlot.HELMET_SLOT)]
 )
 
 experiment_get_30_fence = Experiment(
@@ -108,7 +123,7 @@ experiment_get_10_stone_pickaxe_manual = Experiment(
     ],
     start_positions=[[0, 9, 0], [-5, 9, 0], [5, 9, 0], [10, 9, 0], [-10, 9, 0]],
     start_entities=[],
-    start_inventory=[items.WOODEN_PICKAXE]
+    start_inventory=[(items.WOODEN_PICKAXE, 0)]
 )
 
 configurations = [
@@ -116,6 +131,7 @@ configurations = [
     experiment_default_world,
     experiment_flat_world,
     experiment_flat_world_zombie,
+    experiment_flat_world_zombie_help,
     experiment_get_30_fence,
     experiment_get_10_stone_pickaxe,
     experiment_get_10_stone_pickaxe_manual

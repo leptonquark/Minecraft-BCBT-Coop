@@ -45,9 +45,10 @@ class MultiAgentProcess(mp.Process):
             last_delta = check_timeout(agent, world_state, last_delta)
             world_state = agent.get_next_world_state()
         completion_time = time.time() - start_time
+        success = tree.all_goals_achieved()
 
         print(f"Mission is running: {world_state.is_mission_running}")
-        print(f"All goals achieved: {tree.all_goals_achieved()}")
+        print(f"All goals achieved: {success}")
         print(f"Total time: {completion_time} \n")
         self.send_info(observation, completion_time)
 

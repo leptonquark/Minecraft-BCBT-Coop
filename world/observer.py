@@ -170,7 +170,7 @@ class Observer:
             return self.get_closest_enemy_to_position(self.observation.abs_pos)
 
     def get_closest_enemy_to_position(self, position):
-        if position is None:
+        if position is None or len(self.observation.enemies) == 0:
             return None
         else:
             return min(self.observation.enemies, key=lambda enemy: np.linalg.norm(enemy.position - position))

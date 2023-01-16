@@ -122,6 +122,11 @@ class Inventory:
 
 
 class InventorySlot:
+    HELMET_SLOT = 39
+    CHEST_SLOT = 40
+    PANTS_SLOT = 41
+    BOOTS_SLOT = 42
+
     def __init__(self, item, amount, variant):
         self.item = item
         self.amount = amount

@@ -166,10 +166,10 @@ class MissionData:
 
             if self.start_inventory is not None and self.start_inventory:
                 inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
-                for i, item in enumerate(self.start_inventory):
+                for item in self.start_inventory:
                     item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
-                    item_element.set(xmlconstants.ATTRIBUTE_TYPE, item)
-                    item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(i))
+                    item_element.set(xmlconstants.ATTRIBUTE_TYPE, item[0])
+                    item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(item[1]))
 
     def initialize_agent_handlers(self, agent_section):
         agent_handlers = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_HANDLERS)
