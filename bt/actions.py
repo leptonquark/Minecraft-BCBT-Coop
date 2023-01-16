@@ -258,7 +258,7 @@ class DefeatEnemyClosestToAgent(Action):
         self.agent = agent
 
     def update(self):
-        enemy = self.agent.observer.get_closest_enemy()
+        enemy = self.agent.observer.get_closest_enemy_to_agents()
 
         if not self.agent.observer.is_position_within_reach(enemy.position):
             return Status.FAILURE

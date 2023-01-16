@@ -129,9 +129,7 @@ class MissionData:
         for entity in self.start_entities:
             draw_entity = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_ENTITY)
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_TYPE, entity.type)
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_X, str(entity.position[0]))
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Y, str(entity.position[1]))
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Z, str(entity.position[2]))
+            set_range(draw_entity, entity.position, xmlconstants.ATTRIBUTE_ENTITY_XYZ)
 
     def initialize_cuboids(self, drawing_decorator):
         for cuboid in self.world_generator.cuboids:
@@ -192,9 +190,7 @@ class MissionData:
         observation_entities = Et.SubElement(agent_handlers, xmlconstants.OBSERVATION_ENTITIES)
         range_entities = Et.SubElement(observation_entities, xmlconstants.ENTITIES_RANGE)
         range_entities.set(xmlconstants.ENTITIES_NAME, self.obs_entities_name)
-        range_entities.set(xmlconstants.ENTITIES_RANGE_X, str(self.obs_entities_range[0]))
-        range_entities.set(xmlconstants.ENTITIES_RANGE_Y, str(self.obs_entities_range[1]))
-        range_entities.set(xmlconstants.ENTITIES_RANGE_Z, str(self.obs_entities_range[2]))
+        set_range(range_entities, self.obs_entities_range, xmlconstants.ENTITIES_RANGE_XYZ)
 
     def initialize_grid_observations(self, agent_handlers):
         observation_grid = Et.SubElement(agent_handlers, xmlconstants.OBSERVATION_GRID)
@@ -204,6 +200,11 @@ class MissionData:
 
     def is_flat_world(self):
         return isinstance(self.world_generator, FlatWorldGenerator)
+
+
+def set_range(entity, values, attributes):
+    for i, value in enumerate(values):
+        entity.set(attributes[i], str(value))
 
 
 def et_to_xml(root):

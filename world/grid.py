@@ -16,13 +16,10 @@ class GridSpecification:
         grid.set(xmlconstants.ATTRIBUTE_GRID_NAME, self.name)
         grid.set(xmlconstants.ATTRIBUTE_GRID_GLOBAL, xmlconstants.TRUE if self.is_global else xmlconstants.FALSE)
         grid_min = Et.SubElement(grid, xmlconstants.ELEMENT_GRID_MIN)
-        grid_min.set(xmlconstants.ATTRIBUTE_GRID_X, str(self.grid_range[0, 0]))
-        grid_min.set(xmlconstants.ATTRIBUTE_GRID_Y, str(self.grid_range[1, 0]))
-        grid_min.set(xmlconstants.ATTRIBUTE_GRID_Z, str(self.grid_range[2, 0]))
         grid_max = Et.SubElement(grid, xmlconstants.ELEMENT_GRID_MAX)
-        grid_max.set(xmlconstants.ATTRIBUTE_GRID_X, str(self.grid_range[0, 1]))
-        grid_max.set(xmlconstants.ATTRIBUTE_GRID_Y, str(self.grid_range[1, 1]))
-        grid_max.set(xmlconstants.ATTRIBUTE_GRID_Z, str(self.grid_range[2, 1]))
+        for i, attribute in enumerate(xmlconstants.ATTRIBUTE_GRID_XYZ):
+            grid_min.set(attribute, str(self.grid_range[i, 0]))
+            grid_max.set(attribute, str(self.grid_range[i, 1]))
 
     def get_grid_size(self):
         return [axis[1] - axis[0] + 1 for axis in self.grid_range]
