@@ -25,24 +25,23 @@ class MultiAgentRunnerProcess(mp.Process):
     def run(self):
         manager = mp.Manager()
         blackboard = manager.dict()
+        queue = manager.Queue()
+
         processes = [
-            MultiAgentProcess(self.running_event, self.mission_data, blackboard, role)
+            MultiAgentProcess(self.running_event, self.mission_data, blackboard, queue, role)
             for role in range(self.mission_data.n_agents)
         ]
         for process in processes:
             process.start()
 
-        receivers = [process.pipe[0] for process in processes]
-
         while any(process.is_alive() for process in processes):
-            for receiver in mp.connection.wait(receivers):
-                agent_data = receiver.recv()
-                self.cache_agent_data(agent_data)
-                state = self.get_state(blackboard)
-                print(state)
-                if self.running_state is MultiAgentRunningState.DECEASED:
-                    self.running_event.clear()
-                self.pipe[1].send(state)
+            agent_data = queue.get(1000)
+            self.cache_agent_data(agent_data)
+            state = self.get_state(blackboard)
+            if self.running_state is MultiAgentRunningState.DECEASED:
+                self.running_event.clear()
+            self.pipe[1].send(state)
+
         print("All MultiAgentProcesses has stopped")
 
     def cache_agent_data(self, agent_data):

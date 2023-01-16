@@ -1,20 +1,18 @@
 import multiprocessing as mp
 import time
-from dataclasses import dataclass
-from enum import Enum
-from typing import List, Optional
 
 from bt.back_chain_tree import BackChainTree
 from goals.blueprint.blueprintvalidator import get_blueprint_validators_from_goals
 from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
+from multiagents.multiagentstate import MultiAgentState, MultiAgentRunningState
 from world.observation import Observation
 
 MAX_TIME = 300
 
 
 class MultiAgentProcess(mp.Process):
-    def __init__(self, running, mission_data, blackboard, role):
+    def __init__(self, running, mission_data, blackboard, queue, role):
         super().__init__()
         self.running = running
         self.mission_data = mission_data
@@ -22,7 +20,7 @@ class MultiAgentProcess(mp.Process):
         self.role = role
         goals = self.mission_data.goals
         self.blueprint_validators = get_blueprint_validators_from_goals(goals, role)
-        self.pipe = mp.Pipe(False)
+        self.queue = queue
 
     def run(self):
         agent = MinerAgent(self.mission_data, self.blackboard, self.role)
@@ -77,27 +75,10 @@ class MultiAgentProcess(mp.Process):
 
     def send_info(self, observation, state, completion_time):
         if observation:
-            self.pipe[1].send(self.get_data(observation, state, completion_time))
+            self.queue.put(self.get_data(observation, state, completion_time))
 
     def get_data(self, observation, running_state, completion_time):
         player_position = observation.abs_pos
         blueprint_result = [validator.validate(observation) for validator in self.blueprint_validators]
         return MultiAgentState(self.role, running_state, completion_time, player_position, blueprint_result)
 
-
-class MultiAgentRunningState(Enum):
-    RUNNING = 0
-    SUCCESS = 1
-    CANCELLED = 2
-    TERMINATED = 3
-    DECEASED = 4
-    TIMEOUT = 5
-
-
-@dataclass
-class MultiAgentState:
-    role: int
-    running_state: MultiAgentRunningState
-    completion_time: Optional[float]
-    position: List[float]
-    blueprint_results: List[List[bool]]
