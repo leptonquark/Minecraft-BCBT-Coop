@@ -60,8 +60,8 @@ def condition_to_ppa_tree(agent, condition, collaborative=False):
         return GoToEnemyClosestToAgentsPPA(agent)
     elif isinstance(condition, conditions.IsAnimalObservable):
         return LookForAnimalPPA(agent, condition.specie)
-    elif isinstance(condition, conditions.HasNoEnemyNearby):
-        return DefeatEnemyPPA(agent)
+    # elif isinstance(condition, conditions.HasNoEnemyNearby):
+    #    return DefeatEnemyPPA(agent)
     elif isinstance(condition, conditions.HasNoEnemyNearToAgent):
         return DefeatEnemyClosestToAgentsPPA(agent)
     elif isinstance(condition, conditions.IsBlockAtPosition):

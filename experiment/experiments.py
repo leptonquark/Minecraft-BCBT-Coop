@@ -71,7 +71,7 @@ experiment_flat_world_zombie = Experiment(
 )
 
 experiment_flat_world_zombie_help = Experiment(
-    id="fwz",
+    id="fwzh",
     name="Fence Flat World Zombie Help",
     world_generator=wg.FlatWorldGenerator(),
     goals=[

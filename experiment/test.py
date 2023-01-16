@@ -105,4 +105,5 @@ def run_test(cooperativity, experiment, n_agents, on_value=None):
 
 
 if __name__ == '__main__':
-    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world, 3)
+    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie, 3)
+    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie_help, 3)

@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import time
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Optional
 
 from bt.back_chain_tree import BackChainTree
@@ -21,7 +22,7 @@ class MultiAgentProcess(mp.Process):
         self.role = role
         goals = self.mission_data.goals
         self.blueprint_validators = get_blueprint_validators_from_goals(goals, role)
-        self.pipe = mp.Pipe()
+        self.pipe = mp.Pipe(False)
 
     def run(self):
         agent = MinerAgent(self.mission_data, self.blackboard, self.role)
@@ -37,52 +38,66 @@ class MultiAgentProcess(mp.Process):
 
         world_state = agent.get_next_world_state()
         observation = None
-        while self.is_running(observation, world_state, tree, start_time):
+        state = MultiAgentRunningState.RUNNING
+        while state is MultiAgentRunningState.RUNNING:
             observation = Observation(world_state.observations, self.mission_data)
             agent.set_observation(observation)
-            self.send_info(observation, None)
+            self.send_info(observation, state, None)
             tree.tick()
             last_delta = check_timeout(agent, world_state, last_delta)
             world_state = agent.get_next_world_state()
+            state = self.get_running_state(observation, world_state, tree, start_time)
         completion_time = time.time() - start_time
         success = tree.all_goals_achieved()
 
         print(f"Mission is running: {world_state.is_mission_running}")
         print(f"All goals achieved: {success}")
+        print("Mission running state: ", state)
         print(f"Total time: {completion_time} \n")
-        self.send_info(observation, completion_time)
+        self.send_info(observation, state, completion_time)
 
-    def is_running(self, observation, world_state, tree, start_time):
+    def get_running_state(self, observation, world_state, tree, start_time):
         if self.running and not self.running.is_set():
             print("Process was terminated")
-            return False
-        if world_state is None or not world_state.is_mission_running:
+            return MultiAgentRunningState.TERMINATED
+        elif world_state is None or not world_state.is_mission_running:
             print("Mission was cancelled")
-            return False
-        if tree.all_goals_achieved():
+            return MultiAgentRunningState.CANCELLED
+        elif tree.all_goals_achieved():
             print("All goals were achieved")
-            return False
-        if MAX_TIME and time.time() - start_time > MAX_TIME:
+            return MultiAgentRunningState.SUCCESS
+        elif MAX_TIME and time.time() - start_time > MAX_TIME:
             print("Mission timed out")
-            return False
-        if observation is not None and observation.life is not None and observation.life <= 0:
+            return MultiAgentRunningState.TIMEOUT
+        elif observation is not None and observation.life is not None and observation.life <= 0:
             print("Agent is deceased")
-            return False
-        return True
+            return MultiAgentRunningState.DECEASED
+        else:
+            return MultiAgentRunningState.RUNNING
 
-    def send_info(self, observation, completion_time):
+    def send_info(self, observation, state, completion_time):
         if observation:
-            self.pipe[1].send(self.get_data(observation, completion_time))
+            self.pipe[1].send(self.get_data(observation, state, completion_time))
 
-    def get_data(self, observation, completion_time):
+    def get_data(self, observation, running_state, completion_time):
         player_position = observation.abs_pos
         blueprint_result = [validator.validate(observation) for validator in self.blueprint_validators]
-        return MultiAgentState(self.role, completion_time, player_position, blueprint_result)
+        return MultiAgentState(self.role, running_state, completion_time, player_position, blueprint_result)
+
+
+class MultiAgentRunningState(Enum):
+    RUNNING = 0
+    SUCCESS = 1
+    CANCELLED = 2
+    TERMINATED = 3
+    DECEASED = 4
+    TIMEOUT = 5
 
 
 @dataclass
 class MultiAgentState:
     role: int
+    running_state: MultiAgentRunningState
     completion_time: Optional[float]
     position: List[float]
     blueprint_results: List[List[bool]]

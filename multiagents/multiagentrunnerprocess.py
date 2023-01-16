@@ -2,7 +2,7 @@ import multiprocessing as mp
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 
-from multiagents.multiagentprocess import MultiAgentProcess
+from multiagents.multiagentprocess import MultiAgentProcess, MultiAgentRunningState
 
 
 class MultiAgentRunnerProcess(mp.Process):
@@ -14,12 +14,13 @@ class MultiAgentRunnerProcess(mp.Process):
             self.running_event.set()
         else:
             self.running_event = running_event
-        self.pipe = mp.Pipe()
+        self.pipe = mp.Pipe(False)
         self.mission_data = mission_data
 
         self.agent_positions = [None] * mission_data.n_agents
         self.completion_times: List[Optional[float]] = [None] * mission_data.n_agents
         self.blueprint_results = []
+        self.running_state = MultiAgentRunningState.RUNNING
 
     def run(self):
         manager = mp.Manager()
@@ -31,30 +32,39 @@ class MultiAgentRunnerProcess(mp.Process):
         for process in processes:
             process.start()
 
-        pipes = [process.pipe for process in processes]
+        receivers = [process.pipe[0] for process in processes]
 
         while any(process.is_alive() for process in processes):
-            for i, pipe in enumerate(pipes):
-                if pipe[0].poll():
-                    agent_data = pipe[0].recv()
-                    self.cache_agent_data(agent_data, i)
-                    self.pipe[1].send(self.get_state(blackboard))
+            for receiver in mp.connection.wait(receivers):
+                agent_data = receiver.recv()
+                self.cache_agent_data(agent_data)
+                state = self.get_state(blackboard)
+                print(state)
+                if self.running_state is MultiAgentRunningState.DECEASED:
+                    self.running_event.clear()
+                self.pipe[1].send(state)
         print("All MultiAgentProcesses has stopped")
 
-    def cache_agent_data(self, agent_data, i):
-        self.agent_positions[i] = agent_data.position
+    def cache_agent_data(self, agent_data):
+        self.agent_positions[agent_data.role] = agent_data.position
         if agent_data.blueprint_results:
             self.blueprint_results = agent_data.blueprint_results
-        self.completion_times[i] = agent_data.completion_time
+        self.completion_times[agent_data.role] = agent_data.completion_time
+        if agent_data.running_state is not MultiAgentRunningState.RUNNING:
+            self.running_state = agent_data.running_state
 
     def get_state(self, blackboard):
-        if all(self.completion_times):
-            completion_time = max(self.completion_times)
+        bb = blackboard.copy()
+        completion_time = -1  # self.get_completion_time()
+        return MultiAgentRunnerState(self.agent_positions, self.blueprint_results, bb, completion_time)
+
+    def get_completion_time(self):
+        if self.running_state in [MultiAgentRunningState.TIMEOUT, MultiAgentRunningState.COMPLETED]:
+            return max(self.completion_times)
+        elif self.running_state is MultiAgentRunningState.RUNNING:
+            return None
         else:
-            completion_time = None
-        data = MultiAgentRunnerState(self.agent_positions, self.blueprint_results, blackboard.copy(),
-                                     completion_time)
-        return data
+            return float(-1)
 
 
 @dataclass
