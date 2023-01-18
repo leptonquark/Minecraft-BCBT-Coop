@@ -11,7 +11,7 @@ DISCRETE_USE_SLEEP = 0.15
 HOT_BAR_SLEEP = 0.1
 
 MAX_RETRIES = 15
-MAX_RESPONSE_TIME = 300
+MAX_RESPONSE_TIME = None
 
 
 def setup_pool(n_agents):
@@ -115,7 +115,7 @@ class MalmoInterface:
         while not world_state.has_mission_begun:
             print(".", end="")
             time.sleep(0.1)
-            if time.time() - start_time > MAX_RESPONSE_TIME:
+            if MAX_RESPONSE_TIME is not None and time.time() - start_time > MAX_RESPONSE_TIME:
                 print("Max delay exceeded for world to begin")
                 self.restart_minecraft(world_state, "begin world")
             world_state = self.get_world_state()

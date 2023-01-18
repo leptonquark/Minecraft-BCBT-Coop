@@ -53,6 +53,7 @@ class MultiAgentProcess(mp.Process):
         print("Mission running state: ", state)
         print(f"Total time: {completion_time} \n")
         self.send_info(observation, state, completion_time)
+        self.queue.task_done()
 
     def get_running_state(self, observation, world_state, tree, start_time):
         if self.running and not self.running.is_set():
@@ -63,7 +64,7 @@ class MultiAgentProcess(mp.Process):
             return MultiAgentRunningState.CANCELLED
         elif tree.all_goals_achieved():
             print("All goals were achieved")
-            return MultiAgentRunningState.SUCCESS
+            return MultiAgentRunningState.COMPLETED
         elif MAX_TIME and time.time() - start_time > MAX_TIME:
             print("Mission timed out")
             return MultiAgentRunningState.TIMEOUT

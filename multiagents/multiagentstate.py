@@ -5,7 +5,7 @@ from typing import Optional, List
 
 class MultiAgentRunningState(Enum):
     RUNNING = 0
-    SUCCESS = 1
+    COMPLETED = 1
     CANCELLED = 2
     TERMINATED = 3
     DECEASED = 4

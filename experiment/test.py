@@ -66,15 +66,13 @@ def run_variable_delta_tests():
     create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
 
 
-def run_tests():
-    experiment = experiments.experiment_default_world
+def run_tests(experiment, n_agents_range):
     n_test_runs = 15
-    agents_max = 3
     cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
     output = ["collaborative,agents,internal_id,time"]
     run = 0
     start_time = time.time()
-    for n_agents in range(1, agents_max + 1):
+    for n_agents in n_agents_range:
         for cooperativity in cooperativities:
             for i in range(n_test_runs):
                 completion_time = run_test(cooperativity, experiment, n_agents)
@@ -105,5 +103,8 @@ def run_test(cooperativity, experiment, n_agents, on_value=None):
 
 
 if __name__ == '__main__':
-    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie, 3)
-    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie_help, 3)
+    # run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie_help, 2)
+    #    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie, 3)
+    #    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie_help, 3)
+    # run_tests(experiments.experiment_flat_world_zombie, range(2, 4))
+    run_tests(experiments.experiment_flat_world_zombie_help, range(2, 4))
