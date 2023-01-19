@@ -28,11 +28,10 @@ def plot_completion_times(fpp, flat_world):
     stats = df.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
     stats.columns = ["time_mean", "time_std"]
 
-    df_we = df[df.time < 300]
+    df_we = df[(df.time < 300) & (df.time >= 0)]
     stats_we = df_we.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
     stats_we.columns = ["time_mean_we", "time_std_we"]
-    stats_full = pd.concat([stats, stats_we], axis=1)
-    stats_full = stats_full.reset_index()
+    stats_full = pd.concat([stats, stats_we], axis=1).reset_index()
 
     df_edges = df[df.time >= 300]
 
@@ -102,7 +101,7 @@ def get_files(flat_world, fpp):
     elif fpp and not flat_world:
         return ["output_dwg_7.csv", "output_dwg_8.csv"]
     else:
-        return ["output_g10spmdw_5.csv"]
+        return ["output_fwz.csv"]
 
 
 def get_delta_x(collaborative, cooperativities, width):

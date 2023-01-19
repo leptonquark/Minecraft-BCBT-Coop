@@ -4,6 +4,7 @@ from experiment.read import read_csv, plot_variable_values, COOPERATIVITY_COLORS
 
 BAR_WIDTH = 0.5
 
+
 def plot_delta():
     world_id = "fwg"
     world_name = "the flat world"

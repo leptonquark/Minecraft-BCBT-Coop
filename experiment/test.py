@@ -18,9 +18,8 @@ cooperativity_to_collaborative = {
 }
 
 
-def run_pickaxe_tests():
+def run_pickaxe_tests(n_test_runs):
     experiment = experiments.experiment_get_10_stone_pickaxe
-    n_test_runs = 15
     agents_max = 3
     cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
     pickaxes = [items.DIAMOND_PICKAXE, items.IRON_PICKAXE, items.STONE_PICKAXE, items.WOODEN_PICKAXE, None]
@@ -38,7 +37,7 @@ def run_pickaxe_tests():
                     print(output)
                     run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}.csv"
+    file_name = f"output_{experiment.id}_pickaxes.csv"
     create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
 
 
@@ -66,9 +65,7 @@ def run_variable_delta_tests():
     create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
 
 
-def run_tests(experiment, n_agents_range):
-    n_test_runs = 15
-    cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
+def run_tests(experiment, cooperativities, n_agents_range, n_test_runs=15):
     output = ["collaborative,agents,internal_id,time"]
     run = 0
     start_time = time.time()
@@ -103,8 +100,9 @@ def run_test(cooperativity, experiment, n_agents, on_value=None):
 
 
 if __name__ == '__main__':
-    # run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie_help, 2)
-    #    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie, 3)
-    #    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world_zombie_help, 3)
-    # run_tests(experiments.experiment_flat_world_zombie, range(2, 4))
-    run_tests(experiments.experiment_flat_world_zombie_help, range(2, 4))
+    test_experiment = experiments.experiment_flat_world_zombie_help
+    test_cooperativities = [Cooperativity.COOPERATIVE_WITH_CATCHUP]
+    n_agents_min = 2
+    n_agents_max = 3
+    test_runs = 25
+    run_tests(test_experiment, test_cooperativities, range(n_agents_min, n_agents_max + 1), test_runs)

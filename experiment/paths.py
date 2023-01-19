@@ -25,7 +25,6 @@ CHUNK_NAMES = {
 EXPERIMENT_TITLES = {
     experiments.experiment_flat_world.id: "placing fence posts in the flat world",
     experiments.experiment_get_10_stone_pickaxe_manual.id: "gathering stone pickaxe materials in the test area",
-    experiments.experiment_get_10_stone_pickaxe_manual_diamond.id: "gathering stone pickaxe materials in the test area",
 }
 
 

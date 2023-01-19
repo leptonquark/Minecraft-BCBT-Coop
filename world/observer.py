@@ -179,13 +179,13 @@ class Observer:
         # Get the closest enemy to any agent. Prioritize enemies that are within range to this agent.
         closest_enemy = self.get_closest_enemy()
         if closest_enemy is not None:
-            closest_distance = np.linalg.norm(closest_enemy.position - self.observation.abs_pos)
-            if closest_distance <= ENEMY_CLOSE_DISTANCE:
+            if np.linalg.norm(closest_enemy.position - self.observation.abs_pos) <= ENEMY_CLOSE_DISTANCE:
                 return closest_enemy
-        other_agents_closest = [self.get_closest_enemy_to_position(a.position) for a in self.observation.other_agents]
-        closest_enemies = [enemy for enemy in other_agents_closest if enemy is not None]
+        closest = [(self.get_closest_enemy_to_position(a.position), a.position) for a in self.observation.other_agents]
+        closest_enemies = [enemy for enemy in closest if enemy is not None]
         if len(closest_enemies) > 0:
-            return min(closest_enemies, key=lambda enemy: np.linalg.norm(enemy.position - self.observation.abs_pos))
+            closest_enemy_agent_position = min(closest_enemies, key=lambda ea: np.linalg.norm(ea[0].position - ea[1]))
+            return closest_enemy_agent_position[0]
         else:
             return None
 
