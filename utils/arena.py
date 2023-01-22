@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, Patch
+
+from utils.plot import save_figure
 
 
 def visualize_arena_two_dimensionally():
@@ -24,7 +25,7 @@ def visualize_arena_two_dimensionally():
     plt.legend(handles=[stone, wood, agent])
 
     # display plot
-    plt.savefig("arena.png")
+    save_figure("arena.png")
     plt.show()
 
 
@@ -78,7 +79,7 @@ def visualize_arena_three_dimensionally():
     plt.title("Test Arena for Stone Pickaxe Scenario")
 
     plt.show()
-    plt.savefig("arena3d.png")
+    save_figure("arena3d.png")
 
 
 if __name__ == '__main__':

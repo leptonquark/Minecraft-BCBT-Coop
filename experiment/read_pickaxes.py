@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 from experiment.read import read_csv, plot_variable_values
 from items import items
+from utils.plot import save_figure
 
 PICKAXES = ["None", items.WOODEN_PICKAXE, items.STONE_PICKAXE, items.IRON_PICKAXE, items.DIAMOND_PICKAXE]
 
@@ -34,7 +35,7 @@ def plot_pickaxe_completion_times():
 
             plt.title(f"Gathering scenario in {world_name} with {agents} agents")
 
-            plt.savefig(f"pickaxe_completion_times_{world_id}_{agents}.png")
+            save_figure(f"pickaxe_completion_times_{world_id}_{agents}.png")
             plt.show()
 
 

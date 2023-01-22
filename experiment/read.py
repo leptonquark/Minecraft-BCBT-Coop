@@ -3,6 +3,7 @@ import pandas as pd
 
 from experiment.test import EXPERIMENT_PATH
 from utils.file import get_project_root
+from utils.plot import save_figure
 
 CAPSIZE = 10
 FULL_WIDTH = 0.8
@@ -74,7 +75,7 @@ def plot_completion_times(fpp, flat_world):
         title = get_title(flat_world, fpp, runs)
         plt.title(title)
         filename = get_file_name(flat_world, fpp, runs, without_edges)
-        plt.savefig(filename)
+        save_figure(filename)
         plt.show()
 
 

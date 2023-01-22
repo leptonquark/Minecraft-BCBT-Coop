@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
 from experiment.read import read_csv, plot_variable_values, COOPERATIVITY_COLORS
+from utils.plot import save_figure
 
 BAR_WIDTH = 0.5
 
@@ -34,7 +35,7 @@ def plot_delta_completion_times(agents, deltas, world_id, stats, world_name):
     ax.set_xlabel("Pickaxe", size=12)
     ax.set_ylabel("Average completion time (s)")
     plt.title(f"Fence post placement in {world_name} with {agents} agents")
-    plt.savefig(f"pickaxe_completion_times_{world_id}_{agents}.png")
+    save_figure(f"pickaxe_completion_times_{world_id}_{agents}.png")
     plt.show()
 
 
@@ -53,7 +54,7 @@ def plot_delta_completion_time_fractions(agents, deltas, world_id, stats, world_
     ax.set_xlabel("Distance between fence posts $\Delta$ (blocks)", size=12)
     ax.set_ylabel("Fraction of average completion time of baseline ")
     plt.title(f"Fence post placement in {world_name} with {agents} agents")
-    plt.savefig(f"pickaxe_ct_fractions_{world_id}_{agents}.png")
+    save_figure(f"pickaxe_ct_fractions_{world_id}_{agents}.png")
     plt.show()
 
 

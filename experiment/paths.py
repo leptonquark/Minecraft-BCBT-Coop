@@ -6,6 +6,7 @@ from experiment.test import run_test
 from goals.blueprint.blueprint import Blueprint
 from items import items
 from multiagents.cooperativity import Cooperativity
+from utils.plot import save_figure
 from world.worldgenerator import CustomWorldGenerator
 
 AGENT_COLORS = ['r', 'g', 'b']
@@ -77,7 +78,7 @@ def plot_paths(experiment, n_agents, center, width):
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.figlegend(by_label.values(), by_label.keys(), ncol=len(by_label), loc='lower center', fancybox=True)
-    plt.savefig(f"path_{experiment.id}.png")
+    save_figure(f"path_{experiment.id}.png")
     plt.show()
 
 
