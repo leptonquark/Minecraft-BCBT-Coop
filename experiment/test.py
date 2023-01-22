@@ -31,7 +31,7 @@ def run_pickaxe_tests(n_test_runs):
         for n_agents in range(1, agents_max + 1):
             for cooperativity in cooperativities:
                 for i in range(n_test_runs):
-                    completion_time = run_test(cooperativity, experiment, n_agents)
+                    completion_time, _ = run_test(cooperativity, experiment, n_agents)
                     collaborative = cooperativity_to_collaborative[cooperativity]
                     output.append(f"{run},{collaborative},{n_agents},{pickaxe},{i},{completion_time}")
                     print(output)
@@ -55,7 +55,7 @@ def run_variable_delta_tests():
         for n_agents in range(1, agents_max + 1):
             for cooperativity in cooperativities:
                 for i in range(n_test_runs):
-                    completion_time = run_test(cooperativity, experiment, n_agents)
+                    completion_time, _ = run_test(cooperativity, experiment, n_agents)
                     collaborative = cooperativity_to_collaborative[cooperativity]
                     output.append(f"{run},{collaborative},{n_agents},{delta},{i},{completion_time}")
                     print(output)
@@ -66,15 +66,15 @@ def run_variable_delta_tests():
 
 
 def run_tests(experiment, cooperativities, n_agents_range, n_test_runs=15):
-    output = ["collaborative,agents,internal_id,time"]
+    output = ["collaborative,agents,internal_id,time,alive_agents"]
     run = 0
     start_time = time.time()
     for n_agents in n_agents_range:
         for cooperativity in cooperativities:
             for i in range(n_test_runs):
-                completion_time = run_test(cooperativity, experiment, n_agents)
+                completion_time, alive_agents = run_test(cooperativity, experiment, n_agents)
                 collaborative = cooperativity_to_collaborative[cooperativity]
-                output.append(f"{run},{collaborative},{n_agents},{i},{completion_time}")
+                output.append(f"{run},{collaborative},{n_agents},{i},{completion_time},{alive_agents}")
                 print(output)
                 run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
@@ -95,14 +95,15 @@ def run_test(cooperativity, experiment, n_agents, on_value=None):
             if on_value is not None:
                 on_value(value)
     completion_time = value.completion_time if value else -1
-    print(f"Completion time: {completion_time}. Experiment time: {time.time() - exp_time}")
-    return completion_time
+    alive_agents = value.alive_agents
+    print(f"Completion time: {completion_time}. Alive agents: {alive_agents} Experiment time: {time.time() - exp_time}")
+    return completion_time, alive_agents
 
 
 if __name__ == '__main__':
-    test_experiment = experiments.experiment_flat_world_zombie_help
+    test_experiment = experiments.experiment_flat_world_zombie
     test_cooperativities = [Cooperativity.COOPERATIVE_WITH_CATCHUP]
     n_agents_min = 2
-    n_agents_max = 2
-    test_runs = 0
+    n_agents_max = 3
+    test_runs = 15
     run_tests(test_experiment, test_cooperativities, range(n_agents_min, n_agents_max + 1), test_runs)

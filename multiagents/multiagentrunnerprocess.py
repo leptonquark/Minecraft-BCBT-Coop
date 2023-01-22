@@ -4,12 +4,8 @@ from typing import List, Dict, Optional
 
 from multiagents.multiagentprocess import MultiAgentProcess, MultiAgentRunningState
 
-ALL_DONE_STATES = [MultiAgentRunningState.TIMEOUT, MultiAgentRunningState.COMPLETED]
-ANY_DONE_STATES = [
-    MultiAgentRunningState.DECEASED,
-    MultiAgentRunningState.CANCELLED,
-    MultiAgentRunningState.TERMINATED
-]
+ALL_DONE_STATES = [MultiAgentRunningState.TIMEOUT, MultiAgentRunningState.COMPLETED, MultiAgentRunningState.DECEASED]
+ANY_DONE_STATES = [MultiAgentRunningState.CANCELLED, MultiAgentRunningState.TERMINATED]
 
 
 class MultiAgentRunnerProcess(mp.Process):
@@ -25,6 +21,7 @@ class MultiAgentRunnerProcess(mp.Process):
         self.mission_data = mission_data
 
         self.agent_positions = [None] * mission_data.n_agents
+        self.agent_alive = [True] * mission_data.n_agents
         self.completion_times: List[Optional[float]] = [None] * mission_data.n_agents
         self.blueprint_results = []
         self.agent_running_states = [MultiAgentRunningState.RUNNING] * mission_data.n_agents
@@ -62,13 +59,17 @@ class MultiAgentRunnerProcess(mp.Process):
         self.completion_times[agent_data.role] = agent_data.completion_time
         self.agent_running_states[agent_data.role] = agent_data.running_state
 
-        if all(s in ALL_DONE_STATES for s in self.agent_running_states) or agent_data.running_state in ANY_DONE_STATES:
+        if all(s in ALL_DONE_STATES + ANY_DONE_STATES for s in
+               self.agent_running_states) or agent_data.running_state in ANY_DONE_STATES:
             self.running_state = agent_data.running_state
+        if self.agent_alive[agent_data.role] and agent_data.running_state is MultiAgentRunningState.DECEASED:
+            self.agent_alive[agent_data.role] = False
 
     def get_state(self, blackboard):
         bb = blackboard.copy()
         completion_time = self.get_completion_time()
-        return MultiAgentRunnerState(self.agent_positions, self.blueprint_results, bb, completion_time)
+        alive_agents = sum(self.agent_alive)
+        return MultiAgentRunnerState(self.agent_positions, self.blueprint_results, bb, completion_time, alive_agents)
 
     def get_completion_time(self):
         if self.running_state in ALL_DONE_STATES:
@@ -85,3 +86,4 @@ class MultiAgentRunnerState:
     blueprint_results: List[List[bool]]
     blackboard: Dict[str, str]
     completion_time: Optional[float]
+    alive_agents: int
