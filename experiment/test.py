@@ -6,7 +6,7 @@ from goals.blueprint.blueprint import Blueprint, BlueprintType
 from items import items
 from multiagents.cooperativity import Cooperativity
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
-from utils.file import create_file_and_write
+from utils.file import create_file_and_write, save_data_safely
 from world.missiondata import MissionData
 
 EXPERIMENT_PATH = Path("log/experiments")
@@ -78,8 +78,8 @@ def run_tests(experiment, cooperativities, n_agents_range, n_test_runs=15):
                 print(output)
                 run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}.csv"
-    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+    file_name = f"log/experiments/output_{experiment.id}.csv"
+    save_data_safely(file_name, lambda file: file.write('\n'.join(output)))
 
 
 def run_test(cooperativity, experiment, n_agents, on_value=None):
@@ -103,6 +103,6 @@ if __name__ == '__main__':
     test_experiment = experiments.experiment_flat_world_zombie_help
     test_cooperativities = [Cooperativity.COOPERATIVE_WITH_CATCHUP]
     n_agents_min = 2
-    n_agents_max = 3
-    test_runs = 25
+    n_agents_max = 2
+    test_runs = 0
     run_tests(test_experiment, test_cooperativities, range(n_agents_min, n_agents_max + 1), test_runs)
