@@ -300,11 +300,11 @@ class MinerAgent:
 
     def equip_item(self, item):
         position = self.inventory.find_item(item)
-        if position is not None and position >= HOTBAR_SIZE:
-            self.swap_items(position, PICKAXE_HOT_BAR_POSITION)
-            position = PICKAXE_HOT_BAR_POSITION
-
-        self.select_on_hotbar(position)
+        if position is not None:
+            if position >= HOTBAR_SIZE:
+                self.swap_items(position, PICKAXE_HOT_BAR_POSITION)
+                position = PICKAXE_HOT_BAR_POSITION
+            self.select_on_hotbar(position)
 
     def equip_best_pickaxe(self, tier):
         pickaxe = self.inventory.get_best_pickaxe(tier)
