@@ -143,10 +143,8 @@ def get_ticks(cooperativities, width, x):
 
 def plot_variable_values(ax, stats, values, key):
     for cooperativity, color in COOPERATIVITY_COLORS.items():
-        data = stats[stats.collaborative == cooperativity]
-        time_mean = [float(data[data[key] == value].time_mean) for value in values]
-        time_std = [float(data[data[key] == value].time_std) for value in values]
-        ax.errorbar(values, time_mean, yerr=time_std, fmt="o", color=color, markerfacecolor=color,
+        data = stats[stats.collaborative == cooperativity].set_index(key)
+        ax.errorbar(values, data["time_mean"], yerr=data["time_std"], fmt="o", color=color, markerfacecolor=color,
                     markeredgecolor='k', capsize=2)
         plt.legend(COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
 

@@ -44,10 +44,12 @@ def get_path(cooperativity, experiment, n_agents):
     agent_positions = [[] for _ in range(n_agents)]
     run_test(cooperativity, experiment, n_agents, on_value)
     concat_agent_positions = [np.array(agent_position) for agent_position in agent_positions]
-    cooperativity_name = cooperativity.name.lower()
     for i, agent_position in enumerate(concat_agent_positions):
-        np.savetxt(f"agent_position_{experiment.id}_{n_agents}_{cooperativity_name}_{i}.csv", agent_position,
-                   delimiter=",")
+        np.savetxt(get_path_file_name(experiment, n_agents, cooperativity, i), agent_position, delimiter=",")
+
+
+def get_path_file_name(experiment, n_agents, cooperativity, role):
+    return f"agent_position_{experiment.id}_{n_agents}_{cooperativity.name.lower()}_{role}.csv"
 
 
 def plot_paths(experiment, n_agents, center, width):

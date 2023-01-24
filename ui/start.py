@@ -7,7 +7,7 @@ from kivy.uix.textinput import TextInput
 
 import experiment.experiments as experiments
 from multiagents.cooperativity import Cooperativity
-from utils.file import get_project_root
+from utils.file import create_folders
 
 AMOUNT_OF_AGENTS = "amountOfAgents"
 EXPERIMENT_ID = "experiment"
@@ -19,16 +19,14 @@ EXPERIMENT_ID_DEFAULT = 0
 COOPERATIVITY_DEFAULT = 0
 RESET_DEFAULT = True
 
-CONFIG_FILE = "config.json"
+CONFIG_FILE = "data/config.json"
 
 
 class ConfigurationScreen(Screen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        file_path = get_project_root() / CONFIG_FILE
-        folder_path = file_path.parent
-        folder_path.mkdir(parents=True, exist_ok=True)
+        create_folders(CONFIG_FILE)
         self.store = JsonStore(CONFIG_FILE)
 
     def on_enter(self, *args):
@@ -90,8 +88,7 @@ class ExperimentRowButton(Button):
         self.text = self.experiment.name
         self.dropdown = ConfigurationScreenDropDown()
         for experiment in experiments.configurations:
-            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=experiment.name,
-                                                                       value=experiment)
+            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=experiment.name, value=experiment)
             dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.value))
             self.dropdown.add_widget(dropdown_row_button)
         self.dropdown.bind(on_select=self.on_select)
@@ -116,8 +113,7 @@ class CooperativityRowButton(Button):
         self.text = str(self.cooperativity)
         self.dropdown = ConfigurationScreenDropDown()
         for cooperativity in CooperativityRowButton.values:
-            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=str(cooperativity),
-                                                                       value=cooperativity)
+            dropdown_row_button = ConfigurationScreenDropDownRowButton(text=str(cooperativity), value=cooperativity)
             dropdown_row_button.bind(on_release=lambda button: self.dropdown.select(button.value))
             self.dropdown.add_widget(dropdown_row_button)
         self.dropdown.bind(on_select=self.on_select)

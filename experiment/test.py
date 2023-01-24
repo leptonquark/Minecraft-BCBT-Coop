@@ -101,9 +101,10 @@ def run_test(cooperativity, experiment, n_agents, on_value=None):
 
 
 if __name__ == '__main__':
-    test_experiment = experiments.experiment_flat_world_zombie
-    test_cooperativities = [Cooperativity.COOPERATIVE_WITH_CATCHUP]
-    n_agents_min = 2
-    n_agents_max = 3
-    test_runs = 15
-    run_tests(test_experiment, test_cooperativities, range(n_agents_min, n_agents_max + 1), test_runs)
+    test_experiments = [experiments.experiment_flat_world_zombie, experiments.experiment_flat_world_zombie_help]
+    for test_experiment in test_experiments:
+        test_cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]
+        n_agents_min = 2
+        n_agents_max = 3
+        test_runs = 15
+        run_tests(test_experiment, test_cooperativities, range(n_agents_min, n_agents_max + 1), test_runs)

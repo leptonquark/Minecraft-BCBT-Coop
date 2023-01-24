@@ -44,10 +44,10 @@ def plot_delta_completion_time_fractions(agents, deltas, world_id, stats, world_
     for cooperativity, color in COOPERATIVITY_COLORS.items():
         if cooperativity == "True" or cooperativity == "Both":
             data = stats[stats.collaborative == cooperativity]
-            time_mean_diff = [float(data[data.delta == delta].time_mean_diff) for delta in deltas]
-            time_std_diff = [float(data[data.delta == delta].time_std_diff) for delta in deltas]
+            data = data.set_index("delta")
             deltas_collab = deltas - BAR_WIDTH / 2 if cooperativity == "True" else deltas + BAR_WIDTH / 2
-            ax.bar(deltas_collab, time_mean_diff, yerr=time_std_diff, color=color, capsize=2, edgecolor="k", width=0.5)
+            ax.bar(deltas_collab, data.time_mean_diff, yerr=data.time_std_diff, color=color, capsize=2, edgecolor="k",
+                   width=0.5)
             legend_values = ["Collaborative", "Proposed Method"]
             plt.legend(legend_values, title="Cooperativity", title_fontproperties={"weight": "bold"})
     plt.ylim([0, 1])
