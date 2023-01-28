@@ -44,9 +44,7 @@ def get_ticks(agents, width=WIDTH):
 def get_labels(agents):
     labels = []
     for agent in agents:
-        labels.append(f"Isolated")
-        labels.append(f"\n {agent} agents")
-        labels.append(f"Observant")
+        labels += [f"Isolated", f"\n {agent} agents", f"Observant"]
     return labels
 
 

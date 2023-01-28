@@ -6,16 +6,14 @@ from utils.plot import save_figure
 BAR_WIDTH = 0.5
 
 
-def plot_delta():
+def plot_delta(agents):
     world_id = "fwg"
     world_name = "the flat world"
     file_name = "output_fwg_delta.csv"
 
     world_data = read_csv(file_name)
 
-    agents = 3
-
-    agent_data = world_data[world_data.agents == agents]
+    agent_data = world_data[world_data.agents == 3]
 
     stats = agent_data.groupby(['delta', 'collaborative']).agg({"time": ["mean", "std"]})
     stats.columns = ["time_mean", "time_std"]
@@ -71,4 +69,4 @@ def calculate_std_diff(stats_sub, baseline):
 
 
 if __name__ == "__main__":
-    plot_delta()
+    plot_delta(3)

@@ -7,9 +7,9 @@ from items.inventory import HOTBAR_SIZE
 from items.items import unclimbable, traversable, narrow
 from malmoutils.interface import MalmoInterface
 from mobs.enemies import ENEMY_HEIGHT
-from utils.vectors import RelativeDirection, directionVector, up, Direction, center, faceDistance, BlockFace
-from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_position_flat_center, \
-    get_wanted_direction, get_position_center
+from utils.vectors import RelativeDirection, directionVector, up, Direction, center, faceDistance, BlockFace, normalize
+from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_wanted_direction, \
+    get_position_center
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
@@ -190,16 +190,9 @@ class MinerAgent:
         return pitch_req == 0
 
     def avoid_narrow(self, flat_distance):
-        abs_pos_discrete = self.observer.get_abs_pos_discrete()
-        if abs_pos_discrete is None:
-            return False
-
-        flat_center = get_position_flat_center(abs_pos_discrete)
-        distance_to_center = self.observer.get_distance_to_position(flat_center)
-        flat_distance_to_center = np.copy(distance_to_center)
-        flat_distance_to_center[1] = 0
-        normalized_flat_distance = flat_distance / np.linalg.norm(flat_distance)
-        normalized_flat_distance_to_center = flat_distance_to_center / np.linalg.norm(flat_distance_to_center)
+        flat_distance_to_center = self.observer.get_flat_distance_to_center()
+        normalized_flat_distance_to_center = normalize(flat_distance_to_center)
+        normalized_flat_distance = normalize(flat_distance)
         block_factor = np.dot(normalized_flat_distance_to_center, normalized_flat_distance)
         if block_factor >= BLOCKED_BY_NARROW_THRESHOLD:
             distance_perpendicular = np.array([normalized_flat_distance[2], 0, -normalized_flat_distance[0]])
@@ -218,8 +211,7 @@ class MinerAgent:
         abs_pos_discrete = self.observer.get_abs_pos_discrete()
         if abs_pos_discrete is None:
             return
-        distance_to_block = directionVector[wanted_direction] + vertical_distance * up
-        block_position = abs_pos_discrete + distance_to_block
+        block_position = abs_pos_discrete + directionVector[wanted_direction] + vertical_distance * up
         block_center = get_position_center(block_position)
         distance_to_block = self.observer.get_distance_to_position(block_center)
         self.turn(0)
@@ -318,8 +310,6 @@ class MinerAgent:
 
     def start_mission(self):
         self.interface.start_multi_agent_mission(self.mission_data, self.role)
-
-    def wait_for_mission(self):
         self.interface.wait_for_mission()
 
     def quit(self):

@@ -115,7 +115,7 @@ class Inventory:
     def get_best_pickaxe(self, min_tier):
         sufficient_pickaxes = get_sufficient_pickaxes(min_tier)
         available_pickaxes = [pickaxe for pickaxe in sufficient_pickaxes if self.has_item(pickaxe)]
-        if not available_pickaxes:
+        if len(available_pickaxes) == 0:
             return None
         else:
             return max(available_pickaxes, key=lambda pickaxe: get_gathering_tier_by_pickaxe(pickaxe).value)

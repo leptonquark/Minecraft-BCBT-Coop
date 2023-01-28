@@ -17,15 +17,14 @@ from mobs.hunting import get_hunting_tool
 from utils.vectors import Direction
 
 
-def back_chain_recursive(agent, condition, collaborative) -> Optional[Sequence]:
+def backward_chain(agent, condition, collaborative) -> Optional[Sequence]:
     ppa = condition_to_ppa_tree(agent, condition, collaborative)
     if ppa is not None:
-        for i in range(len(ppa.pre_conditions)):
-            ppa_condition_tree = back_chain_recursive(agent, ppa.pre_conditions[i], collaborative)
-            if ppa_condition_tree is not None:
-                ppa.pre_conditions[i] = ppa_condition_tree
+        new_pre_conditions = [backward_chain(agent, pc, collaborative) for pc in ppa.pre_conditions]
+        ppa.pre_conditions = new_pre_conditions
         return ppa.as_tree()
-    return condition
+    else:
+        return condition
 
 
 def condition_to_ppa_tree(agent, condition, collaborative=False):
@@ -112,15 +111,21 @@ class SimpleCraftPPA(PPA):
     def __init__(self, agent, item, amount=1, same_variant=False):
         super().__init__()
         self.name = f"Craft {amount}x {item}"
+        self.agent = agent
         self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
+        self.pre_conditions = self.get_pre_conditions(item)
+        self.actions = [actions.Craft(agent, item, 1)]
+
+    def get_pre_conditions(self, item):
+        pre_conditions = []
         recipe = get_recipe(item)
         if recipe is not None:
             if recipe.station:
-                self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
+                pre_conditions.append(conditions.HasItem(self.agent, recipe.station))
             for ingredient in recipe.ingredients:
-                has_item = conditions.HasItem(agent, ingredient.item, ingredient.amount, ingredient.same_variant)
-                self.pre_conditions.append(has_item)
-        self.actions = [actions.Craft(agent, item, 1)]
+                has_item = conditions.HasItem(self.agent, ingredient.item, ingredient.amount, ingredient.same_variant)
+                pre_conditions.append(has_item)
+        return pre_conditions
 
 
 class SmartCraftPPA(PPA):
@@ -128,18 +133,23 @@ class SmartCraftPPA(PPA):
     def __init__(self, agent, item, amount=1, same_variant=False):
         super().__init__()
         self.name = f"Craft {amount}x {item}"
+        self.agent = agent
         self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
         recipe = get_recipe(item)
-        craft_amount = amount
+        craft_amount = math.ceil(amount / recipe.output_amount) if recipe is not None else amount
+        self.pre_conditions = self.get_pre_conditions(craft_amount, recipe)
+        self.actions = [actions.Craft(agent, item, craft_amount)]
+
+    def get_pre_conditions(self, craft_amount, recipe):
+        pre_conditions = []
         if recipe is not None:
-            craft_amount = math.ceil(amount / recipe.output_amount)
             if recipe.station:
-                self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
+                pre_conditions.append(conditions.HasItem(self.agent, recipe.station))
             for ingredient in recipe.ingredients:
                 ingredient_amount = craft_amount * ingredient.amount
-                has_item = conditions.HasItem(agent, ingredient.item, ingredient_amount, ingredient.same_variant)
-                self.pre_conditions.append(has_item)
-        self.actions = [actions.Craft(agent, item, craft_amount)]
+                has_item = conditions.HasItem(self.agent, ingredient.item, ingredient_amount, ingredient.same_variant)
+                pre_conditions.append(has_item)
+        return pre_conditions
 
 
 class MeltPPA(PPA):
@@ -212,26 +222,38 @@ class MinePPA(PPA):
     def __init__(self, agent, material):
         super().__init__()
         self.name = f"Mine {material}"
+        self.agent = agent
         self.post_condition = conditions.HasPickupNearby(agent, material)
-        self.pre_conditions = [conditions.IsBlockWithinReach(agent, material)]
+        self.pre_conditions = self.get_pre_conditions(material)
+        self.actions = [actions.MineMaterial(agent, material)]
 
+    def get_pre_conditions(self, material):
         tier = get_gathering_tier_by_material(material)
         if tier is not None:
-            self.pre_conditions.insert(0, conditions.HasBestPickaxeByMinimumTierEquipped(agent, tier))
-        self.actions = [actions.MineMaterial(agent, material)]
+            return [
+                conditions.HasBestPickaxeByMinimumTierEquipped(self.agent, tier),
+                conditions.IsBlockWithinReach(self.agent, material)
+            ]
+        else:
+            return [conditions.IsBlockWithinReach(self.agent, material)]
 
 
 class HuntPPA(PPA):
     def __init__(self, agent, item):
         super().__init__()
         mob = get_loot_source(item)
-        self.name = f"Hunt {item} for {mob}"
+        self.name = f"Hunt {mob} for {item}"
+        self.agent = agent
         self.post_condition = conditions.HasPickupNearby(agent, item)
-        self.pre_conditions = [conditions.IsAnimalWithinReach(agent, mob)]
+        self.pre_conditions = self.get_pre_conditions(agent, mob)
+        self.actions = [actions.AttackAnimal(agent, mob)]
+
+    def get_pre_conditions(self, agent, mob):
         tool = get_hunting_tool(mob)
         if tool is not None:
-            self.pre_conditions.insert(0, conditions.HasItemEquipped(agent, tool))
-        self.actions = [actions.AttackAnimal(agent, mob)]
+            return [conditions.HasItemEquipped(self.agent, tool), conditions.IsAnimalWithinReach(self.agent, mob)]
+        else:
+            return [conditions.IsAnimalWithinReach(self.agent, mob)]
 
 
 class GoToAnimalPPA(PPA):

@@ -35,13 +35,14 @@ def get_paths(experiment, n_agents):
 
 
 def get_path(cooperativity, experiment, n_agents):
+    agent_positions = [[] for _ in range(n_agents)]
+
     def on_value(value):
         for j, agent_position in enumerate(value.agent_positions):
             if agent_position is not None:
                 if len(agent_positions[j]) == 0 or not np.array_equal(agent_position, agent_positions[j][-1]):
                     agent_positions[j].append(agent_position)
 
-    agent_positions = [[] for _ in range(n_agents)]
     run_test(cooperativity, experiment, n_agents, on_value)
     concat_agent_positions = [np.array(agent_position) for agent_position in agent_positions]
     for i, agent_position in enumerate(concat_agent_positions):

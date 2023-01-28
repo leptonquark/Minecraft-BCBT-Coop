@@ -59,8 +59,9 @@ class MultiAgentRunnerProcess(mp.Process):
         self.completion_times[agent_data.role] = agent_data.completion_time
         self.agent_running_states[agent_data.role] = agent_data.running_state
 
-        if all(s in ALL_DONE_STATES + ANY_DONE_STATES for s in
-               self.agent_running_states) or agent_data.running_state in ANY_DONE_STATES:
+        all_done_state = all(state in ALL_DONE_STATES for state in self.agent_running_states)
+        any_done_state = any(state in ANY_DONE_STATES for state in self.agent_running_states)
+        if all_done_state or any_done_state:
             self.running_state = agent_data.running_state
         if self.agent_alive[agent_data.role] and agent_data.running_state is MultiAgentRunningState.DECEASED:
             self.agent_alive[agent_data.role] = False

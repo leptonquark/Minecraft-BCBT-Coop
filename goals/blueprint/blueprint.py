@@ -74,17 +74,8 @@ class Blueprint:
             )
         elif blueprint_type == BlueprintType.PointGrid:
             delta = delta if delta else DELTA_DEFAULT
+            xz_range = [0, delta, -delta]
             return Blueprint(
                 material=items.FENCE,
-                positions=np.array(start_position) + np.array([
-                    [0, 0, 0],
-                    [0, 0, delta],
-                    [0, 0, -delta],
-                    [delta, 0, 0],
-                    [delta, 0, delta],
-                    [delta, 0, -delta],
-                    [-delta, 0, 0],
-                    [-delta, 0, delta],
-                    [-delta, 0, -delta],
-                ])
+                positions=np.array(start_position) + np.array([[x, 0, z] for x in xz_range for z in xz_range])
             )

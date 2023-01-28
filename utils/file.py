@@ -36,13 +36,13 @@ def create_file_and_write(file_name, function):
 
 def create_folders(file_name):
     file_path = get_project_root() / file_name
-    folder_path = file_path.parent
-    folder_path.mkdir(parents=True, exist_ok=True)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
 
 
 def read_from_file(file_name, function):
     file_path = get_project_root() / file_name
-    if not os.path.isfile(str(file_path)):
+    if os.path.isfile(str(file_path)):
+        with codecs.open(str(file_path), "r", "utf-8") as file:
+            return function(file)
+    else:
         return None
-    with codecs.open(str(file_path), "r", "utf-8") as file:
-        return function(file)

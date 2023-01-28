@@ -8,7 +8,7 @@ from malmoutils.world_state import check_timeout
 from multiagents.multiagentstate import MultiAgentState, MultiAgentRunningState
 from world.observation import Observation
 
-MAX_TIME = 300
+MAX_TIME = 600
 
 
 class MultiAgentProcess(mp.Process):
@@ -26,7 +26,6 @@ class MultiAgentProcess(mp.Process):
         agent = MinerAgent(self.mission_data, self.blackboard, self.role)
 
         agent.start_mission()
-        agent.wait_for_mission()
         agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.cooperativity)

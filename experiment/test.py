@@ -27,7 +27,7 @@ def run_pickaxe_tests(n_test_runs):
     run = 0
     start_time = time.time()
     for pickaxe in pickaxes:
-        experiment.start_inventory = [pickaxe] if pickaxe else []
+        experiment.start_inventory = [pickaxe] if pickaxe is not None else []
         for n_agents in range(1, agents_max + 1):
             for cooperativity in cooperativities:
                 for i in range(n_test_runs):

@@ -15,6 +15,11 @@ from utils.names import NAMES
 from utils.vectors import CIRCLE_DEGREES
 
 
+class LineOfSightHitType(Enum):
+    BLOCK = 0
+    ITEM = 1
+
+
 def grid_observation_from_list(grid_observation_list, grid_size):
     grid = np.array(grid_observation_list).reshape((grid_size[1], grid_size[2], grid_size[0]))
     grid = np.transpose(grid, (2, 0, 1))
@@ -29,13 +34,13 @@ def get_absolute_position(info):
 
 
 def get_yaw(info):
-    if Observation.YAW in info:
-        yaw = info[Observation.YAW]
-        if yaw <= 0:
-            yaw += CIRCLE_DEGREES
-        return yaw
-    else:
+    yaw = info.get(Observation.YAW)
+    if yaw is None:
         return None
+    elif yaw <= 0:
+        return yaw + CIRCLE_DEGREES
+    else:
+        return yaw
 
 
 def get_pitch(info):
@@ -46,7 +51,7 @@ def get_line_of_sight_position(info):
     los = info.get(Observation.LOS)
     if los is None:
         return None
-    if Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
+    elif Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
         return np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
     else:
         return None
@@ -54,30 +59,21 @@ def get_line_of_sight_position(info):
 
 def get_line_of_sight_type(info):
     los = info.get(Observation.LOS)
-    if los is None:
-        return None
-    return los.get(Observation.LOS_TYPE)
+    return los.get(Observation.LOS_TYPE) if los is not None else None
 
 
 def get_line_of_sight_hit_type(info):
     los = info.get(Observation.LOS)
     if los is None:
         return None
-    hit_type = los.get(Observation.LOS_HIT_TYPE)
-    return LineOfSightHitType.BLOCK if hit_type == Observation.LOS_HIT_TYPE_BLOCK else LineOfSightHitType.ITEM
-
-
-class LineOfSightHitType(Enum):
-    BLOCK = 0
-    ITEM = 1
+    else:
+        hit_type = los.get(Observation.LOS_HIT_TYPE)
+        return LineOfSightHitType.BLOCK if hit_type == Observation.LOS_HIT_TYPE_BLOCK else LineOfSightHitType.ITEM
 
 
 def get_grid_by_spec(info, spec):
-    if Observation.GRID_LOCAL in info:
-        grid_list = info.get(spec.name, None)
-        return grid_observation_from_list(grid_list, spec.get_grid_size()) if grid_list is not None else None
-    else:
-        return None
+    grid_list = info.get(spec)
+    return grid_observation_from_list(grid_list, spec.get_grid_size()) if grid_list is not None else None
 
 
 def get_life(info):
@@ -173,10 +169,10 @@ class Observation:
             self.pickups = []
             self.other_agents = []
             for entity in info[Observation.ENTITIES]:
-                entity_name = entity.get(Observation.ENTITY_NAME, None)
-                entity_x = entity.get(Observation.ENTITY_X, None)
-                entity_y = entity.get(Observation.ENTITY_Y, None)
-                entity_z = entity.get(Observation.ENTITY_Z, None)
+                entity_name = entity.get(Observation.ENTITY_NAME)
+                entity_x = entity.get(Observation.ENTITY_X)
+                entity_y = entity.get(Observation.ENTITY_Y)
+                entity_z = entity.get(Observation.ENTITY_Z)
                 if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
                     if entity_name in items.pickups:
                         self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
@@ -189,8 +185,9 @@ class Observation:
                         self.other_agents.append(AgentEntity(entity_name, entity_x, entity_y, entity_z))
 
     def get_grid_global(self, grid_spec):
-        if grid_spec.name in self.grids_global:
-            return self.grids_global[grid_spec.name]
+        cached_grid = self.grids_global.get(grid_spec)
+        if cached_grid is not None:
+            return cached_grid
         else:
             grid = get_grid_by_spec(self.info, grid_spec)
             self.grids_global[grid_spec.name] = grid

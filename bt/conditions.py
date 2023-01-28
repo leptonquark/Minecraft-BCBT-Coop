@@ -113,8 +113,7 @@ class IsPositionWithinReach(Condition):
 
     def verify(self):
         position_center = get_position_flat_center(self.position)
-        has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
-        return has_arrived
+        return self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
 
 
 class IsAnimalWithinReach(Condition):
@@ -124,7 +123,7 @@ class IsAnimalWithinReach(Condition):
 
     def verify(self):
         animal = self.agent.observer.get_weakest_animal(self.specie)
-        return animal and self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
+        return animal is not None and self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
 
 
 class IsEnemyWithinReach(Condition):
@@ -172,6 +171,5 @@ class HasItemShared(Condition):
 
     def verify(self):
         blackboard = self.agent.blackboard.copy()
-
         amount = sum(n for key, n in blackboard.items() if key.startswith(f"shared_inventory_{self.item}"))
         return amount >= self.amount

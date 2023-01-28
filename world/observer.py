@@ -3,7 +3,7 @@ import numpy as np
 from items.gathering import get_ore
 from items.items import traversable, narrow, get_variants
 from utils import vectors
-from utils.vectors import get_los_face, up
+from utils.vectors import get_los_face, up, normalize
 from world.observation import LineOfSightHitType
 
 DELTA_ANGLES = 45
@@ -14,6 +14,56 @@ MAX_PITCH = 0.8
 PICKUP_NEARBY_DISTANCE_TOLERANCE = 10
 EYE_HEIGHT = 1.62
 ENEMY_CLOSE_DISTANCE = 15
+
+
+def get_position_center(block_position):
+    return np.around(block_position) + vectors.center
+
+
+def get_position_flat_center(block_position):
+    return np.around(block_position) + vectors.flat_center
+
+
+def get_horizontal_distance(distance):
+    return np.sqrt(distance[0] ** 2 + distance[2] ** 2)
+
+
+def get_wanted_direction(move):
+    if np.abs(move[2]) >= np.abs(move[0]):
+        if move[2] > 0:
+            wanted_direction = vectors.Direction.South
+        else:
+            wanted_direction = vectors.Direction.North
+    else:
+        if move[0] > 0:
+            wanted_direction = vectors.Direction.East
+        else:
+            wanted_direction = vectors.Direction.West
+    return wanted_direction
+
+
+def get_yaw_from_vector(move):
+    flat_move = np.copy(move)
+    flat_move[1] = 0.0
+    normalized_move = normalize(flat_move)
+
+    south_angle = vectors.directionVector[vectors.Direction.South]
+    dot_product_south = np.dot(normalized_move, south_angle)
+
+    east_angle = vectors.directionVector[vectors.Direction.East]
+    dot_product_east = np.dot(normalized_move, east_angle)
+
+    cos_angle = np.clip(dot_product_south, -1.0, 1.0)
+    angle = np.arccos(cos_angle)
+    angle = vectors.radians_to_degrees(angle)
+    if dot_product_east > 0:
+        angle = vectors.CIRCLE_DEGREES - angle
+    return angle
+
+
+def get_wanted_pitch(dist_direction, delta_y):
+    pitch = -np.arctan(delta_y / dist_direction)
+    return vectors.radians_to_degrees(pitch)
 
 
 class Observer:
@@ -261,52 +311,12 @@ class Observer:
         diff = self.observation.pitch - wanted_pitch
         return -MAX_PITCH * diff / quarter_circle if np.abs(diff) > PITCH_TOLERANCE else 0
 
-
-def get_position_center(block_position):
-    return np.around(block_position) + vectors.center
-
-
-def get_position_flat_center(block_position):
-    return np.around(block_position) + vectors.flat_center
-
-
-def get_horizontal_distance(distance):
-    return np.sqrt(distance[0] ** 2 + distance[2] ** 2)
-
-
-def get_wanted_direction(move):
-    if np.abs(move[2]) >= np.abs(move[0]):
-        if move[2] > 0:
-            wanted_direction = vectors.Direction.South
-        else:
-            wanted_direction = vectors.Direction.North
-    else:
-        if move[0] > 0:
-            wanted_direction = vectors.Direction.East
-        else:
-            wanted_direction = vectors.Direction.West
-    return wanted_direction
-
-
-def get_yaw_from_vector(move):
-    flat_move = np.copy(move)
-    flat_move[1] = 0.0
-    normalized_move = flat_move / np.linalg.norm(flat_move)
-
-    south_angle = vectors.directionVector[vectors.Direction.South]
-    dot_product_south = np.dot(normalized_move, south_angle)
-
-    east_angle = vectors.directionVector[vectors.Direction.East]
-    dot_product_east = np.dot(normalized_move, east_angle)
-
-    cos_angle = np.clip(dot_product_south, -1.0, 1.0)
-    angle = np.arccos(cos_angle)
-    angle = vectors.radians_to_degrees(angle)
-    if dot_product_east > 0:
-        angle = vectors.CIRCLE_DEGREES - angle
-    return angle
-
-
-def get_wanted_pitch(dist_direction, delta_y):
-    pitch = -np.arctan(delta_y / dist_direction)
-    return vectors.radians_to_degrees(pitch)
+    def get_flat_distance_to_center(self):
+        abs_pos_discrete = self.get_abs_pos_discrete()
+        if abs_pos_discrete is None:
+            return None
+        flat_center = get_position_flat_center(abs_pos_discrete)
+        distance_to_center = self.get_distance_to_position(flat_center)
+        flat_distance_to_center = np.copy(distance_to_center)
+        flat_distance_to_center[1] = 0
+        return flat_distance_to_center

@@ -13,9 +13,4 @@ class BlueprintValidator:
 
     def validate(self, observation):
         observer = Observer(observation)
-        result = [
-            observer.is_block_at_position(position, self.blueprint.material)
-            for position
-            in self.blueprint.positions
-        ]
-        return result
+        return [observer.is_block_at_position(pos, self.blueprint.material) for pos in self.blueprint.positions]

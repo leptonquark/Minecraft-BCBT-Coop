@@ -2,7 +2,7 @@ from py_trees.common import Status
 
 from bt.actions import Action, JumpIfStuck
 from bt.conditions import Condition
-from bt.ppa import back_chain_recursive
+from bt.ppa import backward_chain
 from bt.sequence import Sequence
 from goals.agentlesscondition import AgentlessCondition
 from goals.blueprint.blueprint import Blueprint
@@ -41,12 +41,12 @@ class BackChainTree:
                 children.append(goal)
             elif isinstance(goal, Blueprint):
                 conditions = goal.as_conditions(self.agent)
-                children += [back_chain_recursive(self.agent, condition, collaborative) for condition in conditions]
+                children += [backward_chain(self.agent, condition, collaborative) for condition in conditions]
             else:
                 if isinstance(goal, AgentlessCondition):
                     goal = goal.as_condition(self.agent)
                 if isinstance(goal, Condition):
-                    children.append(back_chain_recursive(self.agent, goal, collaborative))
+                    children.append(backward_chain(self.agent, goal, collaborative))
         return children
 
     def tick(self):

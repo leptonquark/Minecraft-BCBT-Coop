@@ -36,8 +36,7 @@ class ConfigurationScreen(Screen):
         self.initialize_checkbox(self.ids.reset, RESET, RESET_DEFAULT)
 
     def initialize_amount_of_agents(self):
-        amount_of_agents = self.get_stored_value(AMOUNT_OF_AGENTS, AMOUNT_OF_AGENTS_DEFAULT)
-        self.ids.amount.text = str(amount_of_agents)
+        self.ids.amount.text = str(self.get_stored_value(AMOUNT_OF_AGENTS, AMOUNT_OF_AGENTS_DEFAULT))
         self.ids.amount.bind(text=self.on_amount_of_agents)
 
     def get_stored_value(self, key, default):
@@ -68,8 +67,7 @@ class ConfigurationScreen(Screen):
         self.store_value(COOPERATIVITY_ID, cooperativity.value)
 
     def initialize_checkbox(self, widget, key, default):
-        active = self.get_stored_value(key, default)
-        widget.active = active
+        widget.active = self.get_stored_value(key, default)
         widget.bind(active=lambda _, selected: self.store_value(key, selected))
 
     def store_value(self, key, value):

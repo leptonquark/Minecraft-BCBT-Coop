@@ -147,13 +147,11 @@ class MissionData:
             agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
             agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
 
-            self.initialize_agent_name(agent_section, name)
+            agent_name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
+            agent_name.text = name
+
             self.initialize_agent_start(agent_section, i)
             self.initialize_agent_handlers(agent_section)
-
-    def initialize_agent_name(self, agent_section, name):
-        agent_name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
-        agent_name.text = name
 
     def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
