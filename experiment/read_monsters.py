@@ -44,7 +44,7 @@ def get_ticks(agents, width=WIDTH):
 def get_labels(agents):
     labels = []
     for agent in agents:
-        labels += [f"Isolated", f"\n {agent} agents", f"Observant"]
+        labels += ["Isolated", f"\n {agent} agents", "Observant"]
     return labels
 
 
@@ -133,7 +133,6 @@ def plot_completion_chances():
     save_figure("times_monster.png")
     plt.show()
     print(times)
-
 
 
 if __name__ == '__main__':

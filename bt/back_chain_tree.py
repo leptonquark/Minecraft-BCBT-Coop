@@ -30,6 +30,8 @@ class BackChainTree:
             children += self.backward_chain(goals, True)
         if cooperativity == Cooperativity.COOPERATIVE_WITH_CATCHUP or cooperativity == Cooperativity.INDEPENDENT:
             children += self.backward_chain(goals, False)
+        print(goals)
+        print(children)
         base_tree = Sequence("BaseTree", children=children)
         base_tree.setup_with_descendants()
         return base_tree

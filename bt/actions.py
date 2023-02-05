@@ -4,7 +4,7 @@ from py_trees.common import Status
 
 from items import items
 from utils.constants import ATTACK_REACH, PLACING_REACH
-from utils.vectors import directionVector, down, BlockFace
+from utils.vectors import directionVector, down, BlockFace, Direction
 from world.observer import get_position_center, get_horizontal_distance, get_position_flat_center
 
 
@@ -131,7 +131,7 @@ class GoToAnimal(Action):
 
 class GoToEnemy(Action):
     def __init__(self, agent):
-        super().__init__(f"Go to enemy", agent)
+        super().__init__("Go to enemy", agent)
 
     def update(self):
         self.agent.jump(False)
@@ -252,7 +252,7 @@ class AttackAnimal(Action):
 
 class DefeatClosestEnemy(Action):
     def __init__(self, agent):
-        super().__init__(f"Defeat closest enemy", agent)
+        super().__init__("Defeat closest enemy", agent)
         self.agent = agent
 
     def update(self):
@@ -271,7 +271,7 @@ class DefeatClosestEnemy(Action):
 
 class DefeatEnemyClosestToAgent(Action):
     def __init__(self, agent):
-        super().__init__(f"Defeat enemy closest to agent", agent)
+        super().__init__("Defeat enemy closest to agent", agent)
         self.agent = agent
 
     def update(self):
@@ -379,7 +379,7 @@ DISTANCE_FAR_AWAY = 100
 
 
 class ExploreInDirection(Action):
-    def __init__(self, agent, direction):
+    def __init__(self, agent, direction=Direction.North):
         super().__init__(f"Explore in direction {direction}", agent)
         self.direction = direction
 

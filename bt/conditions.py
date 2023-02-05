@@ -66,7 +66,7 @@ class HasPickupNearby(Condition):
 
 class HasNoEnemyNearby(Condition):
     def __init__(self, agent):
-        super().__init__(f"Has No Enemy Nearby", agent)
+        super().__init__("Has No Enemy Nearby", agent)
 
     def verify(self):
         return not self.agent.observer.has_enemy_nearby()
@@ -74,7 +74,7 @@ class HasNoEnemyNearby(Condition):
 
 class HasNoEnemyNearToAgent(Condition):
     def __init__(self, agent):
-        super().__init__(f"Has No Enemy Near to Player", agent)
+        super().__init__("Has No Enemy Near to Player", agent)
 
     def verify(self):
         return not self.agent.observer.is_enemy_near_any_agent()
@@ -128,7 +128,7 @@ class IsAnimalWithinReach(Condition):
 
 class IsEnemyWithinReach(Condition):
     def __init__(self, agent):
-        super().__init__(f"Is Enemy Within Reach", agent)
+        super().__init__("Is Enemy Within Reach", agent)
 
     def verify(self):
         enemy = self.agent.observer.get_closest_enemy()
@@ -137,7 +137,7 @@ class IsEnemyWithinReach(Condition):
 
 class IsEnemyClosestToAgentsWithinReach(Condition):
     def __init__(self, agent):
-        super().__init__(f"Is Enemy Closest to Agents Within Reach", agent)
+        super().__init__("Is Enemy Closest to Agents Within Reach", agent)
 
     def verify(self):
         enemy = self.agent.observer.get_closest_enemy_to_agents()

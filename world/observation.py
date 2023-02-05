@@ -72,7 +72,7 @@ def get_line_of_sight_hit_type(info):
 
 
 def get_grid_by_spec(info, spec):
-    grid_list = info.get(spec)
+    grid_list = info.get(spec.name)
     return grid_observation_from_list(grid_list, spec.get_grid_size()) if grid_list is not None else None
 
 

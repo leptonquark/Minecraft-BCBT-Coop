@@ -196,9 +196,6 @@ class MissionData:
         for grid_global in self.grids_global:
             grid_global.initialize_xml(observation_grid)
 
-    def is_flat_world(self):
-        return isinstance(self.world_generator, FlatWorldGenerator)
-
 
 def set_range(entity, values, attributes):
     for i, value in enumerate(values):

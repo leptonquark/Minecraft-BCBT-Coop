@@ -43,4 +43,4 @@ class ItemSender(Behaviour):
     def update(self):
         amount = self.agent.inventory.get_item_amount(self.item)
         self.blackboard[self.channel] = amount
-        return Status.FAILURE
+        return Status.SUCCESS
