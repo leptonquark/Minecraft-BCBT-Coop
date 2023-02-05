@@ -289,19 +289,39 @@ class HasItemSharedPPA(PPA):
         self.item = condition.item
         self.channel = self.name
         self.collaborative = collaborative
-        base_ppa = get_base_ppa(agent, condition.item, condition.amount)
-        self.actions = base_ppa.actions
+
         self.post_condition = condition
+        recipe = get_recipe(condition.item)
+        if recipe is not None:
+            self.pre_conditions = conditions.HasItem(condition.agent, recipe.station) if recipe.station else []
+            self.pre_conditions += [get_has_ingredient(agent, condition.amount, i) for i in recipe.ingredients]
+            if recipe.recipe_type == RecipeType.Melting:
+                self.actions = [actions.Melt(condition.agent, condition.item, condition.amount)]
+            else:
+                self.actions = [actions.Craft(condition.agent, condition.item, condition.amount)]
+        else:
+            self.pre_conditions = [conditions.HasPickupNearby(condition.agent, condition.item)]
+            self.actions = [actions.PickupItem(condition.agent, condition.item)]
+
         send_item_action = ItemSender(self.agent, self.item)
-        self.pre_conditions = [send_item_action] + base_ppa.pre_conditions
+        self.pre_conditions = [send_item_action] + self.pre_conditions
 
     def as_tree(self):
+        tree = self.get_pre_condition_sequence()
+        tree = self.get_post_condition_fallback(tree)
+        tree.name = f"PPA {self.name}"
+        return tree
+
+    def get_pre_condition_sequence(self):
         if self.collaborative:
             sender = Sender(self.agent.blackboard, self.channel, self.agent.name)
             outer_sequence_children = [sender] + self.pre_conditions + self.actions
         else:
             outer_sequence_children = self.pre_conditions + self.actions
         tree = Sequence(name=f"Precondition Handler {self.name}", children=outer_sequence_children)
+        return tree
+
+    def get_post_condition_fallback(self, tree):
         if self.collaborative:
             receiver = InverseReceiver(self.agent.blackboard, self.channel, [False, self.agent.name])
             post_condition_seq_children = [self.post_condition, StopSender(self.agent.blackboard, self.channel)]
@@ -310,62 +330,4 @@ class HasItemSharedPPA(PPA):
         else:
             selector_children = [self.post_condition, tree]
         tree = Selector(name=f"Postcondition Handler {self.name}", children=[selector_children])
-        tree.name = f"PPA {self.name}"
         return tree
-
-
-class SimpleCraftPPA(PPA):
-    def __init__(self, agent, item, amount=1, same_variant=False):
-        super().__init__()
-        self.name = f"Craft {amount}x {item}"
-        self.agent = agent
-        self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
-        self.pre_conditions = self.get_pre_conditions(item)
-        self.actions = [actions.Craft(agent, item, 1)]
-
-    def get_pre_conditions(self, item):
-        pre_conditions = []
-        recipe = get_recipe(item)
-        if recipe is not None:
-            if recipe.station:
-                pre_conditions.append(conditions.HasItem(self.agent, recipe.station))
-            for ingredient in recipe.ingredients:
-                has_item = conditions.HasItem(self.agent, ingredient.item, ingredient.amount, ingredient.same_variant)
-                pre_conditions.append(has_item)
-        return pre_conditions
-
-
-class MeltPPA(PPA):
-
-    def __init__(self, agent, item, amount=1, same_variant=False):
-        super().__init__()
-        self.name = f"Melt {amount}x {item}"
-        self.post_condition = conditions.HasItem(agent, item, amount, same_variant)
-        recipe = get_recipe(item)
-        if recipe is not None:
-            if recipe.station:
-                self.pre_conditions.append(conditions.HasItem(agent, recipe.station))
-            for ingredient in recipe.ingredients:
-                ingredient_amount = math.ceil(amount / recipe.output_amount) * ingredient.amount
-                has_item = conditions.HasItem(agent, ingredient.item, ingredient_amount, ingredient.same_variant)
-                self.pre_conditions.append(has_item)
-        self.actions = [actions.Melt(agent, item, amount)]
-
-
-class PickupPPA(PPA):
-    def __init__(self, agent, material, amount, same_variant=False):
-        super().__init__()
-        self.name = f"Pick up {material}"
-        self.post_condition = conditions.HasItem(agent, material, amount, same_variant)
-        self.pre_conditions = [conditions.HasPickupNearby(agent, material)]
-        self.actions = [actions.PickupItem(agent, material)]
-
-
-def get_base_ppa(agent, item, amount):
-    recipe = get_recipe(item)
-    if recipe is None:
-        return PickupPPA(agent, item, amount)
-    elif recipe.recipe_type == RecipeType.Melting:
-        return MeltPPA(agent, item, amount)
-    else:
-        return SimpleCraftPPA(agent, item, amount)
