@@ -28,44 +28,6 @@ def backward_chain(agent, condition, collaboration) -> Union[Selector, condition
         return condition
 
 
-def condition_to_ppa_tree(condition):
-    if isinstance(condition, conditions.HasItem):
-        return HasItemPPA(condition)
-    elif isinstance(condition, conditions.HasPickupNearby):
-        return HasPickupNearbyPPA(condition)
-    elif isinstance(condition, conditions.HasItemEquipped):
-        return HasItemEquippedPPA(condition)
-    elif isinstance(condition, conditions.IsBlockWithinReach):
-        return IsBlockWithinReachPPA(condition)
-    elif isinstance(condition, conditions.IsPositionWithinReach):
-        return IsPositionWithinReachPPA(condition)
-    elif isinstance(condition, conditions.IsBlockObservable):
-        return IsBlockObservablePPA(condition)
-    elif isinstance(condition, conditions.IsAnimalWithinReach):
-        return IsAnimalWithinReachPPA(condition)
-    elif isinstance(condition, conditions.IsEnemyWithinReach):
-        return IsEnemyWithinReachPPA(condition)
-    elif isinstance(condition, conditions.IsEnemyClosestToAgentsWithinReach):
-        return IsEnemyClosestToAgentsWithinReachPPA(condition)
-    elif isinstance(condition, conditions.IsAnimalObservable):
-        return IsAnimalObservablePPA(condition)
-    elif isinstance(condition, conditions.HasNoEnemyNearby):
-        return HasNoEnemyNearbyPPA(condition)
-    elif isinstance(condition, conditions.HasNoEnemyNearToAgent):
-        return HasNoEnemyNearToAgentPPA(condition)
-    elif isinstance(condition, conditions.IsBlockAtPosition):
-        return IsBlockAtPositionPPA(condition)
-    elif isinstance(condition, conditions.HasBestPickaxeByMinimumTierEquipped):
-        return HasBestPickaxeByMinimumTierEquippedPPA(condition)
-    elif isinstance(condition, conditions.HasPickaxeByMinimumTier):
-        return HasPickaxeByMinimumTierPPA(condition)
-    elif isinstance(condition, conditions.HasItemShared):
-        return HasItemSharedPPA(condition)
-    else:
-        print(f"No PPA found for condition {condition}")
-        return None
-
-
 class PPA:
     name: str
     post_condition: conditions.Condition
@@ -264,3 +226,32 @@ class HasItemSharedPPA(PPA):
 
         send_item_action = ItemSender(self.agent, condition.item)
         self.pre_conditions = [send_item_action] + self.pre_conditions
+
+
+ppas = {
+    conditions.HasItem: HasItemPPA,
+    conditions.HasPickupNearby: HasPickupNearbyPPA,
+    conditions.HasItemEquipped: HasItemEquippedPPA,
+    conditions.IsBlockWithinReach: IsBlockWithinReachPPA,
+    conditions.IsPositionWithinReach: IsPositionWithinReachPPA,
+    conditions.IsBlockObservable: IsBlockObservablePPA,
+    conditions.IsAnimalWithinReach: IsAnimalWithinReachPPA,
+    conditions.IsEnemyWithinReach: IsEnemyWithinReachPPA,
+    conditions.IsEnemyClosestToAgentsWithinReach: IsEnemyClosestToAgentsWithinReachPPA,
+    conditions.IsAnimalObservable: IsAnimalObservablePPA,
+    conditions.HasNoEnemyNearby: HasNoEnemyNearbyPPA,
+    conditions.HasNoEnemyNearToAgent: HasNoEnemyNearToAgentPPA,
+    conditions.IsBlockAtPosition: IsBlockAtPositionPPA,
+    conditions.HasBestPickaxeByMinimumTierEquipped: HasBestPickaxeByMinimumTierEquippedPPA,
+    conditions.HasPickaxeByMinimumTier: HasPickaxeByMinimumTierPPA,
+    conditions.HasItemShared: HasItemSharedPPA
+}
+
+
+def condition_to_ppa_tree(condition):
+    ppa_class = ppas.get(type(condition))
+    if ppa_class is not None:
+        return ppa_class(condition)
+    else:
+        print(f"No PPA found for condition {condition}")
+        return None
