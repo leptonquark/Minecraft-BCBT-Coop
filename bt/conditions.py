@@ -96,7 +96,6 @@ class IsBlockWithinReach(Condition):
 
 
 class IsBlockObservable(Condition):
-
     def __init__(self, agent, block):
         super().__init__(f"Is Block Observable {block}", agent)
         self.block = block

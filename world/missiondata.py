@@ -154,17 +154,19 @@ class MissionData:
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
         if self.start_positions is not None and self.start_positions[i] is not None:
             placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
-            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_positions[i][0]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_positions[i][1]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_positions[i][2]))
+            for a, coordinate in enumerate(self.start_positions[i]):
+                placement.set(xmlconstants.AGENT_START_POSITION_XYZ[a], str(coordinate))
             placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
 
-            if self.start_inventory is not None and self.start_inventory:
-                inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
-                for item in self.start_inventory:
-                    item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
-                    item_element.set(xmlconstants.ATTRIBUTE_TYPE, item[0])
-                    item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(item[1]))
+            self.initialize_agent_start_inventory(agent_start)
+
+    def initialize_agent_start_inventory(self, agent_start):
+        if self.start_inventory is not None and self.start_inventory:
+            inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
+            for item in self.start_inventory:
+                item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
+                item_element.set(xmlconstants.ATTRIBUTE_TYPE, item[0])
+                item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(item[1]))
 
     def initialize_agent_handlers(self, agent_section):
         agent_handlers = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_HANDLERS)

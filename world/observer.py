@@ -266,14 +266,14 @@ class Observer:
     def is_pickup_nearby(self, pickup, variants):
         if self.observation.abs_pos is None:
             return False
-        elif pickup.name in variants:
+        elif pickup.type in variants:
             return np.linalg.norm(pickup.position - self.observation.abs_pos) < PICKUP_NEARBY_DISTANCE_TOLERANCE
         else:
             return False
 
     def get_pickup_position(self, wanted):
         variants = get_variants(wanted)
-        return next((p.get_centralized_position() for p in self.observation.pickups if p.name in variants), None)
+        return next((p.get_centralized_position() for p in self.observation.pickups if p.type in variants), None)
 
     def is_stuck(self):
         if self.lower_surroundings is None:

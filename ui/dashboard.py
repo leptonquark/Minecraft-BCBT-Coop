@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 
 from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
-from ui.colors import get_agent_color, get_cuboid_color
+from ui.colors import get_agent_color, get_cuboid_color, get_blueprint_color
 from world.missiondata import MissionData
 from world.worldgenerator import FlatWorldGenerator, CustomWorldGenerator
 
@@ -116,6 +116,7 @@ class Map(Widget):
     def set_mission_data(self, mission_data):
         self.agent_names = mission_data.agent_names
         self.blueprint_positions = [goal.positions for goal in mission_data.goals if isinstance(goal, Blueprint)]
+        self.blueprint_results = [[False for _ in positions] for positions in self.blueprint_positions]
         if isinstance(mission_data.world_generator, CustomWorldGenerator):
             self.cuboids = [get_cuboid_dict(cuboid) for cuboid in mission_data.cuboids]
             self.x_range = (-30, 30)
@@ -149,16 +150,22 @@ class Map(Widget):
             self.add_name([frame_x, frame_z], self.agent_names[role])
 
     def add_blueprint_positions(self):
+        for i, blueprint in enumerate(self.blueprint_positions):
+            for j, blueprint_position in enumerate(blueprint):
+                placed = self.blueprint_results and self.blueprint_results[i] and self.blueprint_results[i][j]
+                color = get_blueprint_color(placed)
+                self.add_named_dot(blueprint_position, color, str(blueprint_position), 8)
+
+    def add_named_dot(self, position, color, name, name_size=NAME_FONT_SIZE):
+        frame_x, frame_z = self.get_frame_position(position[0], position[2])
+        self.add_dot(color, [frame_x, frame_z])
+        self.add_name([frame_x, frame_z], name, name_size)
+        return frame_x, frame_z
+
+    def add_dot(self, color, frame_position):
         with self.canvas:
-            for i, blueprint in enumerate(self.blueprint_positions):
-                for j, blueprint_position in enumerate(blueprint):
-                    if self.blueprint_results and self.blueprint_results[i] and self.blueprint_results[i][j]:
-                        Color(0, 1, 0, 1)
-                    else:
-                        Color(0, 0, 1, 1)
-                    frame_x, frame_z = self.get_frame_position(blueprint_position[0], blueprint_position[2])
-                    Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
-                    self.add_name([frame_x, frame_z], str(blueprint_position), 8)
+            Color(*color)
+            Ellipse(pos=frame_position, size=[TRACKING_ICON_SIZE] * 2)
 
     def add_cuboids(self):
         with self.canvas:
@@ -168,16 +175,16 @@ class Map(Widget):
                 frame_x1, frame_z1 = self.get_frame_position(cuboid["x1"], cuboid["z1"])
                 Rectangle(pos=[frame_x0, frame_z0], size=[frame_x1 - frame_x0, frame_z1 - frame_z0])
 
-    def add_name(self, position, name, font_size=NAME_FONT_SIZE):
+    def add_name(self, frame_position, name, font_size=NAME_FONT_SIZE):
         with self.canvas:
             label = Label(text=name, font_size=font_size)
             label.refresh()
             text = label.texture
-            pos_x = position[0] - 0.4 * text.size[0]
-            pos_z = position[1] + NAME_MARGIN_BOTTOM
-            pos = [pos_x, pos_z]
+            name_position_x = frame_position[0] - 0.4 * text.size[0]
+            name_position_z = frame_position[1] + NAME_MARGIN_BOTTOM
+            name_position = [name_position_x, name_position_z]
             Color(1, 1, 1, 1)
-            Rectangle(size=text.size, pos=pos, texture=text)
+            Rectangle(size=text.size, pos=name_position, texture=text)
 
     def get_frame_position(self, pos_x, pos_z):
         width = self.size[0]

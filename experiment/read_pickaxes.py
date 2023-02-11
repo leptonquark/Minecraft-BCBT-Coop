@@ -23,7 +23,6 @@ def plot_pickaxe_completion_times():
 
             fig, ax = plt.subplots()
             plot_variable_values(ax, stats, PICKAXES, "pickaxe")
-
             ax.set_xticks(PICKAXES)
             ax.set_xticklabels(["None", "Wooden Pickaxe", "Stone Pickaxe", "Iron Pickaxe", "Diamond Pickaxe"])
             ax.set_xlabel("Pickaxe", size=12)

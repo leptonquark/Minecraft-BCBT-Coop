@@ -27,13 +27,6 @@ def get_free_file_path(file_name):
     return file_path
 
 
-def create_file_and_write(file_name, function):
-    create_folders(file_name)
-    file_path = get_project_root() / file_name
-    with codecs.open(str(file_path), "w", "utf-8") as file:
-        function(file)
-
-
 def create_folders(file_name):
     file_path = get_project_root() / file_name
     file_path.parent.mkdir(parents=True, exist_ok=True)

@@ -25,11 +25,11 @@ class Craft(Action):
         self.item = item
 
     def update(self):
-        if not self.agent.inventory.has_ingredients(self.item):
+        if self.agent.inventory.has_ingredients(self.item):
+            self.agent.craft(self.item, self.amount)
+            return Status.RUNNING
+        else:
             return Status.FAILURE
-
-        self.agent.craft(self.item, self.amount)
-        return Status.RUNNING
 
 
 class Melt(Action):
@@ -40,12 +40,11 @@ class Melt(Action):
 
     def update(self):
         fuel = self.agent.inventory.get_fuel()
-        if fuel is None or not self.agent.inventory.has_ingredients(self.item):
+        if fuel is not None and self.agent.inventory.has_ingredients(self.item):
+            self.agent.melt(self.item, fuel, self.amount)
+            return Status.RUNNING
+        else:
             return Status.FAILURE
-
-        self.agent.melt(self.item, fuel, self.amount)
-
-        return Status.SUCCESS
 
 
 class Equip(Action):
@@ -110,12 +109,9 @@ class GoToAnimal(Action):
         self.specie = specie
 
     def update(self):
-        self.agent.jump(False)
-
         animal = self.agent.observer.get_weakest_animal(self.specie)
         if animal is not None:
             self.agent.go_to_position(animal.position)
-
             within_reach = self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
             return Status.SUCCESS if within_reach else Status.RUNNING
         else:

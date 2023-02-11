@@ -7,6 +7,7 @@ from utils.plot import save_figure
 
 CAPSIZE = 10
 FULL_WIDTH = 0.8
+TIMEOUT = 300
 
 COOPERATIVITY_COLORS = {
     "False": "r",
@@ -23,18 +24,18 @@ def read_csv(file_name):
 
 def plot_completion_times(fpp, flat_world):
     files = get_files(flat_world, fpp)
-    dfs = [pd.read_csv(get_project_root() / EXPERIMENT_PATH / file).astype({"collaborative": str}) for file in files]
+    dfs = [read_csv(file).astype({"collaborative": str}) for file in files]
     df = pd.concat(dfs)
 
     groups = ["agents", "collaborative"]
 
     stats = get_time_stats(df, groups, ["time_mean", "time_std"])
 
-    df_we = df[(df.time < 300) & (df.time >= 0)]
+    df_we = df[(df.time < TIMEOUT) & (df.time >= 0)]
     stats_we = get_time_stats(df_we, groups, ["time_mean_we", "time_std_we"])
     stats_full = pd.concat([stats, stats_we], axis=1).reset_index()
 
-    df_edges = df[df.time >= 300]
+    df_edges = df[df.time >= TIMEOUT]
 
     print(df_edges.groupby(['agents', 'collaborative']).count())
 
@@ -122,12 +123,10 @@ def get_delta_x(collaborative, cooperativities, width):
 
 def get_labels(cooperativities, stats_full):
     labels = []
-    if cooperativities == 2:
-        for agent in stats_full.agents.unique():
-            labels += ['Indep', f"\n{agent} {'agents' if agent > 1 else 'agent'}", 'Collab']
-    elif cooperativities == 3:
-        for agent in stats_full.agents.unique():
-            labels += ['Indep', f"\n{agent} {'agents' if agent > 1 else 'agent'}", 'Collab', "Both"]
+    cooperativity_labels = ["Indep", "Collab", "Both"]
+    for agent in stats_full.agents.unique():
+        agents_label = f"\n{agent} {'agents' if agent > 1 else 'agent'}"
+        labels += [f"{agents_label}"] + cooperativity_labels[:cooperativities + 1]
     return labels
 
 
@@ -135,9 +134,9 @@ def get_ticks(cooperativities, width, x):
     ticks = []
     for t in x[::cooperativities]:
         if cooperativities == 3:
-            ticks += [t - 2 * width, t - width + 0.0001, t - width, t]
+            ticks += [t - width + 0.0001, t - 2 * width, t - width, t]
         elif cooperativities == 2:
-            ticks += [t, t + width / 2, t + width]
+            ticks += [t + width / 2, t, t + width]
     return ticks
 
 
@@ -152,8 +151,16 @@ def get_time_stats(data, groups, columns=None):
 def plot_variable_values(ax, stats, values, key):
     for cooperativity, color in COOPERATIVITY_COLORS.items():
         data = stats[stats.collaborative == cooperativity].set_index(key)
-        ax.errorbar(values, data["time_mean"], yerr=data["time_std"], fmt="o", color=color, markerfacecolor=color,
-                    markeredgecolor='k', capsize=2)
+        ax.errorbar(
+            values,
+            data["time_mean"],
+            yerr=data["time_std"],
+            fmt="o",
+            color=color,
+            markerfacecolor=color,
+            markeredgecolor='k',
+            capsize=2
+        )
         plt.legend(COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
 
 

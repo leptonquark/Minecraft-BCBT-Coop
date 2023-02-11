@@ -2,7 +2,7 @@ from py_trees.composites import Selector
 
 from bt.conditions import Condition
 from bt.sequence import Sequence
-from utils.file import create_file_and_write
+from utils.file import save_data_safely
 
 
 # Separate implementation from the XML one
@@ -47,4 +47,4 @@ def subtree_to_csv(tree, parent_id):
 
 def save_tree_to_log(tree, filename):
     logfile = f"log/{filename}"
-    create_file_and_write(logfile, lambda file: file.write(tree_to_drawio_csv(tree)))
+    save_data_safely(logfile, lambda file: file.write(tree_to_drawio_csv(tree)))

@@ -13,6 +13,15 @@ CUBOID_COLORS = {
 }
 CUBOID_COLOR_DEFAULT = [1, 1, 1, 1]
 
+BLUEPRINT_COLOR = {
+    True: [0, 1, 0, 1],
+    False: [0, 0, 1, 1]
+}
+
+
+def get_blueprint_color(placed):
+    return BLUEPRINT_COLOR.get(placed, BLUEPRINT_COLOR[False])
+
 
 def get_agent_color(i):
     return AGENT_COLORS[i] if i < len(AGENT_COLORS) else AGENT_COLORS[0]
