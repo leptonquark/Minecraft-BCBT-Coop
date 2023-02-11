@@ -6,7 +6,7 @@ from goals.blueprint.blueprint import Blueprint, BlueprintType
 from items import items
 from multiagents.cooperativity import Cooperativity
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
-from utils.file import create_file_and_write, save_data_safely
+from utils.file import save_data_safely
 from world.missiondata import MissionData
 
 EXPERIMENT_PATH = Path("log/experiments")
@@ -37,8 +37,15 @@ def run_pickaxe_tests(n_test_runs):
                     print(output)
                     run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}_pickaxes.csv"
-    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+    save_output(output, experiment, "pickaxes")
+
+
+def save_output(output, experiment, modifier=None):
+    if modifier:
+        file_name = f"output_{experiment.id}_{modifier}.csv"
+    else:
+        file_name = f"output_{experiment.id}.csv"
+    save_data_safely(EXPERIMENT_PATH / file_name, lambda file: file.write('\n'.join(output)))
 
 
 def run_variable_delta_tests():
@@ -61,8 +68,7 @@ def run_variable_delta_tests():
                     print(output)
                     run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}_delta.csv"
-    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+    save_output(output, experiment, "delta")
 
 
 def run_tests(experiment, cooperativities, n_agents_range, n_test_runs=15):
@@ -78,8 +84,7 @@ def run_tests(experiment, cooperativities, n_agents_range, n_test_runs=15):
                 print(output)
                 run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"log/experiments/output_{experiment.id}.csv"
-    save_data_safely(file_name, lambda file: file.write('\n'.join(output)))
+    save_output(output, experiment)
 
 
 def run_test(cooperativity, experiment, n_agents, on_value=None):

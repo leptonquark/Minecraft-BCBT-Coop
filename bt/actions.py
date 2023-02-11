@@ -21,7 +21,6 @@ class Action(Behaviour):
 class Craft(Action):
     def __init__(self, agent, item, amount=1):
         super().__init__(f"Craft {item}", agent)
-        self.agent = agent
         self.amount = amount
         self.item = item
 
@@ -36,7 +35,6 @@ class Craft(Action):
 class Melt(Action):
     def __init__(self, agent, item, amount=1):
         super().__init__(f"Melt {amount}x {item}", agent)
-        self.agent = agent
         self.item = item
         self.amount = amount
 
@@ -53,34 +51,32 @@ class Melt(Action):
 class Equip(Action):
     def __init__(self, agent, item):
         super().__init__(f"Equip {item}", agent)
-        self.agent = agent
         self.item = item
 
     def update(self):
         if self.agent.inventory.has_item(self.item):
             self.agent.equip_item(self.item)
             return Status.SUCCESS
-
-        return Status.FAILURE
+        else:
+            return Status.FAILURE
 
 
 class EquipBestPickAxe(Action):
     def __init__(self, agent, tier):
         super().__init__(f"Equip best pickaxe, {tier} or better", agent)
-        self.agent = agent
         self.tier = tier
 
     def update(self):
         if self.agent.has_pickaxe_by_minimum_tier(self.tier):
             self.agent.equip_best_pickaxe(self.tier)
             return Status.SUCCESS
-        return Status.FAILURE
+        else:
+            return Status.FAILURE
 
 
 class JumpIfStuck(Action):
     def __init__(self, agent):
         super().__init__("JumpIfStuck", agent)
-        self.agent = agent
 
     def update(self):
         is_stuck = self.agent.observer.is_stuck()
@@ -97,15 +93,12 @@ class PickupItem(Action):
         self.item = item
 
     def update(self):
-        self.agent.jump(False)
-
         position = self.agent.observer.get_pickup_position(self.item)
-        if position is None:
+        if position is not None:
+            self.agent.go_to_position(position)
+            return Status.SUCCESS if self.agent.observer.get_pickup_position(self.item) is None else Status.RUNNING
+        else:
             return Status.FAILURE
-
-        self.agent.go_to_position(position)
-
-        return Status.SUCCESS if self.agent.observer.get_pickup_position(self.item) is None else Status.RUNNING
 
     def terminate(self, new_status):
         self.agent.stop()
@@ -120,47 +113,34 @@ class GoToAnimal(Action):
         self.agent.jump(False)
 
         animal = self.agent.observer.get_weakest_animal(self.specie)
-        if animal is None:
+        if animal is not None:
+            self.agent.go_to_position(animal.position)
+
+            within_reach = self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
+            return Status.SUCCESS if within_reach else Status.RUNNING
+        else:
             return Status.FAILURE
-
-        self.agent.go_to_position(animal.position)
-
-        within_reach = self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
-        return Status.SUCCESS if within_reach else Status.RUNNING
 
 
 class GoToEnemy(Action):
-    def __init__(self, agent):
+    def __init__(self, agent, consider_other_agents=False):
         super().__init__("Go to enemy", agent)
+        self.consider_other_agents = consider_other_agents
 
     def update(self):
         self.agent.jump(False)
 
-        enemy = self.agent.observer.get_closest_enemy()
-        if enemy is None:
+        if self.consider_other_agents:
+            enemy = self.agent.observer.get_closest_enemy_to_agents()
+        else:
+            enemy = self.agent.observer.get_closest_enemy()
+
+        if enemy is not None:
+            self.agent.go_to_position(enemy.position)
+            within_reach = self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
+            return Status.SUCCESS if within_reach else Status.RUNNING
+        else:
             return Status.FAILURE
-
-        self.agent.go_to_position(enemy.position)
-
-        within_reach = self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
-        return Status.SUCCESS if within_reach else Status.RUNNING
-
-
-class GoToEnemyClosestToAgents(Action):
-    def __init__(self, agent):
-        super().__init__(f"Go to enemy closest to agents", agent)
-
-    def update(self):
-        self.agent.jump(False)
-
-        enemy = self.agent.observer.get_closest_enemy_to_agents()
-        if enemy is None:
-            return Status.FAILURE
-
-        self.agent.go_to_position(enemy.position)
-
-        within_reach = self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
-        return Status.SUCCESS if within_reach else Status.RUNNING
 
 
 class GoToBlock(Action):
@@ -188,7 +168,6 @@ class GoToBlock(Action):
 class GoToPosition(Action):
     def __init__(self, agent, position):
         super().__init__(f"Go to {position}", agent)
-        self.agent = agent
         self.position = position
 
     def update(self):
@@ -202,7 +181,6 @@ class GoToPosition(Action):
 class MineMaterial(Action):
     def __init__(self, agent, material):
         super().__init__(f"Mine {material}", agent)
-        self.agent = agent
         self.material = material
 
     def update(self):
@@ -233,7 +211,6 @@ class MineMaterial(Action):
 class AttackAnimal(Action):
     def __init__(self, agent, specie=None):
         super().__init__(f"Attack {specie if specie else 'animal'}", agent)
-        self.agent = agent
         self.specie = specie
 
     def update(self):
@@ -250,39 +227,26 @@ class AttackAnimal(Action):
         self.agent.stop()
 
 
-class DefeatClosestEnemy(Action):
-    def __init__(self, agent):
+class DefeatEnemy(Action):
+    def __init__(self, agent, consider_other_agents=False):
         super().__init__("Defeat closest enemy", agent)
-        self.agent = agent
+        self.consider_other_agents = consider_other_agents
 
     def update(self):
-        enemy = self.agent.observer.get_closest_enemy()
-
-        if not self.agent.observer.is_position_within_reach(enemy.position):
+        enemy = self.get_closest_enemy(self.consider_other_agents)
+        if self.agent.observer.is_position_within_reach(enemy.position):
+            done_looking = self.agent.look_at_entity(enemy)
+            self.agent.attack(done_looking)
+            return Status.RUNNING
+        else:
             return Status.FAILURE
 
-        done_looking = self.agent.look_at_entity(enemy)
-        self.agent.attack(done_looking)
-        return Status.RUNNING
-
-    def terminate(self, new_status):
-        self.agent.stop()
-
-
-class DefeatEnemyClosestToAgent(Action):
-    def __init__(self, agent):
-        super().__init__("Defeat enemy closest to agent", agent)
-        self.agent = agent
-
-    def update(self):
-        enemy = self.agent.observer.get_closest_enemy_to_agents()
-
-        if not self.agent.observer.is_position_within_reach(enemy.position):
-            return Status.FAILURE
-
-        done_looking = self.agent.look_at_entity(enemy)
-        self.agent.attack(done_looking)
-        return Status.RUNNING
+    def get_closest_enemy(self, consider_other_agents):
+        if consider_other_agents:
+            enemy = self.agent.observer.get_closest_enemy_to_agents()
+        else:
+            enemy = self.agent.observer.get_closest_enemy()
+        return enemy
 
     def terminate(self, new_status):
         self.agent.stop()
@@ -291,7 +255,6 @@ class DefeatEnemyClosestToAgent(Action):
 class PlaceBlockAtPosition(Action):
     def __init__(self, agent, block, position):
         super().__init__(f"Place {block} at position {position}", agent)
-        self.agent = agent
         self.block = block
         self.position = position
         self.position_below = position + down
@@ -341,7 +304,6 @@ class DigDownwardsToMaterial(Action):
 
     def __init__(self, agent, material):
         super().__init__(f"Dig downwards to {material}", agent)
-        self.agent = agent
         self.material = material
 
     def update(self):

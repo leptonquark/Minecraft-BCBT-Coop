@@ -170,7 +170,10 @@ class MinerAgent:
             if pitching or turning:
                 self.attack(False)
                 return False
-        return True
+            else:
+                return True
+        else:
+            return True
 
     def pitch_towards(self, distance):
         horizontal_distance = get_horizontal_distance(distance)

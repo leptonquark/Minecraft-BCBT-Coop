@@ -26,12 +26,12 @@ def plot_completion_times(fpp, flat_world):
     dfs = [pd.read_csv(get_project_root() / EXPERIMENT_PATH / file).astype({"collaborative": str}) for file in files]
     df = pd.concat(dfs)
 
-    stats = df.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
-    stats.columns = ["time_mean", "time_std"]
+    groups = ["agents", "collaborative"]
+
+    stats = get_time_stats(df, groups, ["time_mean", "time_std"])
 
     df_we = df[(df.time < 300) & (df.time >= 0)]
-    stats_we = df_we.groupby(['agents', 'collaborative']).agg({"time": ["mean", "std"]})
-    stats_we.columns = ["time_mean_we", "time_std_we"]
+    stats_we = get_time_stats(df_we, groups, ["time_mean_we", "time_std_we"])
     stats_full = pd.concat([stats, stats_we], axis=1).reset_index()
 
     df_edges = df[df.time >= 300]
@@ -139,6 +139,14 @@ def get_ticks(cooperativities, width, x):
         elif cooperativities == 2:
             ticks += [t, t + width / 2, t + width]
     return ticks
+
+
+def get_time_stats(data, groups, columns=None):
+    if columns is None:
+        columns = ["time_mean", "time_std"]
+    stats = data.groupby(groups).agg({"time": ["mean", "std"]})
+    stats.columns = columns
+    return stats
 
 
 def plot_variable_values(ax, stats, values, key):

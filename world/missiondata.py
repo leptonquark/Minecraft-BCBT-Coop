@@ -134,12 +134,9 @@ class MissionData:
     def initialize_cuboids(self, drawing_decorator):
         for cuboid in self.world_generator.cuboids:
             draw_cuboid = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_CUBOID)
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_X1, str(cuboid.range[0][0]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Y1, str(cuboid.range[0][1]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Z1, str(cuboid.range[0][2]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_X2, str(cuboid.range[1][0]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Y2, str(cuboid.range[1][1]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Z2, str(cuboid.range[1][2]))
+            for i, position in enumerate(cuboid.range):
+                for j, coordinate in enumerate(position):
+                    draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_XYZ[i][j], str(coordinate))
             draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_TYPE, cuboid.type)
 
     def initialize_agent_section(self, mission):

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from experiment.read import read_csv, plot_variable_values
+from experiment.read import read_csv, plot_variable_values, get_time_stats
 from items import items
 from utils.plot import save_figure
 
@@ -19,10 +19,8 @@ def plot_pickaxe_completion_times():
 
         for agents in agent_amounts:
             agent_data = world_data[world_data.agents == agents]
+            stats = get_time_stats(agent_data, ['pickaxe', 'collaborative']).reset_index()
 
-            stats = agent_data.groupby(['pickaxe', 'collaborative']).agg({"time": ["mean", "std"]})
-            stats.columns = ["time_mean", "time_std"]
-            stats = stats.reset_index()
             fig, ax = plt.subplots()
             plot_variable_values(ax, stats, PICKAXES, "pickaxe")
 

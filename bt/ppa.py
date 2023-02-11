@@ -104,7 +104,8 @@ class HasPickupNearbyPPA(PPA):
             self.name = f"Mine {condition.item}"
             tier = get_gathering_tier_by_material(condition.item)
             self.pre_conditions = [] if tier is None else [
-                conditions.HasBestPickaxeByMinimumTierEquipped(self.agent, tier)]
+                conditions.HasBestPickaxeByMinimumTierEquipped(self.agent, tier)
+            ]
             self.pre_conditions.append(conditions.IsBlockWithinReach(self.agent, condition.item))
             self.actions = [actions.MineMaterial(self.agent, condition.item)]
         else:
@@ -153,13 +154,13 @@ class IsAnimalWithinReachPPA(PPA):
 class IsEnemyWithinReachPPA(PPA):
     def __init__(self, condition):
         super().__init__(condition, False)
-        self.actions = [actions.GoToEnemy(self.agent)]
+        self.actions = [actions.GoToEnemy(self.agent, consider_other_agents=False)]
 
 
 class IsEnemyClosestToAgentsWithinReachPPA(PPA):
     def __init__(self, condition):
         super().__init__(condition, False)
-        self.actions = [actions.GoToEnemyClosestToAgents(self.agent)]
+        self.actions = [actions.GoToEnemy(self.agent, consider_other_agents=True)]
 
 
 class IsAnimalObservablePPA(PPA):
@@ -172,14 +173,14 @@ class HasNoEnemyNearbyPPA(PPA):
     def __init__(self, condition):
         super().__init__(condition, False)
         self.pre_conditions = [conditions.IsEnemyWithinReach(self.agent)]
-        self.actions = [actions.DefeatClosestEnemy(self.agent)]
+        self.actions = [actions.DefeatEnemy(self.agent, consider_other_agents=False)]
 
 
 class HasNoEnemyNearToAgentPPA(PPA):
     def __init__(self, condition):
         super().__init__(condition, False)
         self.pre_conditions = [conditions.IsEnemyClosestToAgentsWithinReach(self.agent)]
-        self.actions = [actions.DefeatEnemyClosestToAgent(self.agent)]
+        self.actions = [actions.DefeatEnemy(self.agent, consider_other_agents=True)]
 
 
 class IsBlockAtPositionPPA(PPA):

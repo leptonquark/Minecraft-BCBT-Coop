@@ -18,18 +18,11 @@ class StartSender(Sender):
     def __init__(self, blackboard, channel):
         super().__init__(blackboard, channel, True)
 
-    def update(self):
-        super().update()
-        return Status.SUCCESS
 
 
 class StopSender(Sender):
     def __init__(self, blackboard, channel):
         super().__init__(blackboard, channel, False)
-
-    def update(self):
-        super().update()
-        return Status.SUCCESS
 
 
 class ItemSender(Behaviour):

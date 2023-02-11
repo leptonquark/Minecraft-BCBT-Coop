@@ -1,7 +1,21 @@
 import matplotlib.pyplot as plt
 
-from experiment.read import read_csv, plot_variable_values, COOPERATIVITY_COLORS
+from experiment.read import read_csv, plot_variable_values, COOPERATIVITY_COLORS, get_time_stats
 from utils.plot import save_figure
+
+X_LABEL_SIZE = 12
+
+FIGURE_NAME_DELTA_COMPLETION_TIME_FRACTIONS = "delta_ct_fractions"
+
+FIGURE_NAME_DELTA_COMPLETION_TIMES = "delta_completion_times"
+
+DELTA_X_LABEL = "Distance between fence posts $\Delta$ (blocks)"
+
+COMPLETION_TIME_Y_LABEL = "Average completion time (s)"
+COMPLETION_TIME_FRACTION_Y_LABEL = "Fraction of average completion time of baseline"
+
+COMPLETION_TIME_Y_RANGE = [0, 100]
+COMPLETION_TIME_FRACTION_Y_RANGE = [0, 1]
 
 BAR_WIDTH = 0.5
 
@@ -13,12 +27,9 @@ def plot_delta(agents):
 
     world_data = read_csv(file_name)
 
-    agent_data = world_data[world_data.agents == 3]
+    agent_data = world_data[world_data.agents == agents]
 
-    stats = agent_data.groupby(['delta', 'collaborative']).agg({"time": ["mean", "std"]})
-    stats.columns = ["time_mean", "time_std"]
-    stats = stats.reset_index()
-
+    stats = get_time_stats(agent_data, ['delta', 'collaborative'])
     stats = stats.groupby("delta").apply(add_time_fractions)
     deltas = stats.delta.unique()
 
@@ -29,12 +40,15 @@ def plot_delta(agents):
 def plot_delta_completion_times(agents, deltas, world_id, stats, world_name):
     fig, ax = plt.subplots()
     plot_variable_values(ax, stats, deltas, "delta")
-    plt.ylim([0, 200])
-    ax.set_xlabel("Pickaxe", size=12)
-    ax.set_ylabel("Average completion time (s)")
-    plt.title(f"Fence post placement in {world_name} with {agents} agents")
-    save_figure(f"pickaxe_completion_times_{world_id}_{agents}.png")
-    plt.show()
+    ax.set_ylim(COMPLETION_TIME_Y_RANGE)
+    set_labels(agents, ax, world_name, COMPLETION_TIME_Y_LABEL)
+    save_delta_figure(FIGURE_NAME_DELTA_COMPLETION_TIMES, world_id, agents)
+
+
+def set_labels(agents, ax, world_name, y_label):
+    ax.set_xlabel(DELTA_X_LABEL, size=X_LABEL_SIZE)
+    ax.set_ylabel(y_label)
+    set_title(ax, agents, world_name)
 
 
 def plot_delta_completion_time_fractions(agents, deltas, world_id, stats, world_name):
@@ -45,14 +59,20 @@ def plot_delta_completion_time_fractions(agents, deltas, world_id, stats, world_
             data = data.set_index("delta")
             deltas_collab = deltas - BAR_WIDTH / 2 if cooperativity == "True" else deltas + BAR_WIDTH / 2
             ax.bar(deltas_collab, data.time_mean_diff, yerr=data.time_std_diff, color=color, capsize=2, edgecolor="k",
-                   width=0.5)
+                   width=BAR_WIDTH)
             legend_values = ["Collaborative", "Proposed Method"]
             plt.legend(legend_values, title="Cooperativity", title_fontproperties={"weight": "bold"})
-    plt.ylim([0, 1])
-    ax.set_xlabel("Distance between fence posts $\Delta$ (blocks)", size=12)
-    ax.set_ylabel("Fraction of average completion time of baseline ")
-    plt.title(f"Fence post placement in {world_name} with {agents} agents")
-    save_figure(f"pickaxe_ct_fractions_{world_id}_{agents}.png")
+    ax.set_ylim(COMPLETION_TIME_FRACTION_Y_LABEL)
+    set_labels(agents, ax, world_name, COMPLETION_TIME_FRACTION_Y_LABEL)
+    save_delta_figure(FIGURE_NAME_DELTA_COMPLETION_TIME_FRACTIONS, world_id, agents)
+
+
+def set_title(ax, agents, world_name):
+    ax.set_title(f"Fence post placement in {world_name} with {agents} agents")
+
+
+def save_delta_figure(data_type, world_id, agents):
+    save_figure(f"{data_type}_{world_id}_{agents}.png")
     plt.show()
 
 
