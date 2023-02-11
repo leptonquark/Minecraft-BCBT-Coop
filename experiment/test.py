@@ -6,7 +6,7 @@ from goals.blueprint.blueprint import Blueprint, BlueprintType
 from items import items
 from multiagents.cooperativity import Cooperativity
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
-from utils.file import create_file_and_write
+from utils.file import save_data_safely
 from world.missiondata import MissionData
 
 EXPERIMENT_PATH = Path("log/experiments")
@@ -18,9 +18,8 @@ cooperativity_to_collaborative = {
 }
 
 
-def run_pickaxe_tests():
+def run_pickaxe_tests(n_test_runs):
     experiment = experiments.experiment_get_10_stone_pickaxe
-    n_test_runs = 15
     agents_max = 3
     cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
     pickaxes = [items.DIAMOND_PICKAXE, items.IRON_PICKAXE, items.STONE_PICKAXE, items.WOODEN_PICKAXE, None]
@@ -28,18 +27,25 @@ def run_pickaxe_tests():
     run = 0
     start_time = time.time()
     for pickaxe in pickaxes:
-        experiment.start_inventory = [pickaxe] if pickaxe else []
+        experiment.start_inventory = [pickaxe] if pickaxe is not None else []
         for n_agents in range(1, agents_max + 1):
             for cooperativity in cooperativities:
                 for i in range(n_test_runs):
-                    completion_time = run_test(cooperativity, experiment, n_agents)
+                    completion_time, _ = run_test(cooperativity, experiment, n_agents)
                     collaborative = cooperativity_to_collaborative[cooperativity]
                     output.append(f"{run},{collaborative},{n_agents},{pickaxe},{i},{completion_time}")
                     print(output)
                     run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}.csv"
-    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+    save_output(output, experiment, "pickaxes")
+
+
+def save_output(output, experiment, modifier=None):
+    if modifier:
+        file_name = f"output_{experiment.id}_{modifier}.csv"
+    else:
+        file_name = f"output_{experiment.id}.csv"
+    save_data_safely(EXPERIMENT_PATH / file_name, lambda file: file.write('\n'.join(output)))
 
 
 def run_variable_delta_tests():
@@ -56,35 +62,29 @@ def run_variable_delta_tests():
         for n_agents in range(1, agents_max + 1):
             for cooperativity in cooperativities:
                 for i in range(n_test_runs):
-                    completion_time = run_test(cooperativity, experiment, n_agents)
+                    completion_time, _ = run_test(cooperativity, experiment, n_agents)
                     collaborative = cooperativity_to_collaborative[cooperativity]
                     output.append(f"{run},{collaborative},{n_agents},{delta},{i},{completion_time}")
                     print(output)
                     run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}_delta.csv"
-    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+    save_output(output, experiment, "delta")
 
 
-def run_tests():
-    experiment = experiments.experiment_default_world
-    n_test_runs = 15
-    agents_max = 3
-    cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE, Cooperativity.COOPERATIVE_WITH_CATCHUP]
-    output = ["collaborative,agents,internal_id,time"]
+def run_tests(experiment, cooperativities, n_agents_range, n_test_runs=15):
+    output = ["collaborative,agents,internal_id,time,alive_agents"]
     run = 0
     start_time = time.time()
-    for n_agents in range(1, agents_max + 1):
+    for n_agents in n_agents_range:
         for cooperativity in cooperativities:
             for i in range(n_test_runs):
-                completion_time = run_test(cooperativity, experiment, n_agents)
+                completion_time, alive_agents = run_test(cooperativity, experiment, n_agents)
                 collaborative = cooperativity_to_collaborative[cooperativity]
-                output.append(f"{run},{collaborative},{n_agents},{i},{completion_time}")
+                output.append(f"{run},{collaborative},{n_agents},{i},{completion_time},{alive_agents}")
                 print(output)
                 run += 1
     print(f"Total time all experiments: {time.time() - start_time}")
-    file_name = f"output_{experiment.id}.csv"
-    create_file_and_write(file_name, lambda file: file.write('\n'.join(output)))
+    save_output(output, experiment)
 
 
 def run_test(cooperativity, experiment, n_agents, on_value=None):
@@ -100,9 +100,16 @@ def run_test(cooperativity, experiment, n_agents, on_value=None):
             if on_value is not None:
                 on_value(value)
     completion_time = value.completion_time if value else -1
-    print(f"Completion time: {completion_time}. Experiment time: {time.time() - exp_time}")
-    return completion_time
+    alive_agents = value.alive_agents
+    print(f"Completion time: {completion_time}. Alive agents: {alive_agents} Experiment time: {time.time() - exp_time}")
+    return completion_time, alive_agents
 
 
 if __name__ == '__main__':
-    run_test(Cooperativity.COOPERATIVE, experiments.experiment_flat_world, 3)
+    test_experiments = [experiments.experiment_flat_world_zombie, experiments.experiment_flat_world_zombie_help]
+    for test_experiment in test_experiments:
+        test_cooperativities = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]
+        n_agents_min = 2
+        n_agents_max = 3
+        test_runs = 15
+        run_tests(test_experiment, test_cooperativities, range(n_agents_min, n_agents_max + 1), test_runs)

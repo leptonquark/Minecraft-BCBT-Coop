@@ -10,7 +10,4 @@ def get_agent_names(n):
 
 
 def get_name(i):
-    if i < len(NAMES):
-        return NAMES[i]
-    else:
-        return f"Bot {i}"
+    return NAMES[i] if i < len(NAMES) else f"Bot {i}"

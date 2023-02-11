@@ -8,7 +8,7 @@ from utils.names import get_agent_names
 from utils.string import prettify_xml
 from world import xmlconstants
 from world.grid import GridSpecification
-from world.world_generator import FlatWorldGenerator
+from world.worldgenerator import FlatWorldGenerator
 
 
 def setup_experiment_id():
@@ -60,15 +60,11 @@ class MissionData:
         self.allow_passage_of_time = False
 
         self.obs_entities_name = "entities"
-        self.obs_entities_range = (40, 40, 40)
+        self.obs_entities_range = (80, 5, 80)
 
         self.grid_local = GridSpecification("me", np.array([[-40, 40], [-2, 4], [-40, 40]]), False)
 
-        self.grids_global = []
-        for goal in self.goals:
-            if isinstance(goal, Blueprint):
-                self.grids_global.append(goal.get_required_grid("global"))
-
+        self.grids_global = [goal.get_required_grid("global") for goal in self.goals if isinstance(goal, Blueprint)]
         self.start_inventory = config.start_inventory
         self.start_entities = config.start_entities
 
@@ -133,19 +129,14 @@ class MissionData:
         for entity in self.start_entities:
             draw_entity = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_ENTITY)
             draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_TYPE, entity.type)
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_X, str(entity.position[0]))
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Y, str(entity.position[1]))
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_Z, str(entity.position[2]))
+            set_range(draw_entity, entity.position, xmlconstants.ATTRIBUTE_ENTITY_XYZ)
 
     def initialize_cuboids(self, drawing_decorator):
         for cuboid in self.world_generator.cuboids:
             draw_cuboid = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_CUBOID)
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_X1, str(cuboid.range[0][0]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Y1, str(cuboid.range[0][1]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Z1, str(cuboid.range[0][2]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_X2, str(cuboid.range[1][0]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Y2, str(cuboid.range[1][1]))
-            draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_Z2, str(cuboid.range[1][2]))
+            for i, position in enumerate(cuboid.range):
+                for j, coordinate in enumerate(position):
+                    draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_XYZ[i][j], str(coordinate))
             draw_cuboid.set(xmlconstants.ATTRIBUTE_CUBOID_TYPE, cuboid.type)
 
     def initialize_agent_section(self, mission):
@@ -153,29 +144,29 @@ class MissionData:
             agent_section = Et.SubElement(mission, xmlconstants.ELEMENT_AGENT_SECTION)
             agent_section.set(xmlconstants.ATTRIBUTE_GAME_MODE, self.mode)
 
-            self.initialize_agent_name(agent_section, name)
+            agent_name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
+            agent_name.text = name
+
             self.initialize_agent_start(agent_section, i)
             self.initialize_agent_handlers(agent_section)
-
-    def initialize_agent_name(self, agent_section, name):
-        agent_name = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_NAME)
-        agent_name.text = name
 
     def initialize_agent_start(self, agent_section, i):
         agent_start = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_START_SPECIFICATIONS)
         if self.start_positions is not None and self.start_positions[i] is not None:
             placement = Et.SubElement(agent_start, xmlconstants.AGENT_START_POSITION)
-            placement.set(xmlconstants.AGENT_START_POSITION_X, str(self.start_positions[i][0]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Y, str(self.start_positions[i][1]))
-            placement.set(xmlconstants.AGENT_START_POSITION_Z, str(self.start_positions[i][2]))
+            for a, coordinate in enumerate(self.start_positions[i]):
+                placement.set(xmlconstants.AGENT_START_POSITION_XYZ[a], str(coordinate))
             placement.set(xmlconstants.AGENT_START_PITCH, str(self.start_pitch))
 
-            if self.start_inventory is not None and self.start_inventory:
-                inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
-                for i, item in enumerate(self.start_inventory):
-                    item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
-                    item_element.set(xmlconstants.ATTRIBUTE_TYPE, item)
-                    item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(i))
+            self.initialize_agent_start_inventory(agent_start)
+
+    def initialize_agent_start_inventory(self, agent_start):
+        if self.start_inventory is not None and self.start_inventory:
+            inventory = Et.SubElement(agent_start, xmlconstants.ELEMENT_INVENTORY)
+            for item in self.start_inventory:
+                item_element = Et.SubElement(inventory, xmlconstants.ELEMENT_INVENTORY_ITEM)
+                item_element.set(xmlconstants.ATTRIBUTE_TYPE, item[0])
+                item_element.set(xmlconstants.ATTRIBUTE_SLOT, str(item[1]))
 
     def initialize_agent_handlers(self, agent_section):
         agent_handlers = Et.SubElement(agent_section, xmlconstants.ELEMENT_AGENT_HANDLERS)
@@ -196,9 +187,7 @@ class MissionData:
         observation_entities = Et.SubElement(agent_handlers, xmlconstants.OBSERVATION_ENTITIES)
         range_entities = Et.SubElement(observation_entities, xmlconstants.ENTITIES_RANGE)
         range_entities.set(xmlconstants.ENTITIES_NAME, self.obs_entities_name)
-        range_entities.set(xmlconstants.ENTITIES_RANGE_X, str(self.obs_entities_range[0]))
-        range_entities.set(xmlconstants.ENTITIES_RANGE_Y, str(self.obs_entities_range[1]))
-        range_entities.set(xmlconstants.ENTITIES_RANGE_Z, str(self.obs_entities_range[2]))
+        set_range(range_entities, self.obs_entities_range, xmlconstants.ENTITIES_RANGE_XYZ)
 
     def initialize_grid_observations(self, agent_handlers):
         observation_grid = Et.SubElement(agent_handlers, xmlconstants.OBSERVATION_GRID)
@@ -206,8 +195,10 @@ class MissionData:
         for grid_global in self.grids_global:
             grid_global.initialize_xml(observation_grid)
 
-    def is_flat_world(self):
-        return isinstance(self.world_generator, FlatWorldGenerator)
+
+def set_range(entity, values, attributes):
+    for i, value in enumerate(values):
+        entity.set(attributes[i], str(value))
 
 
 def et_to_xml(root):

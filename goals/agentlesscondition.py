@@ -1,6 +1,9 @@
+# TODO: Just let agents set conditions later
 class AgentlessCondition:
 
-    def __init__(self, condition_class, args):
+    def __init__(self, condition_class, args=None):
+        if args is None:
+            args = []
         self.condition_class = condition_class
         self.args = args
 

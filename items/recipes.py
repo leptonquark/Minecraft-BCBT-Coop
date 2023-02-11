@@ -57,9 +57,7 @@ def has_recipe(item):
 
 
 def get_ingredients(item):
-    if has_recipe(item):
-        return recipes[item].ingredients
-    return None
+    return recipes[item].ingredients if has_recipe(item) else None
 
 
 def get_recipe(item):

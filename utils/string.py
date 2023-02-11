@@ -1,10 +1,11 @@
 import xml.dom.minidom as dom
 
+from py_trees.common import Status
+from py_trees.composites import Selector
+
 from bt.actions import Action
 from bt.conditions import Condition
 from bt.sequence import Sequence
-from py_trees.composites import Selector
-from py_trees.common import Status
 
 
 def tree_to_string(tree, depth=0):
@@ -33,5 +34,4 @@ def tree_to_string(tree, depth=0):
 
 
 def prettify_xml(rough_string):
-    reparsed = dom.parseString(rough_string)
-    return reparsed.toprettyxml(indent="  ")
+    return dom.parseString(rough_string).toprettyxml(indent="  ")

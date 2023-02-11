@@ -9,8 +9,9 @@ from kivy.uix.widget import Widget
 
 from goals.blueprint.blueprint import Blueprint
 from multiagents.multiagentrunnerprocess import MultiAgentRunnerProcess
-from ui.colors import get_color
+from ui.colors import get_agent_color, get_cuboid_color, get_blueprint_color
 from world.missiondata import MissionData
+from world.worldgenerator import FlatWorldGenerator, CustomWorldGenerator
 
 
 class DashboardScreen(Screen):
@@ -82,14 +83,28 @@ X_RANGE_DEFAULT = (100, 150)
 Z_RANGE_DEFAULT = (-25, 25)
 
 
+def get_cuboid_dict(cuboid):
+    return {
+        "x0": min(cuboid.range[0][0], cuboid.range[1][0]),
+        "x1": max(cuboid.range[0][0], cuboid.range[1][0]),
+        "z0": min(cuboid.range[0][2], cuboid.range[1][2]),
+        "z1": max(cuboid.range[0][2], cuboid.range[1][2]),
+        "color": get_cuboid_color(cuboid.type)
+    }
+
+
 class Map(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.agent_names = []
+        self.agent_positions = []
+
         self.blueprint_positions = []
         self.blueprint_results = []
-        self.agent_positions = []
+
+        self.cuboids = []
+
         self.x_range = X_RANGE_DEFAULT
         self.z_range = Z_RANGE_DEFAULT
 
@@ -100,11 +115,13 @@ class Map(Widget):
 
     def set_mission_data(self, mission_data):
         self.agent_names = mission_data.agent_names
-        self.blueprint_positions = []
-        for goal in mission_data.goals:
-            if isinstance(goal, Blueprint):
-                self.blueprint_positions.append(goal.positions)
-        if mission_data.is_flat_world():
+        self.blueprint_positions = [goal.positions for goal in mission_data.goals if isinstance(goal, Blueprint)]
+        self.blueprint_results = [[False for _ in positions] for positions in self.blueprint_positions]
+        if isinstance(mission_data.world_generator, CustomWorldGenerator):
+            self.cuboids = [get_cuboid_dict(cuboid) for cuboid in mission_data.cuboids]
+            self.x_range = (-30, 30)
+            self.z_range = (-30, 30)
+        elif isinstance(mission_data.world_generator, FlatWorldGenerator):
             self.x_range = (75, 175)
             self.z_range = (-50, 50)
 
@@ -118,6 +135,7 @@ class Map(Widget):
         self.canvas.clear()
         self.add_agent_positions()
         self.add_blueprint_positions()
+        self.add_cuboids()
 
     def add_agent_positions(self):
         for role, agent_position in enumerate(self.agent_positions):
@@ -126,33 +144,47 @@ class Map(Widget):
 
     def add_agent_position(self, role, agent_position):
         with self.canvas:
-            Color(*get_color(role))
+            Color(*get_agent_color(role))
             frame_x, frame_z = self.get_frame_position(agent_position[0], agent_position[2])
             Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
             self.add_name([frame_x, frame_z], self.agent_names[role])
 
     def add_blueprint_positions(self):
-        with self.canvas:
-            for i, blueprint in enumerate(self.blueprint_positions):
-                for j, blueprint_position in enumerate(blueprint):
-                    if self.blueprint_results and self.blueprint_results[i] and self.blueprint_results[i][j]:
-                        Color(0, 1, 0, 1)
-                    else:
-                        Color(0, 0, 1, 1)
-                    frame_x, frame_z = self.get_frame_position(blueprint_position[0], blueprint_position[2])
-                    Ellipse(pos=[frame_x, frame_z], size=[TRACKING_ICON_SIZE] * 2)
-                    self.add_name([frame_x, frame_z], str(blueprint_position), 8)
+        for i, blueprint in enumerate(self.blueprint_positions):
+            for j, blueprint_position in enumerate(blueprint):
+                placed = self.blueprint_results and self.blueprint_results[i] and self.blueprint_results[i][j]
+                color = get_blueprint_color(placed)
+                self.add_named_dot(blueprint_position, color, str(blueprint_position), 8)
 
-    def add_name(self, position, name, font_size=NAME_FONT_SIZE):
+    def add_named_dot(self, position, color, name, name_size=NAME_FONT_SIZE):
+        frame_x, frame_z = self.get_frame_position(position[0], position[2])
+        self.add_dot(color, [frame_x, frame_z])
+        self.add_name([frame_x, frame_z], name, name_size)
+        return frame_x, frame_z
+
+    def add_dot(self, color, frame_position):
+        with self.canvas:
+            Color(*color)
+            Ellipse(pos=frame_position, size=[TRACKING_ICON_SIZE] * 2)
+
+    def add_cuboids(self):
+        with self.canvas:
+            for cuboid in self.cuboids:
+                Color(*cuboid["color"])
+                frame_x0, frame_z0 = self.get_frame_position(cuboid["x0"], cuboid["z0"])
+                frame_x1, frame_z1 = self.get_frame_position(cuboid["x1"], cuboid["z1"])
+                Rectangle(pos=[frame_x0, frame_z0], size=[frame_x1 - frame_x0, frame_z1 - frame_z0])
+
+    def add_name(self, frame_position, name, font_size=NAME_FONT_SIZE):
         with self.canvas:
             label = Label(text=name, font_size=font_size)
             label.refresh()
             text = label.texture
-            pos_x = position[0] - 0.4 * text.size[0]
-            pos_z = position[1] + NAME_MARGIN_BOTTOM
-            pos = [pos_x, pos_z]
+            name_position_x = frame_position[0] - 0.4 * text.size[0]
+            name_position_z = frame_position[1] + NAME_MARGIN_BOTTOM
+            name_position = [name_position_x, name_position_z]
             Color(1, 1, 1, 1)
-            Rectangle(size=text.size, pos=pos, texture=text)
+            Rectangle(size=text.size, pos=name_position, texture=text)
 
     def get_frame_position(self, pos_x, pos_z):
         width = self.size[0]
@@ -162,4 +194,5 @@ class Map(Widget):
         scaled_z = (pos_z - self.z_range[0]) / (self.z_range[1] - self.z_range[0])
         frame_x = self.center_x - width / 2 + scaled_x * width
         frame_z = self.center_y - height / 2 + scaled_z * height
+        frame_z = height - frame_z
         return frame_x, frame_z

@@ -83,3 +83,7 @@ def get_los_face(los_pos, yaw, pitch):
         else:
             return BlockFace.North
     return BlockFace.NoFace
+
+
+def normalize(vector):
+    return vector / np.linalg.norm(vector)

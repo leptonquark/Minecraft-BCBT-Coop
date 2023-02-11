@@ -66,10 +66,18 @@ class HasPickupNearby(Condition):
 
 class HasNoEnemyNearby(Condition):
     def __init__(self, agent):
-        super().__init__(f"Has No Enemy Nearby", agent)
+        super().__init__("Has No Enemy Nearby", agent)
 
     def verify(self):
         return not self.agent.observer.has_enemy_nearby()
+
+
+class HasNoEnemyNearToAgent(Condition):
+    def __init__(self, agent):
+        super().__init__("Has No Enemy Near to Player", agent)
+
+    def verify(self):
+        return not self.agent.observer.is_enemy_near_any_agent()
 
 
 class IsBlockWithinReach(Condition):
@@ -88,7 +96,6 @@ class IsBlockWithinReach(Condition):
 
 
 class IsBlockObservable(Condition):
-
     def __init__(self, agent, block):
         super().__init__(f"Is Block Observable {block}", agent)
         self.block = block
@@ -105,8 +112,7 @@ class IsPositionWithinReach(Condition):
 
     def verify(self):
         position_center = get_position_flat_center(self.position)
-        has_arrived = self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
-        return has_arrived
+        return self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
 
 
 class IsAnimalWithinReach(Condition):
@@ -116,15 +122,24 @@ class IsAnimalWithinReach(Condition):
 
     def verify(self):
         animal = self.agent.observer.get_weakest_animal(self.specie)
-        return animal and self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
+        return animal is not None and self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
 
 
 class IsEnemyWithinReach(Condition):
     def __init__(self, agent):
-        super().__init__(f"Is Enemy Within Reach", agent)
+        super().__init__("Is Enemy Within Reach", agent)
 
     def verify(self):
         enemy = self.agent.observer.get_closest_enemy()
+        return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
+
+
+class IsEnemyClosestToAgentsWithinReach(Condition):
+    def __init__(self, agent):
+        super().__init__("Is Enemy Closest to Agents Within Reach", agent)
+
+    def verify(self):
+        enemy = self.agent.observer.get_closest_enemy_to_agents()
         return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
 
 
@@ -155,8 +170,5 @@ class HasItemShared(Condition):
 
     def verify(self):
         blackboard = self.agent.blackboard.copy()
-        amount = 0
-        for key in blackboard:
-            if key.startswith(f"shared_inventory_{self.item}"):
-                amount += blackboard[key]
+        amount = sum(n for key, n in blackboard.items() if key.startswith(f"shared_inventory_{self.item}"))
         return amount >= self.amount

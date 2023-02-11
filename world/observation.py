@@ -8,9 +8,16 @@ from items.inventory import Inventory
 from items.pickup import PickUp
 from mobs import animals
 from mobs import enemies
+from mobs.agententities import AgentEntity
 from mobs.animals import Animal
 from mobs.enemies import Enemy
+from utils.names import NAMES
 from utils.vectors import CIRCLE_DEGREES
+
+
+class LineOfSightHitType(Enum):
+    BLOCK = 0
+    ITEM = 1
 
 
 def grid_observation_from_list(grid_observation_list, grid_size):
@@ -22,16 +29,18 @@ def grid_observation_from_list(grid_observation_list, grid_size):
 def get_absolute_position(info):
     if Observation.X in info and Observation.Y in info and Observation.Z in info:
         return np.array([info[Observation.X], info[Observation.Y], info[Observation.Z]])
-    return None
+    else:
+        return None
 
 
 def get_yaw(info):
-    if Observation.YAW in info:
-        yaw = info[Observation.YAW]
-        if yaw <= 0:
-            yaw += CIRCLE_DEGREES
+    yaw = info.get(Observation.YAW)
+    if yaw is None:
+        return None
+    elif yaw <= 0:
+        return yaw + CIRCLE_DEGREES
+    else:
         return yaw
-    return None
 
 
 def get_pitch(info):
@@ -42,7 +51,7 @@ def get_line_of_sight_position(info):
     los = info.get(Observation.LOS)
     if los is None:
         return None
-    if Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
+    elif Observation.LOS_X in los and Observation.LOS_Y in los and Observation.LOS_Z in los:
         return np.array([los[Observation.LOS_X], los[Observation.LOS_Y], los[Observation.LOS_Z]])
     else:
         return None
@@ -50,33 +59,21 @@ def get_line_of_sight_position(info):
 
 def get_line_of_sight_type(info):
     los = info.get(Observation.LOS)
-    if los is None:
-        return None
-    return los.get(Observation.LOS_TYPE)
+    return los.get(Observation.LOS_TYPE) if los is not None else None
 
 
 def get_line_of_sight_hit_type(info):
     los = info.get(Observation.LOS)
     if los is None:
         return None
-    hit_type = los.get(Observation.LOS_HIT_TYPE)
-    if hit_type == Observation.LOS_HIT_TYPE_BLOCK:
-        return LineOfSightHitType.BLOCK
     else:
-        return LineOfSightHitType.ITEM
-
-
-class LineOfSightHitType(Enum):
-    BLOCK = 0
-    ITEM = 1
+        hit_type = los.get(Observation.LOS_HIT_TYPE)
+        return LineOfSightHitType.BLOCK if hit_type == Observation.LOS_HIT_TYPE_BLOCK else LineOfSightHitType.ITEM
 
 
 def get_grid_by_spec(info, spec):
-    if Observation.GRID_LOCAL in info:
-        grid_observation_list = info.get(spec.name, None)
-        if grid_observation_list:
-            return grid_observation_from_list(grid_observation_list, spec.get_grid_size())
-    return None
+    grid_list = info.get(spec.name)
+    return grid_observation_from_list(grid_list, spec.get_grid_size()) if grid_list is not None else None
 
 
 def get_life(info):
@@ -101,6 +98,8 @@ class Observation:
     LOS_Y = "y"
     LOS_Z = "z"
 
+    NAME = "Name"
+
     YAW = "Yaw"
     PITCH = "Pitch"
 
@@ -112,12 +111,9 @@ class Observation:
     ENTITY_LIFE = "life"
 
     def __init__(self, observations, mission_data):
-        self.mission_data = mission_data
-
-        self.grid_size_local = mission_data.grid_local.get_grid_size()
-
         self.pos_local_grid = None
         self.info = None
+        self.mission_data = mission_data
 
         self.abs_pos = None
         self.pitch = None
@@ -135,6 +131,7 @@ class Observation:
         self.animals = None
         self.enemies = None
         self.pickups = None
+        self.other_agents = None
 
         if observations is None or not observations:
             print("Observations is null or empty")
@@ -160,20 +157,22 @@ class Observation:
         self.los_type = get_line_of_sight_type(self.info)
         self.los_hit_type = get_line_of_sight_hit_type(self.info)
 
-        self.grid_local = get_grid_by_spec(self.info, self.mission_data.grid_local)
+        self.grid_local = get_grid_by_spec(self.info, mission_data.grid_local)
 
         self.setup_entities(self.info)
 
     def setup_entities(self, info):
+        agent_name = self.info.get(Observation.NAME, "")
         if Observation.ENTITIES in info:
             self.animals = []
             self.enemies = []
             self.pickups = []
+            self.other_agents = []
             for entity in info[Observation.ENTITIES]:
-                entity_name = entity.get(Observation.ENTITY_NAME, None)
-                entity_x = entity.get(Observation.ENTITY_X, None)
-                entity_y = entity.get(Observation.ENTITY_Y, None)
-                entity_z = entity.get(Observation.ENTITY_Z, None)
+                entity_name = entity.get(Observation.ENTITY_NAME)
+                entity_x = entity.get(Observation.ENTITY_X)
+                entity_y = entity.get(Observation.ENTITY_Y)
+                entity_z = entity.get(Observation.ENTITY_Z)
                 if entity_name and entity_x is not None and entity_y is not None and entity_z is not None:
                     if entity_name in items.pickups:
                         self.pickups.append(PickUp(entity_name, entity_x, entity_y, entity_z))
@@ -182,14 +181,17 @@ class Observation:
                         self.animals.append(Animal(entity_name, entity_x, entity_y, entity_z, animal_life))
                     elif entity_name in enemies.types:
                         self.enemies.append(Enemy(entity_name, entity_x, entity_y, entity_z))
+                    elif entity_name in NAMES and entity_name != agent_name:
+                        self.other_agents.append(AgentEntity(entity_name, entity_x, entity_y, entity_z))
 
     def get_grid_global(self, grid_spec):
-        if grid_spec.name in self.grids_global:
-            return self.grids_global[grid_spec.name]
-
-        grid = get_grid_by_spec(self.info, grid_spec)
-        self.grids_global[grid_spec.name] = grid
-        return grid
+        cached_grid = self.grids_global.get(grid_spec)
+        if cached_grid is not None:
+            return cached_grid
+        else:
+            grid = get_grid_by_spec(self.info, grid_spec)
+            self.grids_global[grid_spec.name] = grid
+            return grid
 
     def print(self):
         for key in self.info:

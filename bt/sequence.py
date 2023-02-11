@@ -1,4 +1,7 @@
+from typing import List
+
 import py_trees as pt
+from py_trees.behaviour import Behaviour
 
 
 class Sequence(pt.composites.Selector):
@@ -8,7 +11,7 @@ class Sequence(pt.composites.Selector):
     Reactive sequence overriding sequence with memory, py_trees' only available sequence.
     """
 
-    def __init__(self, name="Sequence", children=None):
+    def __init__(self, name: str = "Sequence", children: List[Behaviour] = None):
         super().__init__(name=name, children=children)
 
     def tick(self):

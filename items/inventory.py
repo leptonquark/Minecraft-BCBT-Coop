@@ -11,23 +11,20 @@ fuels = [items.COAL, items.PLANKS, items.LOG]
 
 
 def get_size(info):
-    size = 0
-    for inventory in info["inventoriesAvailable"]:
-        if inventory["name"] == "inventory":
-            size = inventory["size"]
-    return size
+    return next((i["size"] for i in info["inventoriesAvailable"] if i["name"] == "inventory"), 0)
 
 
 def fill_inventory(info, size):
-    inventory = []
-    for i in range(size):
-        amount = info[f"InventorySlot_{i}_size"]
-        item = info[f"InventorySlot_{i}_item"]
-        variant = info.get(f"InventorySlot_{i}_variant", None)
-        if item == items.LOG_2:
-            item = items.LOG
-        inventory.append(InventorySlot(item, amount, variant))
-    return inventory
+    return [get_inventory_slot_from_info(info, slot) for slot in range(size)]
+
+
+def get_inventory_slot_from_info(info, slot):
+    amount = info[f"InventorySlot_{slot}_size"]
+    item = info[f"InventorySlot_{slot}_item"]
+    variant = info.get(f"InventorySlot_{slot}_variant", None)
+    if item == items.LOG_2:
+        item = items.LOG
+    return InventorySlot(item, amount, variant)
 
 
 def get_selection_from_info(info):
@@ -74,7 +71,6 @@ class Inventory:
                 # and one defined by Minecraft and is contained in the slot information.
                 # If {same_variant} is true we should return the max amount of the same variant.
                 return max(self.get_max_slot_variant_amount(item_variant) for item_variant in variants)
-
             else:
                 return sum(slot.amount for slot in self.inventory if slot.item in variants)
 
@@ -86,34 +82,24 @@ class Inventory:
         return max(amount for amount in variant_amount.values()) if variant_amount else 0
 
     def find_item(self, item):
-        variants = get_variants(item)
-        for i, inventory_slot in enumerate(self.inventory):
-            if inventory_slot.item in variants:
-                return i
-        return None
+        return next((i for i, slot in enumerate(self.inventory) if slot.item in get_variants(item)), None)
 
     def find_item_by_min_amount(self, item, amount, same_variant=False):
         variants = get_variants(item)
-        for i, inventory_slot in enumerate(self.inventory):
-            if inventory_slot.item in variants and (not same_variant or inventory_slot.amount >= amount):
-                return i
-        return None
+        return next((i for i, s in enumerate(self.inventory) if s.has_variants(variants, amount, same_variant)), None)
 
     def has_ingredients(self, item):
         ingredients = get_ingredients(item)
         return all(self.has_item(ingredient.item, ingredient.amount) for ingredient in ingredients)
 
     def get_variants(self, item):
-        variants = []
         recipe = get_recipe(item)
+        variants = [self.get_ingredient_variant(ingredient) for ingredient in recipe.ingredients]
+        return [variant for variant in variants if variant is not None]
 
-        for ingredient in recipe.ingredients:
-            item_position = self.find_item_by_min_amount(ingredient.item, ingredient.amount, ingredient.same_variant)
-            if item_position is not None:
-                variant = self.inventory[item_position].variant
-                if variant is not None:
-                    variants.append(variant)
-        return variants
+    def get_ingredient_variant(self, ingredient):
+        item_position = self.find_item_by_min_amount(ingredient.item, ingredient.amount, ingredient.same_variant)
+        return self.inventory[item_position].variant if item_position is not None else None
 
     def get_fuel(self):
         return next((fuel for fuel in fuels if self.has_item(fuel)), None)
@@ -129,12 +115,18 @@ class Inventory:
     def get_best_pickaxe(self, min_tier):
         sufficient_pickaxes = get_sufficient_pickaxes(min_tier)
         available_pickaxes = [pickaxe for pickaxe in sufficient_pickaxes if self.has_item(pickaxe)]
-        if not available_pickaxes:
+        if len(available_pickaxes) == 0:
             return None
-        return max(available_pickaxes, key=lambda pickaxe: get_gathering_tier_by_pickaxe(pickaxe).value)
+        else:
+            return max(available_pickaxes, key=lambda pickaxe: get_gathering_tier_by_pickaxe(pickaxe).value)
 
 
 class InventorySlot:
+    HELMET_SLOT = 39
+    CHEST_SLOT = 40
+    PANTS_SLOT = 41
+    BOOTS_SLOT = 42
+
     def __init__(self, item, amount, variant):
         self.item = item
         self.amount = amount
@@ -145,3 +137,6 @@ class InventorySlot:
 
     def __repr__(self):
         return str(self)
+
+    def has_variants(self, variants, amount, same_variant):
+        return self.item in variants and self.amount >= amount and (not same_variant or self.variant is not None)

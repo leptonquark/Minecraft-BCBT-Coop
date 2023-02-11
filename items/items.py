@@ -45,6 +45,8 @@ WOODEN_SWORD = "wooden_sword"
 IRON_SWORD = "iron_sword"
 DIAMOND_SWORD = "diamond_sword"
 
+IRON_HELMET = "iron_helmet"
+
 FENCE = "fence"
 ACACIA_FENCE = "acacia_fence"
 
@@ -81,6 +83,10 @@ REEDS = "reeds"
 
 XP_ORB = "XPOrb"
 
+APPLE = "apple"
+SAPLING = "sapling"
+WHEAT_SEEDS = "wheat_seeds"
+
 pickups = [
     BEEF,
     MUTTON,
@@ -94,7 +100,10 @@ pickups = [
     CRAFTING_TABLE,
     ACACIA_FENCE,
     FENCE,
-    OBSIDIAN
+    OBSIDIAN,
+    APPLE,
+    SAPLING,
+    WHEAT_SEEDS,
 ]
 
 

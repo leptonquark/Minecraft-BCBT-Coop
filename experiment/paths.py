@@ -6,7 +6,8 @@ from experiment.test import run_test
 from goals.blueprint.blueprint import Blueprint
 from items import items
 from multiagents.cooperativity import Cooperativity
-from world.world_generator import CustomWorldGenerator
+from utils.plot import save_figure
+from world.worldgenerator import CustomWorldGenerator
 
 AGENT_COLORS = ['r', 'g', 'b']
 COOPERATIVITY_NAMES = {
@@ -25,7 +26,6 @@ CHUNK_NAMES = {
 EXPERIMENT_TITLES = {
     experiments.experiment_flat_world.id: "placing fence posts in the flat world",
     experiments.experiment_get_10_stone_pickaxe_manual.id: "gathering stone pickaxe materials in the test area",
-    experiments.experiment_get_10_stone_pickaxe_manual_diamond.id: "gathering stone pickaxe materials in the test area",
 }
 
 
@@ -35,35 +35,29 @@ def get_paths(experiment, n_agents):
 
 
 def get_path(cooperativity, experiment, n_agents):
+    agent_positions = [[] for _ in range(n_agents)]
+
     def on_value(value):
         for j, agent_position in enumerate(value.agent_positions):
             if agent_position is not None:
                 if len(agent_positions[j]) == 0 or not np.array_equal(agent_position, agent_positions[j][-1]):
                     agent_positions[j].append(agent_position)
 
-    agent_positions = [[] for _ in range(n_agents)]
     run_test(cooperativity, experiment, n_agents, on_value)
     concat_agent_positions = [np.array(agent_position) for agent_position in agent_positions]
-    cooperativity_name = cooperativity.name.lower()
     for i, agent_position in enumerate(concat_agent_positions):
-        np.savetxt(f"agent_position_{experiment.id}_{n_agents}_{cooperativity_name}_{i}.csv", agent_position,
-                   delimiter=",")
+        np.savetxt(get_path_file_name(experiment, n_agents, cooperativity, i), agent_position, delimiter=",")
+
+
+def get_path_file_name(experiment, n_agents, cooperativity, role):
+    return f"agent_position_{experiment.id}_{n_agents}_{cooperativity.name.lower()}_{role}.csv"
 
 
 def plot_paths(experiment, n_agents, center, width):
-    goal_positions = []
-    for goal in experiment.goals:
-        if isinstance(goal, Blueprint):
-            goal_positions.append(goal.positions)
-    if goal_positions:
-        target_points = np.concatenate(goal_positions)
-    else:
-        target_points = None
-    print(experiment.world_generator)
-    if isinstance(experiment.world_generator, CustomWorldGenerator):
-        cuboids = experiment.world_generator.cuboids
-    else:
-        cuboids = []
+    goal_positions = [goal.positions for goal in experiment.goals if isinstance(goal, Blueprint)]
+    target_points = np.concatenate(goal_positions) if len(goal_positions) > 0 else None
+
+    cuboids = experiment.world.cuboids if isinstance(experiment.world_generator, CustomWorldGenerator) else []
 
     fig, ax = plt.subplots(1, 2, figsize=(8, 4.5))
     for i, cooperativity in enumerate([Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]):
@@ -87,7 +81,7 @@ def plot_paths(experiment, n_agents, center, width):
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.figlegend(by_label.values(), by_label.keys(), ncol=len(by_label), loc='lower center', fancybox=True)
-    plt.savefig(f"path_{experiment.id}.png")
+    save_figure(f"path_{experiment.id}.png")
     plt.show()
 
 
