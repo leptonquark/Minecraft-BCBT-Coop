@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -63,19 +65,36 @@ def plot_completion_times(fpp, flat_world):
             capsize=CAPSIZE,
             width=width
         )
-        plt.xticks(get_ticks(cooperativities, width, x))
-        ax.set_xticklabels(get_labels(cooperativities, stats_full))
+        ax.set_xticks(get_ticks(cooperativities, width, x))
+        labels = get_labels(cooperativities, stats_full)
+        ax.set_xticklabels(labels)
         ax.tick_params(axis='x', which='both', length=0)
 
-        plt.ylabel('Average completion time (s)')
+        n_agents_unique = len(stats_full.agents.unique())
+        group_n = n_agents_unique + 1
+        fig.canvas.draw()
 
-        ymax = 150
+        tick_labels = ax.xaxis.get_ticklabels()
+        cooperativity_labels = [tick_labels[i] for i in range(len(tick_labels)) if i % group_n != 0]
+
+        for cooperativity_label in cooperativity_labels:
+            cooperativity_label.set_rotation(90)
+
+        max_width = max(cooperativity_label.get_window_extent().height for cooperativity_label in cooperativity_labels)
+        text_height = tick_labels[0].get_window_extent().height
+        tall_whitespace = "".join(["\n"] * math.ceil(max_width / text_height))
+        new_labels = [tall_whitespace + labels[i] if i % group_n == 0 else labels[i] for i in range(len(labels))]
+        ax.set_xticklabels(new_labels)
+
+        plt.ylabel('Average completion time (s)')
+        ymax = 200
         plt.ylim([0, ymax])
 
-        runs = int(len(df) / (cooperativities * len(stats_full.agents.unique())))
+        runs = int(len(df) / (cooperativities * n_agents_unique))
         title = get_title(flat_world, fpp, runs)
         plt.title(title)
         filename = get_file_name(flat_world, fpp, runs, without_edges)
+        plt.tight_layout()
         save_figure(filename)
         plt.show()
 
@@ -123,9 +142,9 @@ def get_delta_x(collaborative, cooperativities, width):
 
 def get_labels(cooperativities, stats_full):
     labels = []
-    cooperativity_labels = ["Indep", "Collab", "Both"]
+    cooperativity_labels = ["Independent", "Collaborative", "Catch-up"]
     for agent in stats_full.agents.unique():
-        agents_label = f"\n{agent} {'agents' if agent > 1 else 'agent'}"
+        agents_label = f"{agent} {'agents' if agent > 1 else 'agent'}"
         labels += [f"{agents_label}"] + cooperativity_labels[:cooperativities + 1]
     return labels
 
@@ -165,4 +184,4 @@ def plot_variable_values(ax, stats, values, key):
 
 
 if __name__ == '__main__':
-    plot_completion_times(False, True)
+    plot_completion_times(True, False)
