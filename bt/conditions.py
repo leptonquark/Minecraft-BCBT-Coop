@@ -1,8 +1,9 @@
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
+from items.gathering import get_pickaxe
 from utils.constants import ATTACK_REACH, PLACING_REACH
-from world.observer import get_position_center, get_position_flat_center
+from world.observer import get_position_flat_center
 
 
 class Condition(Behaviour):
@@ -39,7 +40,7 @@ class HasItemEquipped(Condition):
 
 class HasPickaxeByMinimumTier(Condition):
     def __init__(self, agent, tier):
-        super().__init__(f"Has Pickaxe of tier {tier} or better", agent)
+        super().__init__(f"Has {get_pickaxe(tier)}", agent)
         self.tier = tier
 
     def verify(self):
@@ -48,7 +49,7 @@ class HasPickaxeByMinimumTier(Condition):
 
 class HasBestPickaxeByMinimumTierEquipped(Condition):
     def __init__(self, agent, tier):
-        super().__init__(f"Has Pickaxe of tier {tier} or better equipped", agent)
+        super().__init__(f"Has {get_pickaxe(tier)} equipped", agent)
         self.tier = tier
 
     def verify(self):
@@ -87,12 +88,8 @@ class IsBlockWithinReach(Condition):
         self.block_type = block_type
 
     def verify(self):
-        discrete_position = self.agent.observer.get_closest_block(self.block_type)
-        if discrete_position is None:
-            return False
-
-        position_center = get_position_center(discrete_position)
-        return self.agent.observer.is_position_within_reach(position_center)
+        block_center = self.agent.get_closest_block_center(self.block_type)
+        return self.agent.is_position_within_reach(block_center)
 
 
 class IsBlockObservable(Condition):
@@ -112,7 +109,7 @@ class IsPositionWithinReach(Condition):
 
     def verify(self):
         position_center = get_position_flat_center(self.position)
-        return self.agent.observer.is_position_within_reach(position_center, reach=PLACING_REACH)
+        return self.agent.is_position_within_reach(position_center, reach=PLACING_REACH)
 
 
 class IsAnimalWithinReach(Condition):
@@ -121,8 +118,7 @@ class IsAnimalWithinReach(Condition):
         self.specie = specie
 
     def verify(self):
-        animal = self.agent.observer.get_weakest_animal(self.specie)
-        return animal is not None and self.agent.observer.is_position_within_reach(animal.position, ATTACK_REACH)
+        return self.agent.is_entity_within_reach(self.agent.get_weakest_animal(self.specie), ATTACK_REACH)
 
 
 class IsEnemyWithinReach(Condition):
@@ -130,8 +126,8 @@ class IsEnemyWithinReach(Condition):
         super().__init__("Is Enemy Within Reach", agent)
 
     def verify(self):
-        enemy = self.agent.observer.get_closest_enemy()
-        return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
+        enemy = self.agent.get_closest_enemy(consider_other_agents=False)
+        return self.agent.is_entity_within_reach(enemy, ATTACK_REACH)
 
 
 class IsEnemyClosestToAgentsWithinReach(Condition):
@@ -139,8 +135,8 @@ class IsEnemyClosestToAgentsWithinReach(Condition):
         super().__init__("Is Enemy Closest to Agents Within Reach", agent)
 
     def verify(self):
-        enemy = self.agent.observer.get_closest_enemy_to_agents()
-        return self.agent.observer.is_position_within_reach(enemy.position, ATTACK_REACH)
+        enemy = self.agent.get_closest_enemy(consider_other_agents=True)
+        return self.agent.is_entity_within_reach(enemy, ATTACK_REACH)
 
 
 class IsAnimalObservable(Condition):

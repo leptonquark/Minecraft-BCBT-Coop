@@ -87,3 +87,7 @@ def get_los_face(los_pos, yaw, pitch):
 
 def normalize(vector):
     return vector / np.linalg.norm(vector)
+
+
+def flatten(vector):
+    return np.array([vector[0], 0, vector[2]]) if vector is not None else None

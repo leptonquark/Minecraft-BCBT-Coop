@@ -13,12 +13,13 @@ def tree_to_drawio_csv(tree):
         "namespace": "csvimport-",
         "connect": '{"from":"refs", "to":"id", "invert":true, "style":"curved=0;endArrow=blockThin;endFill=1;"}',
         "padding": "15",
-        "ignore": "id,shape,fill,stroke,refs"
+        "ignore": "id,shape,fill,stroke,refs",
+        "layout": "verticaltree"
     }
     csv = [f"# {key}: {value}" for key, value in graph_attributes.items()]
     csv.append("id,step,shape,fontsize,spacingbottom,refs")
     csv += subtree_to_csv(tree.root, None)
-
+    print(csv)
     return "\n".join(csv)
 
 
@@ -41,10 +42,13 @@ def subtree_to_csv(tree, parent_id):
 
     base_csv = [f"{str(tree.id)},{label},{shape},{fontsize},{spacing_bottom},{ref}"]
 
-    children_csv = [subtree_to_csv(child, tree.id) for child in tree.children]
+    children_csv = []
+    for child in tree.children:
+        child_csv = subtree_to_csv(child, str(tree.id))
+        children_csv += child_csv
     return base_csv + children_csv
 
 
 def save_tree_to_log(tree, filename):
-    logfile = f"log/{filename}"
+    logfile = f"log/tree/{filename}"
     save_data_safely(logfile, lambda file: file.write(tree_to_drawio_csv(tree)))

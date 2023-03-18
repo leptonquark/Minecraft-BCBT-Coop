@@ -14,10 +14,10 @@ DELTA_X_LABEL = "Distance between fence posts $\Delta$ (blocks)"
 COMPLETION_TIME_Y_LABEL = "Average completion time (s)"
 COMPLETION_TIME_FRACTION_Y_LABEL = "Fraction of average completion time of baseline"
 
-COMPLETION_TIME_Y_RANGE = [0, 100]
+COMPLETION_TIME_Y_RANGE = [0, 200]
 COMPLETION_TIME_FRACTION_Y_RANGE = [0, 1]
 
-BAR_WIDTH = 0.5
+BAR_WIDTH = 2
 
 
 def plot_delta(agents):
@@ -29,7 +29,7 @@ def plot_delta(agents):
 
     agent_data = world_data[world_data.agents == agents]
 
-    stats = get_time_stats(agent_data, ['delta', 'collaborative'])
+    stats = get_time_stats(agent_data, ['delta', 'collaborative']).reset_index()
     stats = stats.groupby("delta").apply(add_time_fractions)
     deltas = stats.delta.unique()
 
@@ -60,9 +60,9 @@ def plot_delta_completion_time_fractions(agents, deltas, world_id, stats, world_
             deltas_collab = deltas - BAR_WIDTH / 2 if cooperativity == "True" else deltas + BAR_WIDTH / 2
             ax.bar(deltas_collab, data.time_mean_diff, yerr=data.time_std_diff, color=color, capsize=2, edgecolor="k",
                    width=BAR_WIDTH)
-            legend_values = ["Collaborative", "Proposed Method"]
+            legend_values = ["Collaborative", "Collaborative with catch-up"]
             plt.legend(legend_values, title="Cooperativity", title_fontproperties={"weight": "bold"})
-    ax.set_ylim(COMPLETION_TIME_FRACTION_Y_LABEL)
+    ax.set_ylim(COMPLETION_TIME_FRACTION_Y_RANGE)
     set_labels(agents, ax, world_name, COMPLETION_TIME_FRACTION_Y_LABEL)
     save_delta_figure(FIGURE_NAME_DELTA_COMPLETION_TIME_FRACTIONS, world_id, agents)
 

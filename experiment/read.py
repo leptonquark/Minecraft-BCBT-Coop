@@ -2,6 +2,7 @@ import math
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.patches import Patch
 
 from experiment.test import EXPERIMENT_PATH
 from utils.file import get_project_root
@@ -17,7 +18,7 @@ COOPERATIVITY_COLORS = {
     "Both": "b"
 }
 
-COOPERATIVITY_NAMES = ["Independent", "Collaborative", "Proposed Method"]
+COOPERATIVITY_NAMES = ["Independent", "Collaborative", "Collaborative w. catch-up"]
 
 
 def read_csv(file_name):
@@ -45,8 +46,7 @@ def plot_completion_times(fpp, flat_world):
     width = FULL_WIDTH / cooperativities
     for without_edges in [False, True]:
         x = [row.agents + get_delta_x(row.collaborative, cooperativities, width) for _, row in stats_full.iterrows()]
-        palette = ['r', 'g', 'b']
-        colors = [palette[row.agents - 1] for _, row in stats_full.iterrows()]
+        colors = [COOPERATIVITY_COLORS[row.collaborative] for _, row in stats_full.iterrows()]
         fig, ax = plt.subplots()
 
         if without_edges:
@@ -76,7 +76,6 @@ def plot_completion_times(fpp, flat_world):
 
         tick_labels = ax.xaxis.get_ticklabels()
         cooperativity_labels = [tick_labels[i] for i in range(len(tick_labels)) if i % group_n != 0]
-
         for cooperativity_label in cooperativity_labels:
             cooperativity_label.set_rotation(90)
 
@@ -87,24 +86,27 @@ def plot_completion_times(fpp, flat_world):
         ax.set_xticklabels(new_labels)
 
         plt.ylabel('Average completion time (s)')
-        ymax = 200
-        plt.ylim([0, ymax])
+
+        plt.ylim([0, get_y_max(fpp, flat_world)])
 
         runs = int(len(df) / (cooperativities * n_agents_unique))
-        title = get_title(flat_world, fpp, runs)
-        plt.title(title)
-        filename = get_file_name(flat_world, fpp, runs, without_edges)
+        plt.title(get_title(flat_world, fpp))
+
+        legend_items = [Patch(facecolor=color, edgecolor='k') for color in COOPERATIVITY_COLORS.values()]
+        plt.legend(legend_items, COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
+
         plt.tight_layout()
-        save_figure(filename)
+        save_figure(get_file_name(flat_world, fpp, runs, without_edges))
         plt.show()
 
 
-def get_title(flat_world, fpp, runs):
+def get_title(flat_world, fpp):
     if fpp:
-        generator = "flat world generator" if flat_world else "default world generator"
-        return f"{runs} runs each using {generator}"
+        generator = "flat world" if flat_world else "default world"
+        return f"The fence post placement scenario in the {generator}"
     else:
-        return f"{runs} runs each in the stone pickaxe scenario"
+        arena = "test arena" if flat_world else "default world"
+        return f"The stone pickaxe scenario in the {arena}"
 
 
 def get_file_name(flat_world, fpp, runs, without_edges):
@@ -113,16 +115,34 @@ def get_file_name(flat_world, fpp, runs, without_edges):
         gen = "fwg" if flat_world else "dwg"
         return f"{gen}_{we}{runs}"
     else:
-        return f"sp_{we}{runs}"
+        gen = "_spmdw" if flat_world else ""
+        return f"sp_{we}{runs}{gen}"
+
+
+def get_y_max(fpp, flat_world):
+    if fpp:
+        if flat_world:
+            return 250
+        else:
+            return 150
+    else:
+        if flat_world:
+            return 100
+        else:
+            return 200
 
 
 def get_files(flat_world, fpp):
-    if fpp and flat_world:
-        return ["output_fwg_2.csv", "output_fwg_3.csv"]
-    elif fpp and not flat_world:
-        return ["output_dwg_7.csv", "output_dwg_8.csv"]
+    if fpp:
+        if flat_world:
+            return ["output_fwg_2.csv", "output_fwg_3.csv"]
+        else:
+            return ["output_dwg_7.csv", "output_dwg_8.csv"]
     else:
-        return ["output_fwz.csv"]
+        if flat_world:
+            return ["output_g10spmdw_3.csv"]
+        else:
+            return ["output_g10sp1.csv"]
 
 
 def get_delta_x(collaborative, cooperativities, width):
@@ -185,3 +205,6 @@ def plot_variable_values(ax, stats, values, key):
 
 if __name__ == '__main__':
     plot_completion_times(True, False)
+    plot_completion_times(True, True)
+    plot_completion_times(False, False)
+    plot_completion_times(False, True)

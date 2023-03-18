@@ -25,6 +25,7 @@ class MissionData:
         self.goals = config.goals
 
         self.experiment_id = setup_experiment_id()
+        self.configuration_id = config.id
 
         self.summary = "Behaviour Tree Malmo"
 

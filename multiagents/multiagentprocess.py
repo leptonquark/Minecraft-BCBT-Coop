@@ -6,6 +6,7 @@ from goals.blueprint.blueprintvalidator import get_blueprint_validators_from_goa
 from malmoutils.agent import MinerAgent
 from malmoutils.world_state import check_timeout
 from multiagents.multiagentstate import MultiAgentState, MultiAgentRunningState
+from utils.visualisation import save_tree_to_log
 from world.observation import Observation
 
 MAX_TIME = 600
@@ -29,6 +30,8 @@ class MultiAgentProcess(mp.Process):
         agent.activate_night_vision()
 
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.cooperativity)
+        if self.role == 0:
+            save_tree_to_log(tree, f"tree_{self.mission_data.configuration_id}.txt")
 
         last_delta = time.time()
         start_time = time.time()

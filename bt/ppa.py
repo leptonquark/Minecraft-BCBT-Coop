@@ -56,8 +56,10 @@ class PPA:
             outer_sequence_children = [sender] + self.pre_conditions + self.actions
         else:
             outer_sequence_children = self.pre_conditions + self.actions
-        tree = Sequence(name=f"Precondition Handler {self.name}", children=outer_sequence_children)
-        return tree
+        if len(outer_sequence_children) > 1:
+            return Sequence(name=f"Precondition Handler {self.name}", children=outer_sequence_children)
+        else:
+            return outer_sequence_children[0]
 
     def get_post_condition_fallback(self, tree, collaborative):
         if collaborative:
@@ -67,12 +69,14 @@ class PPA:
             selector_children = [post_condition_sequence, receiver, tree]
         else:
             selector_children = [self.post_condition, tree]
-        tree = Selector(name=f"Postcondition Handler {self.name}", children=selector_children)
-        return tree
+        if len(selector_children) > 1:
+            return Selector(name=f"Postcondition Handler {self.name}", children=selector_children)
+        else:
+            return selector_children[0]
 
 
 def get_has_ingredient(agent, amount, ingredient):
-    return conditions.HasItem(agent, ingredient.item, amount * ingredient.amount, ingredient.same_variant)
+    return conditions.HasItem(agent, ingredient.item, amount, ingredient.same_variant)
 
 
 class HasItemPPA(PPA):
@@ -83,7 +87,7 @@ class HasItemPPA(PPA):
         if recipe is not None:
             craft_amount = math.ceil(condition.amount / recipe.output_amount)
             self.pre_conditions = [conditions.HasItem(self.agent, recipe.station)] if recipe.station else []
-            self.pre_conditions += [get_has_ingredient(self.agent, craft_amount, i) for i in recipe.ingredients]
+            self.pre_conditions += [get_has_ingredient(self.agent, i.amount, i) for i in recipe.ingredients]
             if recipe.recipe_type == RecipeType.Melting:
                 self.name = f"Melt {condition.amount}x {condition.item}"
                 self.actions = [actions.Melt(self.agent, condition.item, craft_amount)]
@@ -103,9 +107,8 @@ class HasPickupNearbyPPA(PPA):
         if source is None:
             self.name = f"Mine {condition.item}"
             tier = get_gathering_tier_by_material(condition.item)
-            self.pre_conditions = [] if tier is None else [
-                conditions.HasBestPickaxeByMinimumTierEquipped(self.agent, tier)
-            ]
+            self.pre_conditions = [
+                conditions.HasBestPickaxeByMinimumTierEquipped(self.agent, tier)] if tier is not None else []
             self.pre_conditions.append(conditions.IsBlockWithinReach(self.agent, condition.item))
             self.actions = [actions.MineMaterial(self.agent, condition.item)]
         else:

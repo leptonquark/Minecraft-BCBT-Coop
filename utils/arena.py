@@ -110,8 +110,8 @@ def visualize_arena_three_dimensionally():
     plt.legend(handles=handles, bbox_to_anchor=(1.15, 0), fancybox=True, ncol=len(handles))
     plt.title("Test Arena for Stone Pickaxe Scenario")
 
-    plt.show()
     save_figure("arena3d.png")
+    plt.show()
 
 
 if __name__ == '__main__':
