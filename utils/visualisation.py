@@ -19,7 +19,6 @@ def tree_to_drawio_csv(tree):
     csv = [f"# {key}: {value}" for key, value in graph_attributes.items()]
     csv.append("id,step,shape,fontsize,spacingbottom,refs")
     csv += subtree_to_csv(tree.root, None)
-    print(csv)
     return "\n".join(csv)
 
 

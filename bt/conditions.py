@@ -127,7 +127,7 @@ class IsEnemyWithinReach(Condition):
 
     def verify(self):
         enemy = self.agent.get_closest_enemy(consider_other_agents=False)
-        return self.agent.is_entity_within_reach(enemy, ATTACK_REACH)
+        return self.agent.is_entity_within_reach(enemy)
 
 
 class IsEnemyClosestToAgentsWithinReach(Condition):
@@ -136,7 +136,7 @@ class IsEnemyClosestToAgentsWithinReach(Condition):
 
     def verify(self):
         enemy = self.agent.get_closest_enemy(consider_other_agents=True)
-        return self.agent.is_entity_within_reach(enemy, ATTACK_REACH)
+        return self.agent.is_entity_within_reach(enemy)
 
 
 class IsAnimalObservable(Condition):

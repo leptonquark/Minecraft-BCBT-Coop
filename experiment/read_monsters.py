@@ -49,8 +49,8 @@ def get_labels(agents):
 
 
 def plot_completion_chances():
-    experiment_no_help = {"file": "output_fwz_1.csv", "consider_other_agents": False}
-    experiment_help = {"file": "output_fwzh_1.csv", "consider_other_agents": True}
+    experiment_no_help = {"file": "output_fwz_2.csv", "consider_other_agents": False}
+    experiment_help = {"file": "output_fwzh_2.csv", "consider_other_agents": True}
     experiments = [experiment_no_help, experiment_help]
 
     data = pd.DataFrame()
@@ -114,8 +114,6 @@ def plot_completion_chances():
     times_pivot = filtered_data.pivot_table(index='agents', columns='consider_other_agents', values='time',
                                             aggfunc=['mean', 'std'])
 
-    print(times_pivot)
-
     fig, ax = plt.subplots()
     colors = ["orange", "deepskyblue"]
     times_pivot.plot(kind="bar", y="mean", width=WIDTH * 1.5, ax=ax, yerr="std", capsize=CAPSIZE, color=colors,
@@ -134,7 +132,6 @@ def plot_completion_chances():
 
     save_figure("times_monster.png")
     plt.show()
-    print(times)
 
 
 if __name__ == '__main__':
