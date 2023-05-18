@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -6,14 +8,15 @@ from experiment.test import run_test
 from goals.blueprint.blueprint import Blueprint
 from items import items
 from multiagents.cooperativity import Cooperativity
+from utils.file import get_project_root
 from utils.plot import save_figure
 from world.worldgenerator import CustomWorldGenerator
 
 AGENT_COLORS = ['r', 'g', 'b']
 COOPERATIVITY_NAMES = {
-    Cooperativity.INDEPENDENT: "Normal backward chaining",
-    Cooperativity.COOPERATIVE: "Simple collaboration",
-    Cooperativity.COOPERATIVE_WITH_CATCHUP: "Proposed approach"
+    Cooperativity.INDEPENDENT: "Traditional BC",
+    Cooperativity.COOPERATIVE: "Collaborative BC",
+    Cooperativity.COOPERATIVE_WITH_CATCHUP: "Collaborative BC w. backup"
 }
 CHUNK_COLORS = {
     items.STONE: 'gray',
@@ -27,10 +30,12 @@ EXPERIMENT_TITLES = {
     experiments.experiment_flat_world.id: "placing fence posts in the flat world",
     experiments.experiment_get_10_stone_pickaxe_manual.id: "gathering stone pickaxe materials in the test area",
 }
+PATHS_FOLDER_NAME = Path("log/paths")
+PATH_COOPERATIVITIES = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]
 
 
 def get_paths(experiment, n_agents):
-    for cooperativity in Cooperativity:
+    for cooperativity in PATH_COOPERATIVITIES:
         get_path(cooperativity, experiment, n_agents)
 
 
@@ -50,23 +55,23 @@ def get_path(cooperativity, experiment, n_agents):
 
 
 def get_path_file_name(experiment, n_agents, cooperativity, role):
-    return f"agent_position_{experiment.id}_{n_agents}_{cooperativity.name.lower()}_{role}.csv"
+    file_name = f"agent_position_{experiment.id}_{n_agents}_{cooperativity.name.lower()}_{role}.csv"
+    path = get_project_root() / PATHS_FOLDER_NAME / file_name
+    return str(path)
 
 
 def plot_paths(experiment, n_agents, center, width):
     goal_positions = [goal.positions for goal in experiment.goals if isinstance(goal, Blueprint)]
     target_points = np.concatenate(goal_positions) if len(goal_positions) > 0 else None
 
-    cuboids = experiment.world.cuboids if isinstance(experiment.world_generator, CustomWorldGenerator) else []
+    cuboids = experiment.world_generator.cuboids if isinstance(experiment.world_generator, CustomWorldGenerator) else []
 
     fig, ax = plt.subplots(1, 2, figsize=(8, 4.5))
-    for i, cooperativity in enumerate([Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]):
-        cooperativity_name = cooperativity.name.lower()
-
+    for i, cooperativity in enumerate(PATH_COOPERATIVITIES):
         ax[i].set_aspect('equal', adjustable='box')
 
         plot_target_points(ax[i], target_points)
-        plot_agents(ax[i], cooperativity_name, experiment, n_agents)
+        plot_agents(ax[i], cooperativity, experiment, n_agents)
         plot_cuboids(ax[i], cuboids)
 
         ax[i].set_xlim(center[0] - width, center[0] + width)
@@ -90,15 +95,14 @@ def plot_target_points(ax, target_points):
         ax.scatter(target_points[:, 0], target_points[:, 2], c="k", s=60, marker='x', label="Fence posts")
 
 
-def plot_agents(ax, cooperativity_name, experiment, n_agents):
-    for i in range(n_agents):
-        agent_position = np.loadtxt(f"agent_position_{experiment.id}_{n_agents}_{cooperativity_name}_{i}.csv",
-                                    delimiter=",")
+def plot_agents(ax, cooperativity, experiment, n_agents):
+    for role in range(n_agents):
+        agent_position = np.loadtxt(get_path_file_name(experiment, n_agents, cooperativity, role), delimiter=",")
         if agent_position.ndim == 1:
             agent_position = np.array([agent_position])
-        ax.plot(agent_position[:, 0], agent_position[:, 2], color=AGENT_COLORS[i], linestyle='dashed',
-                label=f"Agent {i}")
-        ax.scatter(agent_position[0, 0], agent_position[0, 2], color=AGENT_COLORS[i], marker='*')
+        color = AGENT_COLORS[role]
+        ax.plot(agent_position[:, 0], agent_position[:, 2], color=color, linestyle='dashed', label=f"Agent {role}")
+        ax.scatter(agent_position[0, 0], agent_position[0, 2], color=color, marker='*')
 
 
 def plot_cuboids(ax, cuboids):
@@ -113,6 +117,7 @@ def plot_cuboids(ax, cuboids):
 
 
 if __name__ == "__main__":
-    get_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2)
+    #    get_paths(experiments.experiment_flat_world, 3)
     #    plot_paths(experiments.experiment_flat_world, 3, (130, 10), 40)
+    get_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2)
     plot_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2, (0, 0), 30)

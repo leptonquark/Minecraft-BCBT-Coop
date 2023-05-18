@@ -17,8 +17,8 @@ COOPERATIVITY_COLORS = {
     "True": "g",
     "Both": "b"
 }
-
-COOPERATIVITY_NAMES = ["Independent", "Collaborative", "Collaborative w. catch-up"]
+COOPERATIVITY_NAMES = ["Independent", "Collaborative", "Collaborative w. backup"]
+COOPERATIVITY_TITLE = "Mode of Cooperation"
 
 
 def read_csv(file_name):
@@ -93,7 +93,8 @@ def plot_completion_times(fpp, flat_world):
         plt.title(get_title(flat_world, fpp))
 
         legend_items = [Patch(facecolor=color, edgecolor='k') for color in COOPERATIVITY_COLORS.values()]
-        plt.legend(legend_items, COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
+        plt.legend(legend_items, COOPERATIVITY_NAMES, title=COOPERATIVITY_TITLE,
+                   title_fontproperties={"weight": "bold"})
 
         plt.tight_layout()
         save_figure(get_file_name(flat_world, fpp, runs, without_edges))
@@ -162,7 +163,7 @@ def get_delta_x(collaborative, cooperativities, width):
 
 def get_labels(cooperativities, stats_full):
     labels = []
-    cooperativity_labels = ["Independent", "Collaborative", "Catch-up"]
+    cooperativity_labels = ["Independent", "Collaborative", "Backup"]
     for agent in stats_full.agents.unique():
         agents_label = f"{agent} {'agents' if agent > 1 else 'agent'}"
         labels += [f"{agents_label}"] + cooperativity_labels[:cooperativities + 1]
@@ -200,7 +201,7 @@ def plot_variable_values(ax, stats, values, key):
             markeredgecolor='k',
             capsize=2
         )
-        plt.legend(COOPERATIVITY_NAMES, title="Cooperativity", title_fontproperties={"weight": "bold"})
+        plt.legend(COOPERATIVITY_NAMES, title=COOPERATIVITY_TITLE, title_fontproperties={"weight": "bold"})
 
 
 if __name__ == '__main__':
