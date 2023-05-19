@@ -66,8 +66,8 @@ def plot_completion_chances():
 
     fig, ax = plt.subplots()
     colors = ["g", "r", "b"]
-    labels = ["Success", "Failure", "Timeout"]
-    y = ["success_rate", "failure_rate", "timeout_rate"]
+    labels = ["Success", "Failure"]
+    y = ["success_rate", "failure_rate"]
 
     for result in accumulated_results.groupby("consider_other_agents"):
         width = WIDTH if result[0] else -WIDTH
