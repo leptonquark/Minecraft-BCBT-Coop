@@ -25,6 +25,7 @@ class MissionData:
         self.goals = config.goals
 
         self.experiment_id = setup_experiment_id()
+        self.configuration_id = config.id
 
         self.summary = "Behaviour Tree Malmo"
 
@@ -55,8 +56,8 @@ class MissionData:
 
         self.start_pitch = 18
 
-        self.daytime = len(config.start_entities) == 0
-        self.start_time = 6000 if self.daytime else 18000
+        self.daytime = False
+        self.start_time = 6000 if self.daytime else 22000
         self.allow_passage_of_time = False
 
         self.obs_entities_name = "entities"

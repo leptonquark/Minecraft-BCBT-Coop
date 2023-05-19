@@ -7,9 +7,11 @@ from items.inventory import HOTBAR_SIZE
 from items.items import unclimbable, traversable, narrow
 from malmoutils.interface import MalmoInterface
 from mobs.enemies import ENEMY_HEIGHT
-from utils.vectors import RelativeDirection, directionVector, up, Direction, center, faceDistance, BlockFace, normalize
+from utils.constants import ATTACK_REACH
+from utils.vectors import RelativeDirection, directionVector, up, Direction, center, faceDistance, BlockFace, normalize, \
+    flatten
 from world.observer import get_horizontal_distance, get_wanted_pitch, Observer, get_wanted_direction, \
-    get_position_center
+    get_position_center, GATHERING_REACH
 
 PITCH_UPWARDS = -90
 PITCH_DOWNWARDS = 90
@@ -22,6 +24,7 @@ NO_MOVE_SPEED_DISTANCE_EPSILON = 1
 NO_MOVE_SPEED_TURN_DIRECTION_EPSILON = 0.1
 STRAFE_SPEED = 0.3
 MOVE_BACKWARD_SPEED = -0.2
+DISTANCE_FAR_AWAY = 100
 
 FUEL_HOT_BAR_POSITION = 0
 PICKAXE_HOT_BAR_POSITION = 5
@@ -104,9 +107,7 @@ class MinerAgent:
         if distance is None:
             return
 
-        flat_distance = np.copy(distance)
-        flat_distance[1] = 0
-
+        flat_distance = flatten(distance)
         if np.linalg.norm(flat_distance) <= DIG_VERTICAL_HORIZONTAL_TOLERANCE:
             self.mine_vertical(distance[1])
             return
@@ -264,6 +265,12 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
+    def spawn_zombie(self):
+        self.interface.spawn_zombie()
+
+    def is_stuck(self):
+        return self.observer.is_stuck()
+
     def craft(self, item, amount=1):
         variants = self.inventory.get_variants(item)
         variant = variants[0] if len(variants) > 0 else None
@@ -276,6 +283,12 @@ class MinerAgent:
             self.swap_items(fuel_position, FUEL_HOT_BAR_POSITION)
             time.sleep(0.2)
         self.craft(item, amount)
+
+    def get_closest_enemy(self, consider_other_agents=False):
+        if consider_other_agents:
+            return self.observer.get_closest_enemy_to_agents()
+        else:
+            return self.observer.get_closest_enemy()
 
     def select_on_hotbar(self, position):
         self.interface.select_on_hotbar(position)
@@ -310,6 +323,29 @@ class MinerAgent:
 
     def has_best_pickaxe_by_minimum_tier_equipped(self, tier):
         return self.inventory.has_best_pickaxe_by_minimum_tier_equipped(tier)
+
+    def get_pickup_position(self, pickup):
+        return self.observer.get_pickup_position(pickup)
+
+    def get_weakest_animal(self, specie=None):
+        return self.observer.get_weakest_animal(specie)
+
+    def is_entity_within_reach(self, entity):
+        return self.observer.is_position_within_reach(entity.position, ATTACK_REACH)
+
+    def is_position_within_reach(self, position, reach=GATHERING_REACH):
+        return self.observer.is_position_within_reach(position, reach)
+
+    def get_closest_block_center(self, block_type):
+        return get_position_center(self.observer.get_closest_block(block_type))
+
+    def explore_in_direction(self, direction):
+        abs_pos_discrete = self.observer.get_abs_pos_discrete()
+        if abs_pos_discrete is not None:
+            self.go_to_position(abs_pos_discrete + DISTANCE_FAR_AWAY * directionVector[direction])
+
+    def is_at_position(self, position):
+        return self.observer.is_at_position(position)
 
     def start_mission(self):
         self.interface.start_multi_agent_mission(self.mission_data, self.role)

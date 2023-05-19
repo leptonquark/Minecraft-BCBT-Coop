@@ -118,7 +118,7 @@ class Map(Widget):
         self.blueprint_positions = [goal.positions for goal in mission_data.goals if isinstance(goal, Blueprint)]
         self.blueprint_results = [[False for _ in positions] for positions in self.blueprint_positions]
         if isinstance(mission_data.world_generator, CustomWorldGenerator):
-            self.cuboids = [get_cuboid_dict(cuboid) for cuboid in mission_data.cuboids]
+            self.cuboids = [get_cuboid_dict(cuboid) for cuboid in mission_data.world_generator.cuboids]
             self.x_range = (-30, 30)
             self.z_range = (-30, 30)
         elif isinstance(mission_data.world_generator, FlatWorldGenerator):
