@@ -233,16 +233,19 @@ class Observer:
         closest_enemies = [enemy for enemy in closest if enemy is not None]
         return closest_enemies
 
-    def has_enemy_nearby(self):
-        return len(self.observation.enemies) > 0
-
-    def is_enemy_near_any_agent(self):
+    def is_enemy_nearby(self):
         closest_enemy = self.get_closest_enemy()
         if closest_enemy is not None:
             closest_distance = np.linalg.norm(closest_enemy.position - self.observation.abs_pos)
             if closest_distance <= ENEMY_CLOSE_DISTANCE:
                 return True
-        return any(self.is_enemy_near_agent(agent) for agent in self.observation.other_agents)
+        return False
+
+    def is_enemy_near_any_agent(self):
+        if self.is_enemy_nearby():
+            return True
+        else:
+            return any(self.is_enemy_near_agent(agent) for agent in self.observation.other_agents)
 
     def is_enemy_near_agent(self, agent):
         enemy = self.get_closest_enemy_to_position(agent.position)

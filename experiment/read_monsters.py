@@ -16,8 +16,8 @@ class ExperimentResult(Enum):
     TIMEOUT = 2
 
 
-def get_experiment_result(time):
-    if time == -1:
+def get_experiment_result(time, alive_agents):
+    if time == -1 or alive_agents == 0:
         return ExperimentResult.FAILURE
     elif time >= 300:
         return ExperimentResult.TIMEOUT
@@ -49,8 +49,8 @@ def get_labels(agents):
 
 
 def plot_completion_chances():
-    experiment_no_help = {"file": "output_fwz_2.csv", "consider_other_agents": False}
-    experiment_help = {"file": "output_fwzh_2.csv", "consider_other_agents": True}
+    experiment_no_help = {"file": "output_fwz_4.csv", "consider_other_agents": False}
+    experiment_help = {"file": "output_fwzh_4.csv", "consider_other_agents": True}
     experiments = [experiment_no_help, experiment_help]
 
     data = pd.DataFrame()
@@ -59,15 +59,15 @@ def plot_completion_chances():
         df["consider_other_agents"] = experiment["consider_other_agents"]
         data = data.append(df)
 
-    data["result"] = data["time"].apply(get_experiment_result)
+    data["result"] = data.apply(lambda row: get_experiment_result(row.time, row.alive_agents), axis=1)
     accumulated_results = data.groupby(["consider_other_agents", "agents"])["result"].agg(
         [failure_rate, timeout_rate, success_rate])
     accumulated_results = accumulated_results.reset_index()
 
     fig, ax = plt.subplots()
     colors = ["g", "r", "b"]
-    labels = ["Success", "Failure"]
-    y = ["success_rate", "failure_rate"]
+    labels = ["Success", "Failure", "Timeout"]
+    y = ["success_rate", "failure_rate", "timeout_rate"]
 
     for result in accumulated_results.groupby("consider_other_agents"):
         width = WIDTH if result[0] else -WIDTH
@@ -107,10 +107,6 @@ def plot_completion_chances():
 
     filtered_data = data[data["result"] == ExperimentResult.SUCCESS]
 
-    times = filtered_data.groupby(['agents', 'consider_other_agents'])["time"].agg(["mean", "std"])
-    times.columns = ["time_mean", "time_std"]
-    times = times.reset_index()
-    times = times.set_index(["agents"])
     times_pivot = filtered_data.pivot_table(index='agents', columns='consider_other_agents', values='time',
                                             aggfunc=['mean', 'std'])
 
@@ -121,7 +117,7 @@ def plot_completion_chances():
     ax.set_title("Fence placement in flat world with zombie")
 
     ax.set_ylabel("Average completion time (s)")
-    ax.set_ylim([0, 200])
+    ax.set_ylim([0, 300])
 
     ax.set_xlabel("")
     ax.set_xticks(get_ticks(n_agent_amounts, WIDTH * 0.75))

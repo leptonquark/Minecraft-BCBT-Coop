@@ -9,9 +9,6 @@ import world.worldgenerator as wg
 from bt.actions import Action
 from goals.agentlesscondition import AgentlessCondition
 from goals.blueprint.blueprint import Blueprint, BlueprintType
-from items.inventory import InventorySlot
-from mobs import enemies
-from mobs.enemies import Enemy
 from mobs.entity import Entity
 
 
@@ -66,8 +63,8 @@ experiment_flat_world_zombie = Experiment(
         Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)
     ],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
-    start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)],
-    start_inventory=[(items.IRON_HELMET, InventorySlot.HELMET_SLOT)]
+    start_entities=[],
+    start_inventory=[]
 )
 
 experiment_flat_world_zombie_help = Experiment(
@@ -79,8 +76,8 @@ experiment_flat_world_zombie_help = Experiment(
         Blueprint.get_blueprint(BlueprintType.PointGrid, [132, 9, 9], 25)
     ],
     start_positions=[[101, 10, 9], [132, 10, -21], [162, 10, 9]],
-    start_entities=[Enemy(enemies.ZOMBIE, 116, 10, 9)],
-    start_inventory=[(items.IRON_HELMET, InventorySlot.HELMET_SLOT)]
+    start_entities=[],
+    start_inventory=[]
 )
 
 experiment_get_30_fence = Experiment(

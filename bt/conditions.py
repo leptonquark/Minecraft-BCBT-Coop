@@ -70,7 +70,7 @@ class HasNoEnemyNearby(Condition):
         super().__init__("Has No Enemy Nearby", agent)
 
     def verify(self):
-        return not self.agent.observer.has_enemy_nearby()
+        return not self.agent.observer.is_enemy_nearby()
 
 
 class HasNoEnemyNearToAgent(Condition):

@@ -265,6 +265,9 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
+    def spawn_zombie(self):
+        self.interface.spawn_zombie()
+
     def is_stuck(self):
         return self.observer.is_stuck()
 
