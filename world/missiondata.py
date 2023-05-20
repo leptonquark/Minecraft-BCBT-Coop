@@ -107,7 +107,7 @@ class MissionData:
     def initialize_server_handlers(self, server_section):
         server_handlers = Et.SubElement(server_section, xmlconstants.ELEMENT_SERVER_HANDLERS)
         self.initialize_world_generator(server_handlers)
-        if self.start_entities or self.world_generator.cuboids:
+        if self.world_generator.cuboids:
             self.initialize_drawing_decorator(server_handlers)
 
     def initialize_world_generator(self, server_handlers):
@@ -123,14 +123,7 @@ class MissionData:
 
     def initialize_drawing_decorator(self, server_handlers):
         drawing_decorator = Et.SubElement(server_handlers, xmlconstants.ELEMENT_DRAWING_DECORATOR)
-        self.initialize_entities(drawing_decorator)
         self.initialize_cuboids(drawing_decorator)
-
-    def initialize_entities(self, drawing_decorator):
-        for entity in self.start_entities:
-            draw_entity = Et.SubElement(drawing_decorator, xmlconstants.ELEMENT_DRAW_ENTITY)
-            draw_entity.set(xmlconstants.ATTRIBUTE_ENTITY_TYPE, entity.type)
-            set_range(draw_entity, entity.position, xmlconstants.ATTRIBUTE_ENTITY_XYZ)
 
     def initialize_cuboids(self, drawing_decorator):
         for cuboid in self.world_generator.cuboids:

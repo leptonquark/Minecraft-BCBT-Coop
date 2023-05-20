@@ -26,10 +26,6 @@ class MultiAgentProcess(mp.Process):
         agent = MinerAgent(self.mission_data, self.blackboard, self.role)
 
         agent.start_mission()
-        agent.activate_night_vision()
-        if self.role == 0:
-            agent.spawn_zombie()
-
         tree = BackChainTree(agent, self.mission_data.goals, self.mission_data.cooperativity)
         # if self.role == 0:
         # save_tree_to_log(tree, f"tree_{self.mission_data.configuration_id}.txt")
