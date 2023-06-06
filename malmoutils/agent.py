@@ -265,8 +265,10 @@ class MinerAgent:
     def activate_night_vision(self):
         self.interface.activate_effect(effects.NIGHT_VISION, effects.MAX_TIME, effects.MAX_AMPLIFIER)
 
-    def spawn_zombie(self):
-        self.interface.spawn_zombie()
+    def spawn_entities(self):
+        if self.role == 0:
+            for entity in self.mission_data.start_entities:
+                self.interface.spawn_entity(entity.type, entity.position, entity.hand_item)
 
     def is_stuck(self):
         return self.observer.is_stuck()
@@ -350,6 +352,8 @@ class MinerAgent:
     def start_mission(self):
         self.interface.start_multi_agent_mission(self.mission_data, self.role)
         self.interface.wait_for_mission()
+        self.spawn_entities()
+        self.activate_night_vision()
 
     def quit(self):
         self.interface.quit()

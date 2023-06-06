@@ -84,9 +84,12 @@ class MalmoInterface:
     def activate_effect(self, effect, effect_time, amplifier):
         self.agent_host.sendCommand(f"chat /effect @p {effect} {effect_time} {amplifier}")
 
-    def spawn_zombie(self):
-        # self.agent_host.sendCommand("chat /summon zombie 105 10 9 {HandItems:[{Count:1,id:diamond_sword}]}")
-        self.agent_host.sendCommand("chat /summon zombie 116 10 9 {HandItems:[{Count:1,id:stone_sword}]}")
+    def spawn_entity(self, entity_type, position, hand_item=None):
+        configuration = f"{{HandItems:[{{Count:1,id:{hand_item}}}]}}" if hand_item else ""
+        x = position[0]
+        y = position[1]
+        z = position[2]
+        self.agent_host.sendCommand(f"chat /summon {entity_type} {x} {y} {z} {configuration}")
 
     def start_multi_agent_mission(self, mission_data, i):
         mission = MissionSpec(mission_data.get_xml(), True)
