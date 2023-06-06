@@ -15,6 +15,7 @@ class PathAnimator:
         self.center = center
         self.width = width
         self.experiment_id = experiment.id
+        self.n_agents = n_agents
 
         goal_positions = [goal.positions for goal in experiment.goals if isinstance(goal, Blueprint)]
         self.target_points = np.concatenate(goal_positions) if len(goal_positions) > 0 else None
@@ -40,7 +41,7 @@ class PathAnimator:
         plt.subplots_adjust(bottom=0.2)
 
         # Then setup FuncAnimation.
-        self.total_frames = len(self.agent_positions[0])
+        self.total_frames = max(len(self.agent_positions[role]) for role in range(self.n_agents))
         self.resolution = 20  # 5
         self.frames = np.arange(0, self.total_frames, self.resolution)
 
@@ -52,7 +53,12 @@ class PathAnimator:
 
     def initialize_agent_plot(self):
         role = 0
-        self.agents, = self.ax.plot([], [], color=AGENT_COLORS[role], linestyle='dashed', label=f"Agent {role}")
+        self.agents = [
+            self.ax.plot([], [], color=AGENT_COLORS[role], linestyle='dashed', label=f"Agent {role}")[0]
+            for role
+            in range(self.n_agents)
+        ]
+
         self.ax.set_xlim(self.center[0] - self.width, self.center[0] + self.width)
         self.ax.set_ylim(self.center[1] - self.width, self.center[1] + self.width)
         self.ax.set_xlabel("X")
@@ -60,22 +66,29 @@ class PathAnimator:
         self.ax.set_title(f"Paths when {EXPERIMENT_TITLES[self.experiment_id]}", fontsize=16)
         self.ax.set_aspect('equal', adjustable='box')
 
-        self.ax.scatter(self.agent_positions[0][0, 0], self.agent_positions[0][0, 2], color=AGENT_COLORS[role],
-                        marker='*')
+        for role in range(self.n_agents):
+            self.ax.scatter(
+                self.agent_positions[role][0, 0],
+                self.agent_positions[role][0, 2],
+                color=AGENT_COLORS[role],
+                marker='*'
+            )
         plot_target_points(self.ax, self.target_points)
+
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         self.fig.legend(by_label.values(), by_label.keys(), ncol=len(by_label), loc='lower center', fontsize=12,
                         fancybox=True)
 
-        return self.agents,
+        return self.agents
 
     def update(self, i):
         """Update the scatter plot."""
         print(f"Updating frame {i}/{self.total_frames}")
-        self.agents.set_xdata(self.agent_positions[0][:i, 0])
-        self.agents.set_ydata(self.agent_positions[0][:i, 2])
-        return self.agents,
+        for role in range(self.n_agents):
+            self.agents[role].set_xdata(self.agent_positions[role][:i, 0])
+            self.agents[role].set_ydata(self.agent_positions[role][:i, 2])
+        return self.agents
 
 
 if __name__ == '__main__':
