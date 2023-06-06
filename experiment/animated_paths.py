@@ -37,10 +37,11 @@ class PathAnimator:
 
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
+        plt.subplots_adjust(bottom=0.2)
 
         # Then setup FuncAnimation.
         self.total_frames = len(self.agent_positions[0])
-        self.resolution = 5
+        self.resolution = 20  # 5
         self.frames = np.arange(0, self.total_frames, self.resolution)
 
         ani = animation.FuncAnimation(self.fig, self.update, interval=5, blit=True, save_count=50,
@@ -57,10 +58,15 @@ class PathAnimator:
         self.ax.set_xlabel("X")
         self.ax.set_ylabel("Z", labelpad=-4)
         self.ax.set_title(f"Paths when {EXPERIMENT_TITLES[self.experiment_id]}", fontsize=16)
+        self.ax.set_aspect('equal', adjustable='box')
 
         self.ax.scatter(self.agent_positions[0][0, 0], self.agent_positions[0][0, 2], color=AGENT_COLORS[role],
                         marker='*')
         plot_target_points(self.ax, self.target_points)
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        self.fig.legend(by_label.values(), by_label.keys(), ncol=len(by_label), loc='lower center', fontsize=12,
+                        fancybox=True)
 
         return self.agents,
 
