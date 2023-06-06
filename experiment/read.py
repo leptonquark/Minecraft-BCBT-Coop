@@ -25,10 +25,12 @@ def read_csv(file_name):
     return pd.read_csv(get_project_root() / EXPERIMENT_PATH / file_name)
 
 
-def plot_completion_times(fpp, flat_world):
+def plot_completion_times(fpp, flat_world, hide_backup=False):
     files = get_files(flat_world, fpp)
     dfs = [read_csv(file).astype({"collaborative": str}) for file in files]
     df = pd.concat(dfs)
+    if hide_backup:
+        df = df[df.collaborative != "Both"]
 
     groups = ["agents", "collaborative"]
 
@@ -70,12 +72,12 @@ def plot_completion_times(fpp, flat_world):
         ax.set_xticklabels(labels)
         ax.tick_params(axis='x', which='both', length=0)
 
-        n_agents_unique = len(stats_full.agents.unique())
-        group_n = n_agents_unique + 1
+        group_n = cooperativities + 1
         fig.canvas.draw()
 
         tick_labels = ax.xaxis.get_ticklabels()
         cooperativity_labels = [tick_labels[i] for i in range(len(tick_labels)) if i % group_n != 0]
+        print(cooperativity_labels)
         for cooperativity_label in cooperativity_labels:
             cooperativity_label.set_rotation(90)
 
@@ -89,15 +91,17 @@ def plot_completion_times(fpp, flat_world):
 
         plt.ylim([0, get_y_max(fpp, flat_world)])
 
+        n_agents_unique = len(stats_full.agents.unique())
         runs = int(len(df) / (cooperativities * n_agents_unique))
         plt.title(get_title(flat_world, fpp))
 
-        legend_items = [Patch(facecolor=color, edgecolor='k') for color in COOPERATIVITY_COLORS.values()]
+        cooperativities_unique = df.collaborative.unique()
+        legend_items = [Patch(facecolor=COOPERATIVITY_COLORS[coop], edgecolor='k') for coop in cooperativities_unique]
         plt.legend(legend_items, COOPERATIVITY_NAMES, title=COOPERATIVITY_TITLE,
                    title_fontproperties={"weight": "bold"})
 
         plt.tight_layout()
-        save_figure(get_file_name(flat_world, fpp, runs, without_edges))
+        save_figure(get_file_name(flat_world, fpp, runs, without_edges, hide_backup))
         plt.show()
 
 
@@ -110,14 +114,15 @@ def get_title(flat_world, fpp):
         return f"The stone pickaxe scenario in the {arena}"
 
 
-def get_file_name(flat_world, fpp, runs, without_edges):
+def get_file_name(flat_world, fpp, runs, without_edges, hide_backup):
     we = "we_" if without_edges else ""
+    hb = "hb_" if hide_backup else ""
     if fpp:
         gen = "fwg" if flat_world else "dwg"
-        return f"{gen}_{we}{runs}"
+        return f"{gen}_{we}{hb}{runs}"
     else:
         gen = "_spmdw" if flat_world else ""
-        return f"sp_{we}{runs}{gen}"
+        return f"sp_{we}{hb}{runs}{gen}"
 
 
 def get_y_max(fpp, flat_world):
@@ -155,7 +160,7 @@ def get_delta_x(collaborative, cooperativities, width):
         else:
             return -width
     else:
-        if collaborative == "True" or collaborative:
+        if collaborative == "True":
             return width / 2
         else:
             return -width / 2
@@ -166,7 +171,7 @@ def get_labels(cooperativities, stats_full):
     cooperativity_labels = ["Independent", "Collaborative", "Backup"]
     for agent in stats_full.agents.unique():
         agents_label = f"{agent} {'agents' if agent > 1 else 'agent'}"
-        labels += [f"{agents_label}"] + cooperativity_labels[:cooperativities + 1]
+        labels += [f"{agents_label}"] + cooperativity_labels[:cooperativities]
     return labels
 
 
@@ -205,7 +210,5 @@ def plot_variable_values(ax, stats, values, key):
 
 
 if __name__ == '__main__':
-    plot_completion_times(True, False)
-    plot_completion_times(True, True)
-    plot_completion_times(False, False)
-    plot_completion_times(False, True)
+    plot_completion_times(fpp=True, flat_world=True, hide_backup=True)
+    plot_completion_times(fpp=True, flat_world=False, hide_backup=True)
