@@ -49,13 +49,15 @@ def get_labels(agents):
 
 
 def plot_completion_chances():
-    experiment_no_help = {"file": "output_fwz_4.csv", "consider_other_agents": False}
-    experiment_help = {"file": "output_fwzh_4.csv", "consider_other_agents": True}
+    experiment_no_help = {"files": ["output_fwz_4.csv", "output_fwz_5.csv"], "consider_other_agents": False}
+    experiment_help = {"files": ["output_fwzh_4.csv", "output_fwzh_5.csv"], "consider_other_agents": True}
     experiments = [experiment_no_help, experiment_help]
 
     data = pd.DataFrame()
     for experiment in experiments:
-        df = read_csv(experiment["file"])
+        files = experiment["files"]
+        dfs = [read_csv(file).astype({"collaborative": str}) for file in files]
+        df = pd.concat(dfs)
         df["consider_other_agents"] = experiment["consider_other_agents"]
         data = data.append(df)
 
