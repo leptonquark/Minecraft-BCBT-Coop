@@ -31,7 +31,7 @@ EXPERIMENT_TITLES = {
     experiments.experiment_get_10_stone_pickaxe_manual.id: "gathering stone pickaxe materials in the test area",
 }
 PATHS_FOLDER_NAME = Path("log/paths")
-PATH_COOPERATIVITIES = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE_WITH_CATCHUP]
+PATH_COOPERATIVITIES = [Cooperativity.INDEPENDENT, Cooperativity.COOPERATIVE]
 
 
 def get_paths(experiment, n_agents):
@@ -119,7 +119,7 @@ def plot_cuboids(ax, cuboids):
 
 
 if __name__ == "__main__":
-    #    get_paths(experiments.experiment_flat_world, 3)
-    #    plot_paths(experiments.experiment_flat_world, 3, (130, 10), 40)
-    get_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2)
-    plot_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2, (0, 0), 30)
+    get_paths(experiments.experiment_flat_world, 3)
+    plot_paths(experiments.experiment_flat_world, 3, (130, 10), 40)
+    # get_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2)
+    # plot_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2, (0, 0), 30)
