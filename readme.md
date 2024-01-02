@@ -29,4 +29,4 @@ There are two primary ways to run the experiments.
 
 
 # Questions or comments
-If you have any questions either consult the report (attached as PDF in the repository) or reach out to me at justin@saler.nu . 
+If you have any questions, either consult [the report](/report.pdf) or reach out to me at justin@saler.nu . 
