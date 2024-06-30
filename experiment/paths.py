@@ -119,7 +119,7 @@ def plot_cuboids(ax, cuboids):
 
 
 if __name__ == "__main__":
-    get_paths(experiments.experiment_flat_world, 3)
-    plot_paths(experiments.experiment_flat_world, 3, (130, 10), 40)
-    # get_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2)
+    # get_paths(experiments.experiment_flat_world, 3)
+    # plot_paths(experiments.experiment_flat_world, 3, (130, 10), 40)
+    get_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2)
     # plot_paths(experiments.experiment_get_10_stone_pickaxe_manual, 2, (0, 0), 30)

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-DEFAULT_SEED = "4000020"
+DEFAULT_SEED = "30020"
 FLAT_WORLD_NO_DECORATION_GENERATOR_STRING = "3;1*minecraft:bedrock,7*minecraft:dirt,1*minecraft:grass;35"
 FLAT_WORLD_DECORATION_GENERATOR_STRING = "3;1*minecraft:bedrock,7*minecraft:dirt,1*minecraft:grass;35;decoration"
 

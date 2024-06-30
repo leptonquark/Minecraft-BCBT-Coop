@@ -4,15 +4,14 @@ import numpy as np
 
 from experiment import experiments
 from experiment.paths import EXPERIMENT_TITLES, get_path_file_name, AGENT_COLORS, plot_target_points, \
-    COOPERATIVITY_NAMES, PATH_COOPERATIVITIES
+    COOPERATIVITY_NAMES, PATH_COOPERATIVITIES, plot_cuboids
 from goals.blueprint.blueprint import Blueprint
-from multiagents.cooperativity import Cooperativity
 from world.worldgenerator import CustomWorldGenerator
 
 
 class PathAnimator:
 
-    def __init__(self, experiment, n_agents, center, width, cooperativity):
+    def __init__(self, experiment, n_agents, center, width):
         self.center = center
         self.width = width
         self.experiment_id = experiment.id
@@ -22,7 +21,7 @@ class PathAnimator:
         self.target_points = np.concatenate(goal_positions) if len(goal_positions) > 0 else None
 
         world_generator = experiment.world_generator
-        cuboids = world_generator.cuboids if isinstance(world_generator, CustomWorldGenerator) else []
+        self.cuboids = world_generator.cuboids if isinstance(world_generator, CustomWorldGenerator) else []
 
         self.agent_positions = []
         for cooperativity in PATH_COOPERATIVITIES:
@@ -51,7 +50,7 @@ class PathAnimator:
                                       init_func=self.initialize_agent_plot, frames=self.frames)
 
         writergif = animation.PillowWriter(fps=30)
-        ani.save("filename.gif", writer=writergif)
+        ani.save("path.gif", writer=writergif)
 
     def initialize_agent_plot(self):
         self.agents = []
@@ -77,6 +76,7 @@ class PathAnimator:
                     marker='*'
                 )
             plot_target_points(self.ax[i], self.target_points)
+            plot_cuboids(self.ax[i], self.cuboids)
 
         handles, labels = self.ax[0].get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
@@ -96,5 +96,6 @@ class PathAnimator:
 
 
 if __name__ == '__main__':
-    a = PathAnimator(experiments.experiment_flat_world, 3, (130, 10), 40, Cooperativity.INDEPENDENT)
+    # a = PathAnimator(experiments.experiment_flat_world, 3, (130, 10), 40)
+    a = PathAnimator(experiments.experiment_get_10_stone_pickaxe_manual, 2, (0, 0), 30)
     plt.show()
