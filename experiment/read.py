@@ -214,3 +214,4 @@ if __name__ == '__main__':
     plot_completion_times(fpp=True, flat_world=False, hide_backup=True)
     plot_completion_times(fpp=False, flat_world=True, hide_backup=True)
     plot_completion_times(fpp=False, flat_world=False, hide_backup=True)
+
