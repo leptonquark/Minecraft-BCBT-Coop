@@ -14,11 +14,9 @@ This project contains the code that was used in the report **"Using Backward Cha
 
 *- Abstract from the report*
 
-# Results
+# Animations
 
-## Animations
-
-These animations show comparisons between Algorithm 1 and Algorithm 3.
+The animations below show comparisons between Algorithm 1 and Algorithm 3 in two different scenarios:
 
 ### Placing fence posts in a flat world with trees
 
@@ -53,4 +51,5 @@ There are two primary ways to run the experiments.
 
 
 # Questions or comments
-If you have any questions, either consult [the report](/report.pdf) or reach out to me at justin@saler.nu . 
+
+If you have any questions, either consult [the report](Report.pdf) or reach out to me at justin@saler.nu . 
