@@ -8,7 +8,7 @@ from experiment.test import run_test
 from goals.blueprint.blueprint import Blueprint
 from items import items
 from multiagents.cooperativity import Cooperativity
-from utils.file import get_project_root
+from utils.file import get_project_root, create_folders
 from utils.plot import save_figure
 from world.worldgenerator import CustomWorldGenerator
 
@@ -56,7 +56,9 @@ def get_path(cooperativity, experiment, n_agents):
 
 def get_path_file_name(experiment, n_agents, cooperativity, role):
     file_name = f"agent_position_{experiment.id}_{n_agents}_{cooperativity.name.lower()}_{role}.csv"
-    path = get_project_root() / PATHS_FOLDER_NAME / file_name
+    file_path = str(PATHS_FOLDER_NAME / file_name)
+    create_folders(file_path)
+    path = get_project_root() / file_path
     return str(path)
 
 
