@@ -14,6 +14,8 @@ This project contains the code that was used in the report **"Using Backward Cha
 
 *- Abstract from the report*
 
+The full report is available at [KTH Diva Portal](https://kth.diva-portal.org/smash/get/diva2:1801186/FULLTEXT01.pdf)
+
 # Animations
 
 The animations below show comparisons between Algorithm 1 and Algorithm 3 in two different scenarios:
