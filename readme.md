@@ -1,6 +1,6 @@
 #  Using Backward Chained Behavior Trees to Control Cooperative Minecraft Agents
 
-This project contains the code that was used in the report **"Using Backward Chained Behavior Trees to Control Cooperative Minecraft Agents" by Justin Salér.** 
+This project contains the code that was used in the report **"Using Backward Chained Behavior Trees to Control Cooperative Minecraft Agents" by Justin Salér.**[^1]
 
 > This report presents a strategy to control multiple collaborative intelligent agents acting in a complex, versatile
 > environment. The proposed method utilizes back-chained behavior trees and 1-to-1 task distribution. The agents claim a
@@ -14,7 +14,7 @@ This project contains the code that was used in the report **"Using Backward Cha
 
 *- Abstract from the report*
 
-The full report is available at [KTH Diva Portal](https://kth.diva-portal.org/smash/get/diva2:1801186/FULLTEXT01.pdf)
+[^1] The full report is available at [KTH Diva Portal](https://kth.diva-portal.org/smash/get/diva2:1801186/FULLTEXT01.pdf).
 
 # Animations
 
