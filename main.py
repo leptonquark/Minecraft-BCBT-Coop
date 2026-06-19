@@ -6,8 +6,11 @@ if __name__ == '__main__':
     from kivy.core.window import Window
     from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, FadeTransition
+    from malmoutils.minecraft import set_mamo_xsd_path
     from ui.dashboard import DashboardScreen
     from ui.start import ConfigurationScreen
+
+    set_mamo_xsd_path()
 
     Window.borderless = False
     Window.size = (400, 300)

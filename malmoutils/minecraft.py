@@ -1,15 +1,27 @@
 import argparse
+import os
+from pathlib import Path
 
 import malmo.minecraftbootstrap
 
 # TODO: Remove Hardcoded line and move to a config file
 from utils.network import get_ports
 
-INSTALL_DIR = "C:\\Malmo-0.37.0-Windows-64bit_withBoost_Python3.7"
+
+
+def set_mamo_xsd_path():
+    xsd_path = os.environ.get("MALMO_XSD_PATH")
+    if xsd_path and Path(xsd_path, "Mission.xsd").exists():
+        return
+
+    repo_schema_path = Path(__file__).resolve().parent.parent / "bootstrap" / "MalmoPlatform" / "Schemas"
+    if Path(repo_schema_path, "Mission.xsd").exists():
+        os.environ["MALMO_XSD_PATH"] = str(repo_schema_path)
+        print(f"MALMO_XSD_PATH={repo_schema_path}")
 
 
 def run_minecraft(n_clients=None):
-    malmo.minecraftbootstrap.malmo_install_dir = INSTALL_DIR
+    set_mamo_xsd_path()
     ports = get_ports(n_clients) if n_clients is not None else None
     if ports:
         malmo.minecraftbootstrap.launch_minecraft(ports)
