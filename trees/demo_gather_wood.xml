@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <ReactiveSequence name="MainLoop">
+      <JumpIfStuck/>
+      <ReactiveFallback name="EnoughLogs">
+        <HasItem item="log2" amount="5"/>
+        <ReactiveSequence name="ChopOneLog">
+          <ReactiveFallback name="LogReachable">
+            <IsBlockWithinReach block="log2"/>
+            <GoToBlock block="log2"/>
+          </ReactiveFallback>
+          <MineMaterial material="log2"/>
+        </ReactiveSequence>
+      </ReactiveFallback>
+    </ReactiveSequence>
+  </BehaviorTree>
+</root>

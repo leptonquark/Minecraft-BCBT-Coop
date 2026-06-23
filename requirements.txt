@@ -1,6 +1,4 @@
 malmo~=0.37.0.0
 py-trees
 numpy~=1.21.1
-Kivy~=2.1.0
-pandas
-matplotlib
+pyzmq

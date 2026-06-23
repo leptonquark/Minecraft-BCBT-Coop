@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Auto-generatable; run `python -m bt.groot.manifest_cli trees/nodes_model.xml` to refresh.
+  Open this file in Groot2 (or paste the contents into your tree XML's <TreeNodesModel> block)
+  to make the Malmo-specific Actions/Conditions available in the palette.
+-->
+<root BTCPP_format="4">
+  <TreeNodesModel>
+    <Action ID="Craft">
+      <input_port name="item"/>
+      <input_port name="amount"/>
+    </Action>
+    <Action ID="Melt">
+      <input_port name="item"/>
+      <input_port name="amount"/>
+    </Action>
+    <Action ID="Equip">
+      <input_port name="item"/>
+    </Action>
+    <Action ID="EquipBestPickAxe">
+      <input_port name="tier"/>
+    </Action>
+    <Action ID="JumpIfStuck"/>
+    <Action ID="PickupItem">
+      <input_port name="item"/>
+    </Action>
+    <Action ID="GoToAnimal">
+      <input_port name="specie"/>
+    </Action>
+    <Action ID="GoToEnemy"/>
+    <Action ID="GoToBlock">
+      <input_port name="block"/>
+    </Action>
+    <Action ID="GoToPosition">
+      <input_port name="position"/>
+    </Action>
+    <Action ID="MineMaterial">
+      <input_port name="material"/>
+    </Action>
+    <Action ID="AttackAnimal">
+      <input_port name="specie"/>
+    </Action>
+    <Action ID="DefeatEnemy"/>
+    <Action ID="PlaceBlockAtPosition">
+      <input_port name="block"/>
+      <input_port name="position"/>
+    </Action>
+    <Action ID="DigDownwardsToMaterial">
+      <input_port name="material"/>
+    </Action>
+    <Action ID="ExploreInDirection">
+      <input_port name="direction"/>
+    </Action>
+    <Condition ID="HasItem">
+      <input_port name="item"/>
+      <input_port name="amount"/>
+    </Condition>
+    <Condition ID="HasItemEquipped">
+      <input_port name="item"/>
+    </Condition>
+    <Condition ID="HasPickaxeByMinimumTier">
+      <input_port name="tier"/>
+    </Condition>
+    <Condition ID="HasBestPickaxeByMinimumTierEquipped">
+      <input_port name="tier"/>
+    </Condition>
+    <Condition ID="HasPickupNearby">
+      <input_port name="item"/>
+    </Condition>
+    <Condition ID="HasNoEnemyNearby"/>
+    <Condition ID="IsBlockWithinReach">
+      <input_port name="block"/>
+    </Condition>
+    <Condition ID="IsBlockObservable">
+      <input_port name="block"/>
+    </Condition>
+    <Condition ID="IsPositionWithinReach">
+      <input_port name="position"/>
+    </Condition>
+    <Condition ID="IsAnimalWithinReach">
+      <input_port name="specie"/>
+    </Condition>
+    <Condition ID="IsEnemyWithinReach"/>
+    <Condition ID="IsAnimalObservable">
+      <input_port name="specie"/>
+    </Condition>
+    <Condition ID="IsBlockAtPosition">
+      <input_port name="block"/>
+      <input_port name="position"/>
+    </Condition>
+  </TreeNodesModel>
+</root>
